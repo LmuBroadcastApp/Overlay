@@ -93,8 +93,8 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--replay-banner-position-top', settings.replay.position_top);
 
     // battle panel
-    //root.style.setProperty('--battle-panel-position-bottom', settings.battle.position_bottom);
-    //root.style.setProperty('--battle-panel-position-left', settings.battle.position_left);
+    root.style.setProperty('--battle-panel-position-bottom', settings.relative.position_bottom);
+    root.style.setProperty('--battle-panel-position-left', settings.relative.position_left);
 
     // notifications
     root.style.setProperty('--notification-panel-position-left', settings.notifications.position_left);
