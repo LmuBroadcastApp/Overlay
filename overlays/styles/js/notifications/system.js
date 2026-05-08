@@ -49,7 +49,7 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Fastes lap</span>
+                <span class='padding'>Fastest lap</span>
                 <span class='padding'>New Record</span>
             </div>
             <div class='info'>
