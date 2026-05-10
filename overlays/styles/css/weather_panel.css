@@ -2,44 +2,40 @@
 {
     right: var(--weather-panel-position-right);
     top: var(--weather-panel-position-top);
+
     font-size: var(--weather-panel-font-size);
-    align-items: center;
     position: fixed;
     display: flex;
 }
 
-.weather-item
+#weather-panel table
 {
-    width: var(--weather-panel-item-width);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    margin-left: 2px;
-}
-
-.weather-time
-{
-    background-color: var(--weather-panel-time-background-color);
     text-align: center;
-    font-weight: bold;
-    color: black;
+    color: var(--weather-panel-text-color);
 }
 
-.weather-icon
+#weather-panel .weather-panel-forecast
 {
-    background-color: var(--weather-panel-img-background-color);
-    height: 50%;
+    border-collapse: separate;
+    border-spacing: 0 0;
 }
 
-.weather-icon img
+#weather-panel .weather-panel-conditions
 {
-    width: var(--weather-panel-item-width);
+    border-collapse: separate;
+    border-spacing: 2px 0;
 }
 
-.weather-temp
+#weather-panel table th
 {
-    background-color: var(--weather-panel-temp-background-color);
-    text-align: center;
-    font-weight: bold;
-    color: black;
+    background-color: var(--weather-panel-header-background-color);
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+#weather-panel table td
+{
+    background-color: var(--weather-panel-body-background-color);
+    padding-right: 10px;
+    padding-left: 10px;
 }

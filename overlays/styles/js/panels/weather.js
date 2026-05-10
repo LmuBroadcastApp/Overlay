@@ -1,23 +1,36 @@
 class WeatherPanel
 {
-    constructor(id)
+    constructor(selector, stateManager)
     {
-        this.element_id = id;
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`WeatherPanel: Element ${selector} not found`);
+            return;
+        }
+
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.session = null;
     }
 
-    setSession(session)
+    handleStateChange(key, value)
     {
-        this.session = session;
+        if (key === 'session')
+        {
+            this.session = value;
+        }
     }
 
     update()
     {
-        if (this.session === null) return;
+        if (this.session === null)
+        {
+            return;
+        }
 
-        let skyType = 0; let skyName = "Unknown";
-        let ambientTemp = 0; let when = "Now";
-
+        let when = "󰔛";
         let idx = this.session.weatherForecast.length; let content = "";
         let perc = this.session.currentEventTime / this.session.endEventTime;
 
@@ -32,6 +45,9 @@ class WeatherPanel
             }
         }
 
+        let header = "";
+        let body = "";
+
         for (let i = idx; i < this.session.weatherForecast.length - 1; i++)
         {
             if (i > idx)
@@ -40,94 +56,79 @@ class WeatherPanel
                 let remainingTime = timeSlot - this.session.currentEventTime;
 
                 let div = 1.0 / 60.0;
-                let result = Math.floor(remainingTime * div);
-                //when = result >= 60 ? `${(result * div).toFixed(1)}h` : `${result}m`;
-
-                if (result >= 60)
-                {
-                    let hours = Math.floor(result * div);
-                    let minutes = Math.floor(result - (hours * 60));
-                    when = `${hours}h.${minutes}m`;
-                }
-                else
-                {
-                    when = `${result}m`;
-                }
-
-                skyType = this.session.weatherForecast[i].sky;
-                skyName = this.session.weatherForecast[i].sky_name;
-                ambientTemp = this.session.weatherForecast[i].temperature;
-            }
-            else
-            {
-                skyType = this.ForecastSkyType(this.session.weatherForecast[i].sky, this.session.raining);
-                skyName = this.ForcastSkyTypeToString(skyType);
-                ambientTemp = this.session.ambientTemp.toFixed(0);
-                when = "Now";
+                when = Math.floor(remainingTime * div) + "'";
             }
 
-            let icon = `<div class="weather-icon"><img src="styles/img/weather/${skyType}.png" alt="${skyName}"/></div>`;
-            let temp = `<div class="weather-temp">${ambientTemp} ºC</div>`;
-            let time = `<div class="weather-time">${when}</div>`;
+            let icon = `<img src="styles/img/weather/${this.session.weatherForecast[i].sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
+            let time = `${when}`;
 
-            content = content + `<div class="weather-item">${time}${icon}${temp}</div>`;
+            header += `<th>${time}</th>`;
+            body += `<td>${icon}</td>`;
         }
 
-        $(this.element_id).html(content);
+        this.element.querySelector('.weather-panel-track-body').textContent = this._gripLevel2String(this.session.gripLevel, this.session.averagePathWetness);
+        this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
+        this.element.querySelector('.weather-panel-wind-body').innerHTML = `${this.session.windSpeed.toFixed(1)}&nbsp;KM/H`;
+
+        this.element.querySelector('.weather-panel-forecast-header').innerHTML = header;
+        this.element.querySelector('.weather-panel-forecast-body').innerHTML = body;
     }
 
-    ForecastSkyType(sky, raininess)
-    {
-        if (raininess <= 0)
-        {
-            return (sky > 4) ? 4 : 0;
-        }
-        if (0 < raininess && raininess <= 10)
-        {
-            return 5;
-        }
-        if (10 < raininess && raininess <= 15)
-        {
-            return 6;
-        }
-        if (15 < raininess && raininess <= 20)
-        {
-            return 7;
-        }
-        if (20 < raininess && raininess <= 40)
-        {
-            return 8;
-        }
-        if (40 < raininess && raininess <= 60)
-        {
-            return 9;
-        }
-        if (60 < raininess)
-        {
-            return 10;
-        }
-
-        return sky;
-    }
-
-    ForcastSkyTypeToString(sky)
+    _weatherIcon(sky)
     {
         switch (sky)
         {
-            case 0: return "Clear";
-            case 1: return "Light Clouds";
-            case 2: return "Partially Cloudy";
-            case 3: return "Mostly Cloudy";
-            case 4: return "Overcast";
-            case 5: return "Cloudy & Drizzle";
-            case 6: return "Cloudy & Light Rain";
-            case 7: return "Overcast & Light Rain";
-            case 8: return "Overcast & Rain";
-            case 9: return "Overcast & Heavy Rain";
-            case 10: return "Overcast & Storm";
-            default: return "Unknown";
+            case  0: return ''; // Clear
+            case  1: return ''; // Light Clouds
+            case  2: return ''; // Partially Cloudy
+            case  3: return ''; // Mostly Cloudy
+            case  4: return ''; // Overcast
+            case  5: return ''; // Cloudy & Drizzle
+            case  6: return ''; // Cloudy & Light Rain
+            case  7: return ''; // Overcast & Light Rain
+            case  8: return ''; // Overcast & Rain"
+            case  9: return ''; // Overcast & Heavy Rain
+            case 10: return ''; // Overcast & Storm
+            default: return ''; // Unknown
+        }
+    }
+
+    _gripLevel2String(gripLevel, pathWetness)
+    {
+        if (pathWetness >= 0.9)
+        {
+            return "Extreme wet";
+        }
+
+        if (pathWetness >= 0.6)
+        {
+            return "Very wet";
+        }
+
+        if (pathWetness >= 0.4)
+        {
+            return "Wet";
+        }
+
+        if (pathWetness >= 0.125)
+        {
+            return "Slightly wet";
+        }
+
+        if (pathWetness >= 0.05)
+        {
+            return "Damp";
+        }
+
+        switch (gripLevel)
+        {
+            case 0: return "Green";
+            case 1: return "Low";
+            case 2: return "Medium";
+            case 3: return "High";
+            case 4: return "Saturated";
+
+            default: return gripLevel;
         }
     }
 }
-
-var weather_panel = new WeatherPanel("#weather-panel");

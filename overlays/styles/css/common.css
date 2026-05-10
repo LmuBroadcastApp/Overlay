@@ -2,8 +2,8 @@
 :root
 {
     /** Standings panel variables */
-    --standings-panel-position-left: 1.0em;                 /** Position from the left of the screen */
-    --standings-panel-position-top: 1.0em;                  /** Position from the top of the screen */
+    --standings-panel-position-left: 1.0rem;                /** Position from the left of the screen */
+    --standings-panel-position-top: 1.0rem;                 /** Position from the top of the screen */
 
     --standings-panel-font-weight: 550;                     /** How bold the font will be seen */
     --standings-panel-font-size: 1em;                       /** General font size of the panel */
@@ -25,34 +25,49 @@
     /** Session panel variables */
     --session-panel-width: calc(var(--standings-panel-col-02-width) + var(--standings-panel-col-03-width) + var(--standings-panel-col-04-width) + var(--standings-panel-col-05-width) + var(--standings-panel-col-06-width));
     --session-panel-position-left: calc(var(--standings-panel-position-left) + var(--standings-panel-col-01-width));
-    --session-panel-position-top: 1.0em; /** Position from the top of the screen */
-    --session-panel-font-size: 1em; /** General font size of the panel */
+    --session-panel-position-top: 1.0rem;   /** Position from the top of the screen */
+    --session-panel-font-size: 1em;         /** General font size of the panel */
 
     /** Driver panel */
-    --driver-panel-width: 400px;
+    --driver-panel-width: 400px;                                                    /** Minimum width of the panel (it will expand if the driver name is too long) */
     --driver-panel-font-size: 1em;                                                  /** General font size of the panel */
-    --driver-panel-position-right: 3.0em;                                           /** Position from the right of the screen */
-    --driver-panel-position-bottom: 1.0em;                                          /** Position from the bottom of the screen */
+    --driver-panel-position-right: 1.0rem;                                          /** Position from the right of the screen */
+    --driver-panel-position-bottom: 1.0rem;                                         /** Position from the bottom of the screen */
     --driver-panel-background-color: rgba(0, 0, 0, 0.7);                            /** Panel general background */
     --driver-panel-vehicle-number-background-color: rgba(255, 255, 255, 0.6);       /** This will be overridden by the vehicle class color */
     --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);     /** Vehicle position background */
 
     /** Weather forecast panel */
-    --weather-panel-time-background-color: rgba(248, 249, 250, 0.9);    /** Background color of the time item */
-    --weather-panel-temp-background-color: rgba(248, 249, 250, 0.9);    /** Background color of the temperature item */
-    --weather-panel-img-background-color: rgba(33, 37, 41, 0.9);        /** Background color of the weather icons */
-    --weather-panel-position-right: 3.0em;                              /** Position from the right of the screen */
-    --weather-panel-position-top: 1.0em;                                /** Position from the top of the screen */
-    --weather-panel-item-width: 48px;                                   /** Width of each item (icon, time, temperature) */
+    --weather-panel-header-background-color: rgba(33, 37, 41, 0.9);     /** Background color for the table header */
+    --weather-panel-body-background-color: rgba(0, 0, 0, 0.4);          /** Background color for the table body */
+    --weather-panel-text-color: rgb(240, 240, 240);                     /* Header and body text color */
+    --weather-panel-position-right: 1.0rem;                             /** Position from the right of the screen */
+    --weather-panel-position-top: 1.0rem;                               /** Position from the top of the screen */
+    --weather-panel-img-width: 24px;                                    /** Width of each item (icon, time, temperature) */
     --weather-panel-font-size: 1em;                                     /** General font size of the panel */
 
     /** Map panel */
-    --map-panel-position-right: 3em;    /** Position from the right of the screen */
-    --map-panel-position-top: 30%;      /** Position from the top of the screen */
+    --map-panel-position-right: 1rem;    /** Position from the right of the screen */
+    --map-panel-position-top: 30rem;     /** Position from the top of the screen */
 
     /** Replay banner */
-    --replay-banner-position-left: 3em;
-    --replay-banner-position-top: 1em;
+    --replay-banner-position-left: 1rem; /** Position from the left of the screen */
+    --replay-banner-position-top: 1rem;  /** Position from the top of the screen */
+
+    /** Battle panel */
+    --battle-panel-position-bottom: 1rem;   /** Position from the bottom of the screen */
+    --battle-panel-position-left: 45rem;    /** Position from the left of the screen */
+
+    /** Telemetry */
+    --telemetry-gauge-size: 60px;
+    --telemetry-text-scale: calc(var(--telemetry-gauge-size) * 0.35);
+    --telemetry-unit-scale: calc(var(--telemetry-gauge-size) * 0.15);
+
+    /** Notification */
+    --notification-panel-position-left: 50rem;  /** Position from the left of the screen */
+    --notification-panel-position-top: 1rem;    /** Position from the top of the screen */
+    --notification-panel-font-size: 1em;        /** General font size of the panel */
+    --notification-panel-width: 400px;          /** Minimum width of the panel */
 }
 
 /**********************************************************************************************************************/
@@ -60,8 +75,12 @@
 body
 {
     font-family: 'Titillium Web', 'FiraCode Nerd Font', 'sans-serif';
-    margin: 0; padding: 0;
     font-size: 1.0em;
+
+    padding: 0;
+    margin: 0;
+
+    overflow: hidden;
 }
 
 img
@@ -71,6 +90,9 @@ img
 
 #gradient-background
 {
+    z-index: -1;
+    top: 0; left: 0;
+
     width: 40%;
     height: 100%;
 
@@ -120,6 +142,13 @@ img
 .lost-position
 {
     color: rgb(244, 96, 54);
+}
+
+.overflow-hidden
+{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 /**********************************************************************************************************************/

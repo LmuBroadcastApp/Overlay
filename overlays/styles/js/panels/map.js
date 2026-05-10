@@ -1,26 +1,36 @@
 class TrackMapPanel
 {
-    constructor(id)
+    constructor(selector, stateManager)
     {
-        this.element_id = id;
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`TrackMapPanel: Element ${selector} not found`);
+            return;
+        }
+
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.standings = null;
         this.map = null;
     }
 
-    setStandings(standings)
+    handleStateChange(key, value)
     {
-        this.standings = standings;
-    }
-
-    setMap(map)
-    {
-        this.map = map;
+        if (key === 'standings')
+        {
+            this.standings = value;
+        }
+        else if (key === 'map')
+        {
+            this.map = value;
+        }
     }
 
     clear()
     {
-        let canvas = document.getElementById(this.element_id);
-        canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        this.element.getContext("2d").clearRect(0, 0, this.element.width, this.element.height);
     }
 
     drawCircle(ctx, x, y, radius, color)
@@ -215,7 +225,7 @@ class TrackMapPanel
 
     update()
     {
-        let canvas = document.getElementById(this.element_id);
+        let canvas = this.element;
         let ctx = canvas.getContext("2d");
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -248,5 +258,3 @@ class TrackMapPanel
         //}
     }
 }
-
-var map_panel = new TrackMapPanel("track-map-panel");

@@ -1,11 +1,12 @@
 
 #driver-panel
 {
-    font-size: var(--driver-panel-font-size);
-    width: var(--driver-panel-width);
-
     bottom: var(--driver-panel-position-bottom);
     right: var(--driver-panel-position-right);
+    font-size: var(--driver-panel-font-size);
+
+    display: flex;
+    gap: 1px;
 
     position: fixed;
     color: white;
@@ -13,6 +14,7 @@
 
 #driver-panel table
 {
+    min-width: var(--driver-panel-width);
     border-collapse: separate;
     border-spacing: 1px;
     width: 100%;
@@ -52,7 +54,7 @@
     padding-left: 5px;
 }
 
-#driver-panel .driver-vehicle-numer
+#driver-panel .driver-vehicle-number
 {
     background-color: var(--driver-panel-vehicle-number-background-color);
     font-size: calc(var(--driver-panel-font-size) + 0.5em);

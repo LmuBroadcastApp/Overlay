@@ -1,14 +1,31 @@
 class DriverPanel
 {
-    constructor(id)
+    constructor(selector, stateManager)
     {
-        this.element_id = id;
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`DriverPanel: Element ${selector} not found`);
+            return;
+        }
+
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.vehicle = null;
+
+        const speedValue = document.getElementById('speedValue');
+        const gearLabel = document.getElementById('gearLabel');
+        const throttleFill = document.getElementById('throttleFill');
+        const brakeFill = document.getElementById('brakeFill');
     }
 
-    setVehicle(vehicle)
+    handleStateChange(key, value)
     {
-        this.vehicle = vehicle;
+        if (key === 'standings')
+        {
+            this.vehicle = StandingsGetFocus(value);
+        }
     }
 
     update()
@@ -27,19 +44,17 @@ class DriverPanel
             diff_pos_txt += "&nbsp;&nbsp;&nbsp;Q" + this.vehicle.qualy_position_class;
         }
 
-        $(this.element_id + " .driver-panel-name").text(this.vehicle.driver);
-        $(this.element_id + " .driver-panel-team").text(this.vehicle.vehicle_name);
-        $(this.element_id + " .driver-panel-pos-diff").html(diff_pos_txt);
+        this.element.querySelector('.driver-panel-name').textContent = this.vehicle.driver;
+        this.element.querySelector('.driver-panel-team').textContent = this.vehicle.vehicle_name;
+        this.element.querySelector('.driver-panel-pos-diff').innerHTML = diff_pos_txt;
 
-        $(this.element_id + " .driver-panel-last-lap").text(LaptimeToString(this.vehicle.last_lap));
-        $(this.element_id + " .driver-panel-best-lap").text(LaptimeToString(this.vehicle.best_lap));
+        this.element.querySelector('.driver-panel-last-lap').textContent = LaptimeToString(this.vehicle.last_lap);
+        this.element.querySelector('.driver-panel-best-lap').textContent = LaptimeToString(this.vehicle.best_lap);
 
-        $(this.element_id + " .driver-vehicle-class").text(this.vehicle.vehicle_class);
-        $(this.element_id + " .driver-vehicle-numer").text("#" + this.vehicle.vehicle_number);
-        $(this.element_id + " .driver-vehicle-position").text("P" + this.vehicle.race_position_class);
+        this.element.querySelector('.driver-vehicle-class').textContent = this.vehicle.vehicle_class;
+        this.element.querySelector('.driver-vehicle-number').textContent = "#" + this.vehicle.vehicle_number;
 
-        $(this.element_id + " .driver-vehicle-numer").css("background-color", ColorFromVehicleClass(this.vehicle.vehicle_class));
+        this.element.querySelector('.driver-vehicle-position').textContent = "P" + this.vehicle.race_position_class;
+        this.element.querySelector('.driver-vehicle-number').style.backgroundColor = ColorFromVehicleClass(this.vehicle.vehicle_class);
     }
 }
-
-var driver_panel = new DriverPanel("#driver-panel");

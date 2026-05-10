@@ -211,37 +211,8 @@ function ColorFromVehicleClass(className)
 
 function CSSClassFromVehicleClass(className)
 {
-    switch (className.toLowerCase())
-    {
-        case "gt3":
-        {
-            return "GT3";
-        }
-        case "gte":
-        {
-            return "GTE";
-        }
-        case "lmp2":
-        {
-            return "LMP2";
-        }
-        case "lmp3":
-        {
-            return "LMP3";
-        }
-        case "hyper":
-        {
-            return "Hyper";
-        }
-        case "lmp2_elms":
-        {
-            return "LMP2_ELMS";
-        }
-        default:
-        {
-            return "generic_class";
-        }
-    }
+    //return "generic-class";
+    return (className || '').replace(/[^a-zA-Z0-9]/g, '_');
 }
 
 function GetRightColumnName(rightColumn, vehicleClass)
@@ -301,6 +272,19 @@ function StandingsGetFocus(standings)
     }
 
     return null;
+}
+
+function StandingsGetFocusIdx(standings)
+{
+    for (const [i, vehicle] of standings.entries())
+    {
+        if (vehicle.focus)
+        {
+            return i;
+        }
+    }
+
+    return -1;
 }
 
 function HasOneTireCompound(vehicle)

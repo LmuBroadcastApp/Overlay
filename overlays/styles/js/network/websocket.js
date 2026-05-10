@@ -7,7 +7,7 @@ class WebSocketWrapper
         this.callback = null;
     }
 
-    SetCallback(callback)
+    setCallback(callback)
     {
         if (typeof callback.onStandingsUpdate !== 'function')
         {
@@ -33,11 +33,17 @@ class WebSocketWrapper
             return false
         }
 
+        if (typeof callback.onOverlaySettingsUpdate !== 'function')
+        {
+            console.log('Callback object must implement onOverlaySettingsUpdate method');
+            return false
+        }
+
         this.callback = callback;
         return true;
     }
 
-    Connect()
+    connect()
     {
         let ws = new WebSocket(this.url);
         let cb = this.callback;
@@ -49,7 +55,18 @@ class WebSocketWrapper
 
         ws.onmessage = function(event)
         {
-            var data = JSON.parse(event.data);
+            let data = null;
+
+            try
+            {
+                data = JSON.parse(event.data);
+            }
+            catch (e)
+            {
+                console.log("Failed to parse WebSocket message: " + e.message);
+                return;
+            }
+
             switch (data.type)
             {
                 case 'standings':
@@ -67,6 +84,10 @@ class WebSocketWrapper
                 case 'overlay':
                 {
                     cb.onOverlayUpdate(data.payload);
+                } break;
+                case 'overlay_settings':
+                {
+                    cb.onOverlaySettingsUpdate(data.payload);
                 } break;
                 default:
                 {
@@ -86,6 +107,15 @@ class WebSocketWrapper
         };
 
         this.ws = ws;
+    }
+
+    disconnect()
+    {
+        if (this.ws)
+        {
+            this.ws.close();
+            this.ws = null;
+        }
     }
 }
 

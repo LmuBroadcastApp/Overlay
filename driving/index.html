@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/html">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>LMU Driver Overlay</title>
+
+        <meta name="viewport" content="width=100%, height=100%, initial-scale=1.0"/>
+        <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="styles/css/common.css"/>
+
+        <script src="styles/js/utils/websocket.js"></script>
+        <script src="styles/js/utils/network.js"></script>
+        <script src="styles/js/utils/jquery.js"></script>
+        <script src="styles/js/utils/chart.js"></script>
+
+        <script src="styles/js/utils/registry.js"></script>
+        <script src="styles/js/utils/state.js"></script>
+
+        <script src="styles/js/panels/PitStopEstimation.js"></script>
+        <script src="styles/js/panels/TelemetryChart.js"></script>
+
+        <script src="styles/js/main.js"></script>
+    </head>
+    <body>
+        <canvas id="telemetry-input-chart"></canvas>
+
+        <div id="telemetry-pit-stop-estimation">
+            <table>
+                <tr><th>Driver swap</th><td class="telemetry-pit-stop-estimation-driver-swap">0.0s</td></tr>
+                <tr><th>Penalties</th><td class="telemetry-pit-stop-estimation-penalties">0.0s</td></tr>
+                <tr><th>Damage</th><td class="telemetry-pit-stop-estimation-damage">0.0s</td></tr>
+                <tr><th>Tires</th><td class="telemetry-pit-stop-estimation-tires">0.0s</td></tr>
+                <tr><th>Fuel</th><td class="telemetry-pit-stop-estimation-fuel">0.0s</td></tr>
+                <tr><th>Ve</th><td class="telemetry-pit-stop-estimation-ve">0.0s</td></tr>
+
+                <tr><th colspan="2"><hr/></th></tr>
+                <tr><th>Total</th><td class="telemetry-pit-stop-estimation-total">0.0s</td></tr>
+            </table>
+        </div>
+    </body>
+</html>

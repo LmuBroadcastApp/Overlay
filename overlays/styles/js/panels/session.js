@@ -1,14 +1,26 @@
 class SessionPanel
 {
-    constructor(id)
+    constructor(selector, stateManager)
     {
-        this.element_id = id;
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`SessionPanel: Element ${selector} not found`);
+            return;
+        }
+
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.session = null;
     }
 
-    setSession(session)
+    handleStateChange(key, value)
     {
-        this.session = session;
+        if (key === 'session')
+        {
+            this.session = value.trackName !== "" ? value : null;
+        }
     }
 
     update()
@@ -16,29 +28,33 @@ class SessionPanel
         if (this.session === null) return;
         let sector = "";
 
-        $(this.element_id + " .session-time").text(this.getSessionTimeString(this.session));
-        $(this.element_id + " .session-track").text(this.session.trackName);
-        $(this.element_id + " .session-name").text(this.session.name);
+        this.element.querySelector('.session-time').textContent = this.getSessionTimeString(this.session);
+        this.element.querySelector('.session-track').textContent = this.session.trackName;
+        this.element.querySelector('.session-name').textContent = this.session.name;
 
         for (var i = 0; i < this.session.sectorFlags.length; i++)
         {
             if (this.session.sectorFlags[i])
             {
-                if (sector !== "") sector = sector + " - ";
-                sector = sector + (i + 1);
+                sector += `<div class="sector-flag" ">S${i + 1}</div>`;
             }
         }
 
-        if (sector !== "")
-        {
-            $(this.element_id + " .session-flag").css('border', '2px solid yellow');
-            $(this.element_id + " .session-flag").text("YELLOW SECTOR " + sector);
-        }
-        else
-        {
-            $(this.element_id + " .session-flag").css('border', 'none');
-            $(this.element_id + " .session-flag").text("");
-        }
+        this.element.querySelector('.in-game-time').textContent = this.getInGameTImeString(this.session);
+        this.element.querySelector('.session-flag').innerHTML = sector || "";
+    }
+
+    getInGameTImeString(session)
+    {
+        let time = session.inGameTime;
+
+        let hours = Math.floor(time / 3600);
+        time %= 3600;
+
+        let minutes = Math.floor(time / 60);
+        let seconds = time % 60;
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
 
     getSessionTimeString(session)
@@ -55,5 +71,3 @@ class SessionPanel
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 }
-
-var session_panel = new SessionPanel("#session-panel");

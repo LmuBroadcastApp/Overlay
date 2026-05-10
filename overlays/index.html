@@ -8,138 +8,131 @@
         <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
 
-        <link rel="stylesheet" href="styles/css/common.css"/>
-        <link rel="stylesheet" href="styles/css/map_panel.css"/>
-        <link rel="stylesheet" href="styles/css/tower_panel.css"/>
-        <link rel="stylesheet" href="styles/css/driver_panel.css"/>
-        <link rel="stylesheet" href="styles/css/weather_panel.css"/>
+        <link rel="stylesheet" href="styles/css/notifications.css"/>
         <link rel="stylesheet" href="styles/css/session_panel.css"/>
+        <link rel="stylesheet" href="styles/css/weather_panel.css"/>
+        <link rel="stylesheet" href="styles/css/driver_panel.css"/>
+        <link rel="stylesheet" href="styles/css/battle_panel.css"/>
+        <link rel="stylesheet" href="styles/css/tower_panel.css"/>
+        <link rel="stylesheet" href="styles/css/map_panel.css"/>
+        <link rel="stylesheet" href="styles/css/telemetry.css"/>
+        <link rel="stylesheet" href="styles/css/common.css"/>
 
-        <script src="styles/js/utils/jquery.js"></script>
-        <script src="styles/js/utils/network.js"></script>
+        <script src="styles/js/network/websocket.js"></script>
+        <script src="styles/js/network/network.js"></script>
+
+        <script src="styles/js/libs/jquery.js"></script>
+        <script src="styles/js/libs/chart.js"></script>
+
+        <script src="styles/js/notifications/controller.js"></script>
+        <script src="styles/js/notifications/system.js"></script>
+
         <script src="styles/js/utils/standings.js"></script>
-        <script src="styles/js/utils/websocket.js"></script>
-        <script src="styles/js/utils/auto_shrink_text.js"></script>
+        <script src="styles/js/utils/registry.js"></script>
+        <script src="styles/js/utils/state.js"></script>
 
-        <script src="styles/js/panels/map.js"></script>
-        <script src="styles/js/panels/tower.js"></script>
-        <script src="styles/js/panels/driver.js"></script>
-        <script src="styles/js/panels/weather.js"></script>
+        <script src="styles/js/panels/telemetry.js"></script>
         <script src="styles/js/panels/session.js"></script>
+        <script src="styles/js/panels/weather.js"></script>
+        <script src="styles/js/panels/battle.js"></script>
+        <script src="styles/js/panels/driver.js"></script>
+        <script src="styles/js/panels/tower.js"></script>
+        <script src="styles/js/panels/map.js"></script>
+
+        <script src="styles/js/main.js"></script>
     </head>
-
     <body>
-        <script>
-            let g_overlay_controls = undefined;
+        <main aria-label="LMU TV Overlay panels">
+            <section id="gradient-background"></section>
+            <section id="notification-container"></section>
 
-            let callBacks =
-            {
-                onStandingsUpdate : function(data)
-                {
-                    map_panel.setStandings(data);
-                    tower_panel.setStandings(data);
-                    driver_panel.setVehicle(StandingsGetFocus(data));
-                },
-                onSessionUpdate : function(data)
-                {
-                    let session = data.trackName != "" ? data : null;
-                    tower_panel.setSession(session);
+            <section id="replay-banner" aria-hidden="true">
+                <img src="styles/img/others/replay.webp" alt="replay">
+            </section>
 
-                    session_panel.setSession(session);
-                    weather_panel.setSession(session);
+            <section id="session-panel" aria-label="Current session info">
+                <div class="session-container">
+                    <div class="session-time"></div>
+                    <div class="session-flag"></div>
+                    <div class="in-game-time"></div>
+                </div>
+                <hr />
+                <div class="session-container">
+                    <div class="session-track"></div>
+                    <div class="session-name"></div>
+                </div>
+            </section>
 
-                    const speed = g_overlay_controls?.overlay_animation_speed;
-                    let animation_speed = (typeof speed === 'number' && !isNaN(speed)) ? speed * 1000 : 1000;
+            <canvas id="track-map-panel" aria-label="Track map"></canvas>
+            <section id="tower-panel" aria-label="Standings"></section>
+            <section id="battle-panel" aria-label="Battle"></section>
 
-                    if (data.replayActive)
-                    {
-                        $("#tower-panel").hide(animation_speed);
-                        $("#session-panel").hide(animation_speed);
-                        $("#weather-panel").hide(animation_speed);
-                        $("#track-map-panel").hide(animation_speed);
-
-                        $("#replay-banner").show(animation_speed);
-                    }
-                    else
-                    {
-                        $("#tower-panel").show(animation_speed);
-                        $("#session-panel").show(animation_speed);
-                        $("#weather-panel").show(animation_speed);
-                        $("#track-map-panel").show(animation_speed);
-
-                        $("#replay-banner").hide(animation_speed);
-                    }
-                },
-                onTrackMapUpdate : function(data)
-                {
-                    map_panel.setMap(data);
-                },
-                onOverlayUpdate : function(data)
-                {
-                    tower_panel.setControls(data);
-                    g_overlay_controls = data;
-                }
-            };
-
-            let webSocketWrapper = new WebSocketWrapper("ws://" + window.location.hostname + ":6433");
-            webSocketWrapper.SetCallback(callBacks);
-            webSocketWrapper.Connect();
-
-            setInterval(() => {
-                driver_panel.update();
-                tower_panel.update();
-
-                session_panel.update();
-                weather_panel.update();
-
-                map_panel.update();
-            }, 1000 / 30);
-        </script>
-        <div id="gradient-background"/>
-
-        <div id="replay-banner">
-            <img src="styles/img/others/replay.webp">
-        </div>
-
-        <div id="session-panel">
-            <div class="session-container">
-                <div class="session-time"></div>
-                <div class="session-flag"></div>
-            </div>
-            <hr />
-            <div class="session-container">
-                <div class="session-track"></div>
-                <div class="session-name"></div>
-            </div>
-        </div>
-
-        <div id="tower-panel"></div>
-        <div id="weather-panel"></div>
-        <canvas id="track-map-panel"></canvas>
-
-        <div id="driver-panel">
-            <table>
-                <tbody>
-                <tr>
-                    <td class="driver-vehicle-position" rowspan="2" style="width: 20%;"></td>
-                    <td class="driver-panel-pos-diff" style="width: 20%; text-align: center;">></td>
-                    <td class="driver-panel-name" colspan="2" style="width: 40%;"></td>
-                    <td class="driver-vehicle-numer" rowspan="2" style="width: 20%;"></td>
-                </tr>
-                <tr>
-                    <td class="driver-panel-team" colspan="3" style="width: 60%;"></td>
-                </tr>
-                    <tr>
-                        <td class="driver-vehicle-class" style="width: 20%; text-align: center;"></td>
-
-                        <td style="width: 20%; text-align: center;">Last</td>
-                        <td class="driver-panel-last-lap" style="width: 20%; text-align: center;"></td>
-
-                        <td style="width: 20%; text-align: center;">Best</td>
-                        <td class="driver-panel-best-lap" style="width: 20%; text-align: center;"></td>
+            <section id="weather-panel" aria-label="Weather forecast">
+                <table class="weather-panel-forecast">
+                    <tr class="weather-panel-forecast-header">
                     </tr>
-                </tbody>
-            </table>
-        </div>
+                    <tr class="weather-panel-forecast-body">
+                    </tr>
+                </table>
+                <table class="weather-panel-conditions">
+                    <tr>
+                        <th class="weather-panel-track-header">TRACK</th>
+                        <th class="weather-panel-temp-header">TEMPERATURE</th>
+                        <th class="weather-panel-wind-header">WIND</th>
+                    </tr>
+                    <tr>
+                        <td class="weather-panel-track-body"></td>
+                        <td class="weather-panel-temp-body"></td>
+                        <td class="weather-panel-wind-body"></td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="driver-panel" aria-label="Focused driver">
+                <div id="telemetry-panel">
+                    <div id="gauges">
+                        <div class="gauge">
+                            <canvas id="speedChart"></canvas>
+
+                            <div class="speed-label">
+                                <div id="speedValue">0</div>
+                                <div id="speedUnit">km/h</div>
+                            </div>
+                        </div>
+                        <div class="gauge">
+                            <canvas id="rpmChart"></canvas>
+                            <div class="rpm-label" id="gearLabel">N</div>
+                            <div class="rpm-bottom" id="rpmNumber">0</div>
+                        </div>
+                    </div>
+                    <div id="inputs">
+                        <div class="bar"><div id="throttleFill" class="fill"></div></div>
+                        <div class="bar"><div id="brakeFill" class="fill"></div></div>
+                    </div>
+                </div>
+                <table>
+                    <tbody>
+                    <tr>
+                        <td class="driver-vehicle-position" rowspan="2" style="width: 20%;"></td>
+                        <td class="driver-panel-pos-diff" style="width: 20%; text-align: center;">></td>
+                        <td class="driver-panel-name" colspan="2" style="width: 40%;"></td>
+                        <td class="driver-vehicle-number" rowspan="2" style="width: 20%;"></td>
+                    </tr>
+                    <tr>
+                        <td class="driver-panel-team" colspan="3" style="width: 60%;"></td>
+                    </tr>
+                        <tr>
+                            <td class="driver-vehicle-class" style="width: 20%; text-align: center;"></td>
+
+                            <td style="width: 20%; text-align: center;">Last</td>
+                            <td class="driver-panel-last-lap" style="width: 20%; text-align: center;"></td>
+
+                            <td style="width: 20%; text-align: center;">Best</td>
+                            <td class="driver-panel-best-lap" style="width: 20%; text-align: center;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
     </body>
 </html>

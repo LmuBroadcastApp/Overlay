@@ -1,9 +1,18 @@
 class TowerPanel
 {
-    constructor(id)
+    constructor(selector, stateManager)
     {
-        this.element_id = id;
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`TowerPanel: Element ${selector} not found`);
+            return;
+        }
+
         this.vehicle_control = new Map();
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
 
         this.session = null;
         this.standings = null;
@@ -21,33 +30,26 @@ class TowerPanel
         };
     }
 
-    clear()
+    handleStateChange(key, value)
     {
-        $(this.element_id).empty();
-    }
-
-    setSession(session)
-    {
-        this.session = session;
-    }
-
-    setStandings(standings)
-    {
-        this.standings = standings;
-    }
-
-    setControls(controls)
-    {
-        if (controls.vehicleClass != this.controls.vehicleClass)
+        if (key === 'session')
+        {
+            this.session = value.trackName !== "" ? value : null;
+        }
+        else if (key === 'standings')
+        {
+            this.standings = value;
+        }
+        else if (key === 'controls')
         {
             this.vehicle_control.clear();
+            this.controls = value;
         }
-        this.controls = controls;
     }
 
     update()
     {
-        this.clear();
+        this.element.innerHTML = '';
 
         if (this.standings == null || this.session == null)
         {
@@ -187,7 +189,7 @@ class TowerPanel
         }
         else if(rightColumn == "damage")
         {
-            right_column_content = `<td class="vehicle-right-column standings-secondary-color">${vehicle.telemetry.damage.toFixed(1)}%</td>`;
+            right_column_content = `<td class="vehicle-right-column standings-secondary-color">${vehicle.damage.toFixed(1)}%</td>`;
         }
         else if (rightColumn == "best")
         {
@@ -220,7 +222,8 @@ class TowerPanel
         {
             if (HasOneTireCompound(vehicle))
             {
-                right_column_content = `<td class="vehicle-right-column standings-secondary-color" style="color: ${TireCompoundColor(vehicle.tire_compound[0])}">󱢖</td>`;
+                let tire = "(" + vehicle.tire_compound[0][0] + ")";
+                right_column_content = `<td class="vehicle-right-column standings-secondary-color" style="color: ${TireCompoundColor(vehicle.tire_compound[0])};">${tire}</td>`;
             }
             else
             {
@@ -347,12 +350,13 @@ class TowerPanel
             standings: GetVehicleOfClass(this.standings, this.controls.vehicle_class)
         }
 
-        let table = this.renderOneStandingsClass(renderInfo);
-        $(this.element_id).append(table);
+        let html = this.renderOneStandingsClass(renderInfo);
+        this.element.innerHTML = html;
     }
 
     showMultiClass()
     {
+        let html = "";
         for (const [c, s] of GetByClasses(this.standings))
         {
             if (this.session.name == undefined)
@@ -373,11 +377,8 @@ class TowerPanel
                 standings: s
             }
 
-            let table = this.renderOneStandingsClass(renderInfo);
-            $(this.element_id).append(table);
+            html += this.renderOneStandingsClass(renderInfo);
         }
-
+        this.element.innerHTML = html;
     }
 }
-
-var tower_panel = new TowerPanel("#tower-panel");
