@@ -46,7 +46,10 @@ class NotificationController
             this.notifications = value.notifications;
         }
 
-        this._update();
+        if (this.session.name != "QUALIFY")
+        {
+            this._update();
+        }
     }
 
     update()
