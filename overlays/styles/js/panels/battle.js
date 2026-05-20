@@ -24,6 +24,7 @@ class BattlePanel
         this.standings = null;
         this.session = null;
 
+        this.overlay = null;
         this.stateManager.subscribe(this.handleStateChange.bind(this));
     }
 
@@ -37,6 +38,10 @@ class BattlePanel
         {
             this.session = value;
         }
+        else if (key === 'overlay')
+        {
+            this.overlay = value;
+        }
     }
 
     update()
@@ -48,6 +53,12 @@ class BattlePanel
         }
 
         if (this.session && this.session.replayActive)
+        {
+            this.element.style.display = "none";
+            return;
+        }
+
+        if (this.overlay && this.overlay.relative.enabled == false)
         {
             this.element.style.display = "none";
             return;
