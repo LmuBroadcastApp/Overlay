@@ -1,4 +1,4 @@
-const git  =
+const EXTRA_COLUMNS =
 [
     {
         key: 'energy_fuel',

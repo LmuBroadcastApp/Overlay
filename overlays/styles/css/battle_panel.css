@@ -82,6 +82,26 @@
     width: 64px;
 }
 
+#battle-panel .battle-first-col
+{
+    width: 28px;
+    text-align: center;
+    font-weight: 600;
+}
+
+#battle-panel .battle-tire
+{
+    text-align: center;
+    font-weight: 600;
+    width: 44px;
+}
+
+#battle-panel .battle-penalty
+{
+    text-align: center;
+    width: 52px;
+}
+
 #battle-panel .battle-class
 {
     text-align: center;
