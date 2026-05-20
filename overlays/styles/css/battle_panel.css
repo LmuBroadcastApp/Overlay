@@ -3,8 +3,8 @@
     bottom: var(--battle-panel-position-bottom);
     left: var(--battle-panel-position-left);
 
-    font-weight: var(--standings-panel-font-weight);
-    font-size: var(--standings-panel-font-size);
+    font-weight: var(--battle-panel-font-weight);
+    font-size: var(--battle-panel-font-size);
 
     position: absolute;
     display: none;
@@ -42,14 +42,14 @@
 
 #battle-panel .battle-position
 {
-    width: var(--standings-panel-col-02-width);
+    min-width: var(--standings-panel-col-02-width);
     text-align: left !important;
     font-weight: 700;
 }
 
 #battle-panel .battle-driver
 {
-    width: var(--standings-panel-col-03-width);
+    min-width: var(--standings-panel-col-03-width);
     text-align: left !important;
 
     padding-right: 5px;
@@ -58,7 +58,7 @@
 
 #battle-panel .battle-driver-text
 {
-    width: var(--standings-panel-col-03-width);
+    min-width: var(--standings-panel-col-03-width);
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
@@ -67,13 +67,13 @@
 
 #battle-panel .battle-logo
 {
-    width: var(--weather-panel-img-width);
+    min-width: var(--weather-panel-img-width);
 }
 
 #battle-panel .battle-number
 {
     font-weight: 700;
-    width: 48px;
+    min-width: 48px;
 }
 
 #battle-panel .battle-gap
@@ -84,7 +84,7 @@
 
 #battle-panel .battle-first-col
 {
-    width: 28px;
+    min-width: 28px;
     text-align: center;
     font-weight: 600;
 }
@@ -99,7 +99,7 @@
 #battle-panel .battle-penalty
 {
     text-align: center;
-    width: 52px;
+    min-width: 52px;
 }
 
 #battle-panel .battle-class
@@ -107,5 +107,5 @@
     text-align: center;
     font-weight: 600;
     display: block;
-    width: 64px;
+    min-width: 64px;
 }
