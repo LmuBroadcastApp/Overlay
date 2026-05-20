@@ -1,3 +1,59 @@
+const git  =
+[
+    {
+        key: 'energy_fuel',
+        headerLabel: (c) => (c.toLowerCase() === "gt3" || c.toLowerCase() === "hyper") ? "NRG" : "FUEL",
+        cellRenderer: (v) => { let f = GetVehicleFuelVe(v); return `<td class="vehicle-extra-column standings-secondary-color" ${f.style}>${f.text}</td>`; }
+    },
+    {
+        key: 'best_lap',
+        headerLabel: 'BEST',
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.best_lap)}</td>` },
+    {
+        key: 'last_lap',
+        headerLabel: 'LAST',
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.last_lap)}</td>` },
+    {
+        key: 'num_pit_stops',
+        headerLabel: '#PITS',
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.pit_stops}</td>` },
+    {
+        key: 'damage',
+        headerLabel: 'DMG',
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.damage.toFixed(1)}%</td>` },
+    {
+        key: 'pos_gain_lost',
+        headerLabel: '#P',
+        cellRenderer: (v) =>
+        {
+            let diff = v.race_position_class - v.qualy_position_class;
+            let cls = diff < 0 ? "gain-position" : diff > 0 ? "lost-position" : "";
+            let num = String(Math.abs(diff)).padStart(2, '0');
+            let txt = (v.qualy_position_class > 0) ? (diff > 0 ? "⮟ " + num : diff < 0 ? "⮝ " + num : "-") : "-";
+            return `<td class="vehicle-extra-column standings-secondary-color ${cls}">${txt}</td>`;
+        }
+    },
+    {
+        key: 'tires',
+        headerLabel: 'TIRES',
+        cellRenderer: (v) =>
+        {
+            if (HasOneTireCompound(v))
+            {
+                let tire = "(" + v.tire_compound[0][0] + ")";
+                return `<td class="vehicle-extra-column standings-secondary-color" style="color: ${TireCompoundColor(v.tire_compound[0])};">${tire}</td>`;
+            }
+            return `<td class="vehicle-extra-column standings-secondary-color" style="font-size: 0.5em;">
+                    <span style="color: ${TireCompoundColor(v.tire_compound[0])}"><span>
+                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[1])}"><span>
+                        <br/>
+                    <span style="color: ${TireCompoundColor(v.tire_compound[2])}"><span>
+                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[3])}"><span>
+                </td>`;
+        }
+    }
+];
+
 class TowerPanel
 {
     constructor(selector, stateManager)
@@ -74,6 +130,37 @@ class TowerPanel
         return dt > 0 || sg > 0 || tp > 0;
     }
 
+    getGapColor(gap, position, isRace)
+    {
+        if (this.controls.gap_mode.toLowerCase() != "ahead" || !isRace || position <= 1)
+            return "";
+
+        if (gap < 0.5) return "gap-less-1";
+        if (gap < 2) return "gap-less-2";
+        return "";
+    }
+
+    getFirstColumnMeta(vehicle, bestLap)
+    {
+        if (!vehicle.in_pits && vehicle.telemetry.speed < 50)
+        {
+            return {
+                background: "style='background-color: rgb(249, 199, 79)'",
+                img: "<span class='icon-container' style='color: #1a1a1a;'></span>"
+            };
+        }
+
+        if (vehicle.slot_id == bestLap.id)
+        {
+            return {
+                background: "style='background-color: #0076D7;'",
+                img: "<span class='icon-container'>󰔛</span>"
+            };
+        }
+
+        return { background: "", img: "" };
+    }
+
     getRaceFlags(vehicle)
     {
         let flag_txt = "";
@@ -122,166 +209,64 @@ class TowerPanel
     {
         let name = VehicleGetName(vehicle, this.controls, isRace);
         let gap = VehicleGetGap(vehicle, this.controls, isRace);
-        let fuel_ve = GetVehicleFuelVe(vehicle);
+        let manufacturer = vehicle.manufacturer.trim() || "Default";
+        let selected_color = vehicle.focus ? "color-selected" : "";
+        let gap_color = this.getGapColor(gap, position, isRace);
+        let firstCol = this.getFirstColumnMeta(vehicle, bestLap);
 
-        let manufacturer = vehicle.manufacturer;
-        let firstColBackground = "";
-        let firstColImg = "";
+        if (position == 1) gap = "-";
 
-        let selected_color = "";
-        let gap_color = "";
+        let extraCells = EXTRA_COLUMNS
+            .filter(col => extras[col.key])
+            .map(col => col.cellRenderer(vehicle))
+            .join('');
 
-        if(this.controls.gap_mode.toLowerCase() == "ahead" && isRace && position > 1)
-        {
-            if (gap < 2)
-            {
-                gap_color = "gap-less-2";
-            }
-
-            if (gap < 0.5)
-            {
-                gap_color = "gap-less-1";
-            }
-        }
-
-        if (position == 1)
-        {
-            gap = "-";
-        }
-
-        if (vehicle.focus)
-        {
-            selected_color = "color-selected";
-        }
-
-        if (manufacturer.trim().length == 0)
-        {
-            manufacturer = "Default";
-        }
-
-        if (!vehicle.in_pits && vehicle.telemetry.speed < 50)
-        {
-            firstColBackground = "style='background-color: rgb(249, 199, 79)'";
-            firstColImg = "<span class='icon-container' style='color: #1a1a1a;'></span>";
-        }
-        else if (vehicle.slot_id == bestLap.id)
-        {
-            firstColBackground = "style='background-color: #0076D7;'";
-            firstColImg = "<span class='icon-container'>󰔛</span>";
-        }
-
-        let tr = `<tr class="${selected_color}">
-            <td class="vehicle-icons" ${firstColBackground}">${firstColImg}</td>
+        return `<tr class="${selected_color}">
+            <td class="vehicle-icons" ${firstCol.background}">${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
             <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span></td>
             <td class="vehicle-logo standings-primary-color"><img height="23px" alt="" src="styles/img/brandlogo/${manufacturer}.png" /></td>
             <td class="vehicle-number standings-primary-color">#${vehicle.vehicle_number}</td>
             <td class="vehicle-gap standings-secondary-color ${gap_color}">${gap}</td>
-            <!-- {FUEL_ENERGY} -->
-            <!-- {BEST_LAP} -->
-            <!-- {LAST_LAP} -->
-            <!-- {NUM_PIT_STOPS} -->
-            <!-- {TIRES} -->
-            <!-- {POS_GAIN_LOST} -->
-            <!-- {DAMAGE} -->
+            ${extraCells}
+            ${this.getRaceFlags(vehicle)}
+            ${this.getPenalty(vehicle)}
         </tr>`;
-
-        if (extras.energy_fuel)
-        {
-            let content = `<td class="vehicle-right-column standings-secondary-color" ${fuel_ve.style}>${fuel_ve.text}</td>`;
-            tr = tr.replace("<!-- {FUEL_ENERGY} -->", content);
-        }
-
-        if(extras.damage)
-        {
-            let content = `<td class="vehicle-right-column standings-secondary-color">${vehicle.damage.toFixed(1)}%</td>`;
-            tr = tr.replace("<!-- {DAMAGE} -->", content);
-        }
-
-        if (extras.best_lap)
-        {
-            let content = `<td class="vehicle-right-column standings-secondary-color">${LaptimeToString(vehicle.best_lap)}</td>`;
-            tr = tr.replace("<!-- {BEST_LAP} -->", content);
-
-        }
-
-        if (extras.last_lap)
-        {
-            let content = `<td class="vehicle-right-column standings-secondary-color">${LaptimeToString(vehicle.last_lap)}</td>`;
-            tr = tr.replace("<!-- {LAST_LAP} -->", content);
-        }
-
-        if (extras.num_pit_stops)
-        {
-            let content = `<td class="vehicle-right-column standings-secondary-color">${vehicle.pit_stops}</td>`;
-            tr = tr.replace("<!-- {NUM_PIT_STOPS} -->", content);
-        }
-
-        if (extras.pos_gain_lost)
-        {
-            let diff = vehicle.race_position_class - vehicle.qualy_position_class;
-            let cls = diff < 0 ? "gain-position" : diff > 0 ? "lost-position" : "";
-
-            let num = String(Math.abs(diff)).padStart(2, '0');
-            let diff_pos_txt = "-";
-
-            if (vehicle.qualy_position_class > 0)
-            {
-                diff_pos_txt = diff > 0 ? "⮟ " + num : diff < 0 ? "⮝ " + num : "-";
-            }
-
-            let content = `<td class="vehicle-right-column standings-secondary-color ${cls}">${diff_pos_txt}</td>`;
-            tr = tr.replace("<!-- {POS_GAIN_LOST} -->", content);
-        }
-
-        if (extras.tires)
-        {
-            let content = "";
-            if (HasOneTireCompound(vehicle))
-            {
-                let tire = "(" + vehicle.tire_compound[0][0] + ")";
-                content = `<td class="vehicle-right-column standings-secondary-color" style="color: ${TireCompoundColor(vehicle.tire_compound[0])};">${tire}</td>`;
-            }
-            else
-            {
-                content = `<td class="vehicle-right-column standings-secondary-color" style="font-size: 0.5em;">
-                        <span style="color: ${TireCompoundColor(vehicle.tire_compound[0])}"><span>
-                        <span style="margin-left: 5px; color: ${TireCompoundColor(vehicle.tire_compound[1])}"><span>
-                            <br/>
-                        <span style="color: ${TireCompoundColor(vehicle.tire_compound[2])}"><span>
-                        <span style="margin-left: 5px; color: ${TireCompoundColor(vehicle.tire_compound[3])}"><span>
-                    </td>`;
-            }
-            tr = tr.replace("<!-- {TIRES} -->", content);
-        }
-
-        tr = tr.replace("<!-- {RACE_FLAGS} -->", this.getRaceFlags(vehicle));
-        tr = tr.replace("<!-- {ADD_PENALTIES} -->", this.getPenalty(vehicle));
-        return tr;
     }
 
     renderOneStandingsClass(renderInfo)
     {
-        let table = "";
-        let table_row = 1;
-        let gap_txt = "GAP";
-
-        let static_entries = renderInfo.static_entries;
-        let update_rate = renderInfo.update_rate * 1000;
-        let dynamic_entries = renderInfo.dynamic_entries;
-
         let v = renderInfo.standings;
         let c = renderInfo.vehicle_class;
-
-        let bestLap = GetBestLapTime(v);
         let isRace = renderInfo.isRace;
+        let gap_txt = this.controls.gap_mode.toLowerCase() == "ahead" ? "INT" : "GAP";
+        let bestLap = GetBestLapTime(v);
 
-        if (this.controls.gap_mode.toLowerCase() == "ahead")
+        let content = this.buildClassHeader(c, v, gap_txt, renderInfo.extras);
+        let range = this.getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
+
+        for (let i = range.start; i < range.end; i++)
         {
-            gap_txt = "INT";
+            let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
+            content = content.concat(row);
         }
 
-        let content = `<thead>
+        if (range.scroll)
+        {
+            content = content.concat("<tr><td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3); height: 1px;'></td></tr>");
+            for (let i = range.scroll.start; i < Math.min(v.length, range.scroll.end); i++)
+            {
+                let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
+                content = content.concat(row);
+            }
+        }
+
+        return "<table>" + content + "</tbody></table>";
+    }
+
+    buildClassHeader(c, v, gap_txt, extras)
+    {
+        let header = `<thead>
             <tr>
                 <th></th>
                 <th class="${CSSClassFromVehicleClass(c)}" colspan="4">
@@ -292,68 +277,30 @@ class TowerPanel
                 </th>
                 <th class="standings-secondary-color">
                     ${gap_txt}
-                </th>
-                <!-- {FUEL_ENERGY} -->
-                <!-- {BEST_LAP} -->
-                <!-- {LAST_LAP} -->
-                <!-- {NUM_PIT_STOPS} -->
-                <!-- {TIRES} -->
-                <!-- {POS_GAIN_LOST} -->
-                <!-- {DAMAGE} -->
-            </tr>
-        </thead><tbody>`;
+                </th>`;
 
-        if (renderInfo.extras.best_lap)
+        for (let col of EXTRA_COLUMNS)
         {
-            let title = `<th class="standings-secondary-color">BEST</th>`;
-            content = content.replace("<!-- {BEST_LAP} -->", title);
-        }
-        if (renderInfo.extras.last_lap)
-        {
-            let title = `<th class="standings-secondary-color">LAST</th>`;
-            content = content.replace("<!-- {LAST_LAP} -->", title);
-        }
-        if (renderInfo.extras.damage)
-        {
-            let title = `<th class="standings-secondary-color">DMG</th>`;
-            content = content.replace("<!-- {DAMAGE} -->", title);
-        }
-        if (renderInfo.extras.energy_fuel)
-        {
-            let title = (c.toLowerCase() === "gt3" || c.toLowerCase() === "hyper") ? "NRG" : "FUEL";
-            title = `<th class="standings-secondary-color">${title}</th>`;
-            content = content.replace("<!-- {FUEL_ENERGY} -->", title);
-        }
-        if (renderInfo.extras.num_pit_stops)
-        {
-            let title = `<th class="standings-secondary-color">#PITS</th>`;
-            content = content.replace("<!-- {NUM_PIT_STOPS} -->", title);
-        }
-        if (renderInfo.extras.pos_gain_lost)
-        {
-            let title = `<th class="standings-secondary-color">#P</th>`;
-            content = content.replace("<!-- {POS_GAIN_LOST} -->", title);
-        }
-        if (renderInfo.extras.tires)
-        {
-            let title = `<th class="standings-secondary-color">TIRES</th>`;
-            content = content.replace("<!-- {TIRES} -->", title);
-        }
-
-        if(v.length < static_entries)
-        {
-            for (let i = 0; i < v.length; i++)
+            if (extras[col.key])
             {
-                let row = this.createRow(v[i], i + 1, isRace, table_row++, bestLap, renderInfo.extras);
-                content = content.concat(row);
+                let label = typeof col.headerLabel === 'function' ? col.headerLabel(c) : col.headerLabel;
+                header += `<th class="standings-secondary-color">${label}</th>`;
             }
+        }
 
+        header += `</tr></thead><tbody>`;
+        return header;
+    }
+
+    getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
+    {
+        if (v.length <= static_entries)
+        {
             if (this.vehicle_control.has(c))
             {
-                this.vehicle_control.delete(c)
+                this.vehicle_control.delete(c);
             }
-
-            return table.concat("<table>" + content + "</tbody></table>");
+            return { start: 0, end: v.length };
         }
 
         if (!this.vehicle_control.has(c))
@@ -361,34 +308,25 @@ class TowerPanel
             let opt = { start: static_entries, end: Math.min(v.length, static_entries + dynamic_entries), timestamp: new Date().getTime() };
             this.vehicle_control.set(c, opt);
         }
+
         let opt = this.vehicle_control.get(c);
 
-        for (let i = 0; i < static_entries; i++)
+        if (new Date().getTime() - opt.timestamp > update_rate * 1000)
         {
-            let row = this.createRow(v[i], i + 1, isRace, table_row++, bestLap, renderInfo.extras);
-            content = content.concat(row);
-        }
+            let start = opt.start + 1;
+            let end = opt.end + 1;
 
-        content = content.concat("<tr><td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3s); height: 1px;'></td></tr>");
-
-        for (let i = opt.start; i < Math.min(v.length, opt.end); i++)
-        {
-            let row = this.createRow(v[i], i + 1, isRace, table_row++, bestLap, renderInfo.extras);
-            content = content.concat(row);
-        }
-
-        if (new Date().getTime() - opt.timestamp > update_rate)
-        {
-            let new_opt = { start: opt.start + 1, end: opt.end + 1, timestamp: new Date().getTime() };
-            if (new_opt.end > v.length)
+            if (end > v.length)
             {
-                new_opt.end = Math.min(v.length, static_entries + dynamic_entries);
-                new_opt.start = static_entries;
+                start = static_entries;
+                end = Math.min(v.length, static_entries + dynamic_entries);
             }
-            this.vehicle_control.set(c, new_opt);
+
+            opt = { start, end, timestamp: new Date().getTime() };
+            this.vehicle_control.set(c, opt);
         }
 
-        return table.concat("<table>" + content + "</tbody></table>");
+        return { start: 0, end: static_entries, scroll: opt };
     }
 
     showOneClass()

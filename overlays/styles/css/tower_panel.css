@@ -125,7 +125,7 @@
     width: var(--standings-panel-col-06-width);
 }
 
-.vehicle-right-column
+.vehicle-extra-column
 {
     min-width: var(--standings-panel-col-07-width);
     text-align: center;
