@@ -215,52 +215,6 @@ function CSSClassFromVehicleClass(className)
     return (className || '').replace(/[^a-zA-Z0-9]/g, '_');
 }
 
-function GetRightColumnName(rightColumn, vehicleClass)
-{
-    switch (rightColumn.toLowerCase())
-    {
-        case "energy":
-        {
-            return vehicleClass.toLowerCase() === "gt3" || vehicleClass.toLowerCase() === "hyper" ? "NRG" : "FUEL";
-        } break
-
-        case "tires":
-        {
-            return "TIRES";
-        } break
-
-        case "best":
-        {
-            return "BEST";
-        } break;
-
-        case "last":
-        {
-            return "LAST";
-        } break;
-
-        case "damage":
-        {
-            return "DMG";
-        } break;
-
-        case "pitstops":
-        {
-            return "#PITS";
-        } break
-
-        case "posgainlost":
-        {
-            return "#P";
-        } break
-
-        default:
-        {
-            return "";
-        }
-    }
-}
-
 function StandingsGetFocus(standings)
 {
     for (const vehicle of standings)
