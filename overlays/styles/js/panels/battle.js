@@ -129,20 +129,6 @@ class BattlePanel
         return battles;
     }
 
-    getBattlePenalty(vehicle)
-    {
-        if (vehicle.status == "DNF" || vehicle.status == "DQ")
-        {
-            return "";
-        }
-
-        let parts = [];
-        if (vehicle.penalties?.drive_through > 0) parts.push("<span class='penalty-style'>DT</span>");
-        if (vehicle.penalties?.stop_and_go > 0) parts.push("<span class='penalty-style'>SG</span>");
-        if (vehicle.penalties?.time_penalty > 0) parts.push("<span class='penalty-style'>+" + vehicle.penalties.time_penalty + "</span>");
-        return parts.join('');
-    }
-
     getBattleTires(vehicle)
     {
         if (!vehicle.tire_compound)
@@ -168,15 +154,30 @@ class BattlePanel
     {
         if (vehicle.in_pits)
         {
-            return { content: "<span style='color: #1a1a1a;'>PIT</span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;" };
+            return { content: "<span style='color: #1a1a1a;'>PIT</span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
         }
 
         if (!vehicle.in_pits && vehicle.telemetry?.speed < 50)
         {
-            return { content: "<span style='color: #1a1a1a;'></span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;" };
+            return { content: "<span style='color: #1a1a1a;'></span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
         }
 
-        return { content: "", style: "" };
+        if (vehicle.penalties?.time_penalty > 0)
+        {
+            return { content: "+" + vehicle.penalties.time_penalty, style: "min-width: 32px;", cls: 'penalty-style' };
+        }
+
+        if (vehicle.penalties?.drive_through > 0)
+        {
+            return { content: "DT", style: "min-width: 32px;", cls: 'penalty-style' };
+        }
+
+        if (vehicle.penalties?.stop_and_go > 0)
+        {
+            return { content: "SG", style: "min-width: 32px;", cls: 'penalty-style' };
+        }
+
+        return { content: '', style: '', cls: '' };
     }
 
     renderBattles(battles)
@@ -238,7 +239,7 @@ class BattlePanel
             let firstCol = this.getBattleFirstCol(vehicle);
 
             html += `<tr class="standings-secondary-color">
-                <td style="${firstCol.style}">
+                <td class="battle-status ${firstCol.cls}" style="${firstCol.style}">
                     ${firstCol.content}
                 </td>
                 <td class="battle-position">
@@ -259,8 +260,8 @@ class BattlePanel
                 <td class="battle-tire">
                     ${this.getBattleTires(vehicle)}
                 </td>
-                <td class="battle-penalty">
-                    ${this.getBattlePenalty(vehicle)}
+                <td class="battle-kmh">
+                    ${vehicle.telemetry.speed.toFixed(1)}
                 </td>
                 <td class="battle-class overflow-hidden ${CSSClassFromVehicleClass(vehicle.vehicle_class)}">
                     ${vehicle.vehicle_class}

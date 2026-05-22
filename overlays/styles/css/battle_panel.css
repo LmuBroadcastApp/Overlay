@@ -11,24 +11,25 @@
     color: white;
 }
 
+#battle-panel .battle-table
+{
+    background-color: rgba(0, 0, 0, 0.6);
+    width: var(--battle-panel-width);
+
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
 #battle-panel .battle-header
 {
     border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     background-color: rgba(0, 0, 0, 0.8);
 
-    letter-spacing: 1px;
     padding-right: 5px;
     padding-left: 5px;
 
+    font-weight: var(--battle-panel-font-weight) + 200;
     text-transform: uppercase;
-    font-weight: 700;
-}
-
-#battle-panel .battle-table
-{
-    background-color: rgba(0, 0, 0, 0.6);
-    border-collapse: separate;
-    border-spacing: 0;
 }
 
 #battle-panel .battle-table td
@@ -40,17 +41,24 @@
     padding-left: 5px;
 }
 
+#battle-panel .battle-status
+{
+    font-weight: var(--battle-panel-font-weight) + 100;
+    text-align: center;
+    width: 10%;
+}
+
 #battle-panel .battle-position
 {
-    min-width: var(--standings-panel-col-02-width);
+    font-weight: var(--battle-panel-font-weight) + 200;
     text-align: left !important;
-    font-weight: 700;
+    width: 5%;
 }
 
 #battle-panel .battle-driver
 {
-    min-width: var(--standings-panel-col-03-width);
     text-align: left !important;
+    width: 40%;
 
     padding-right: 5px;
     padding-left: 5px;
@@ -58,11 +66,11 @@
 
 #battle-panel .battle-driver-text
 {
-    min-width: var(--standings-panel-col-03-width);
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
     display: block;
+    width: 100%;
 }
 
 #battle-panel .battle-logo
@@ -72,40 +80,32 @@
 
 #battle-panel .battle-number
 {
-    font-weight: 700;
-    min-width: 48px;
+    font-weight: var(--battle-panel-font-weight) + 200;
+    min-width: 5%;
 }
 
 #battle-panel .battle-gap
 {
-    font-weight: 600;
-    width: 64px;
-}
-
-#battle-panel .battle-first-col
-{
-    min-width: 28px;
-    text-align: center;
-    font-weight: 600;
+    font-weight: var(--battle-panel-font-weight) + 100;
+    width: 5%;
 }
 
 #battle-panel .battle-tire
 {
+    font-weight: var(--battle-panel-font-weight) + 100;
     text-align: center;
-    font-weight: 600;
-    width: 44px;
+    width: 10%;
 }
 
-#battle-panel .battle-penalty
+#battle-panel .battle-kmh
 {
     text-align: center;
-    min-width: 52px;
+    width: 10%;
 }
 
 #battle-panel .battle-class
 {
+    font-weight: var(--battle-panel-font-weight) + 100;
     text-align: center;
-    font-weight: 600;
-    display: block;
-    min-width: 64px;
+    width: 10%;
 }
