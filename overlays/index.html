@@ -93,7 +93,6 @@
                     <div id="gauges">
                         <div class="gauge">
                             <canvas id="speedChart"></canvas>
-
                             <div class="speed-label">
                                 <div id="speedValue">0</div>
                                 <div id="speedUnit">km/h</div>
@@ -112,23 +111,28 @@
                 </div>
                 <table>
                     <tbody>
-                    <tr>
-                        <td class="driver-vehicle-position" rowspan="2" style="width: 20%;"></td>
-                        <td class="driver-panel-pos-diff" style="width: 20%; text-align: center;">></td>
-                        <td class="driver-panel-name" colspan="2" style="width: 40%;"></td>
-                        <td class="driver-vehicle-number" rowspan="2" style="width: 20%;"></td>
-                    </tr>
-                    <tr>
-                        <td class="driver-panel-team" colspan="3" style="width: 60%;"></td>
-                    </tr>
                         <tr>
-                            <td class="driver-vehicle-class" style="width: 20%; text-align: center;"></td>
-
-                            <td style="width: 20%; text-align: center;">Last</td>
-                            <td class="driver-panel-last-lap" style="width: 20%; text-align: center;"></td>
-
-                            <td style="width: 20%; text-align: center;">Best</td>
-                            <td class="driver-panel-best-lap" style="width: 20%; text-align: center;"></td>
+                            <td class="driver-vehicle-position" rowspan="2"></td>
+                            <td class="driver-panel-pos-diff"></td>
+                            <td class="driver-panel-name" colspan="2"></td>
+                            <td class="driver-vehicle-number" rowspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td class="driver-panel-team" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="driver-vehicle-class">
+                                <span class="vehicle-class-name"></span>
+                                <span class="vehicle-class-ve" id="veCell"></span>
+                            </td>
+                            <td class="driver-panel-lap" colspan="2">
+                                <span class="lap-label">L</span>
+                                <span class="driver-panel-last-lap"></span>
+                            </td>
+                            <td class="driver-panel-lap" colspan="2">
+                                <span class="lap-label">B</span>
+                                <span class="driver-panel-best-lap"></span>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
