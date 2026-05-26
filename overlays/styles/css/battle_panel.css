@@ -15,9 +15,19 @@
 {
     background-color: rgba(0, 0, 0, 0.6);
     width: var(--battle-panel-width);
+    table-layout: fixed;
 
     border-collapse: separate;
     border-spacing: 0;
+}
+
+#battle-panel .battle-table td
+{
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+
+    padding-right: 5px;
+    padding-left: 5px;
 }
 
 #battle-panel .battle-header
@@ -32,20 +42,10 @@
     text-transform: uppercase;
 }
 
-#battle-panel .battle-table td
-{
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    text-align: center;
-
-    padding-right: 5px;
-    padding-left: 5px;
-}
-
 #battle-panel .battle-status
 {
     font-weight: var(--battle-panel-font-weight) + 100;
-    text-align: center;
-    width: 10%;
+    width: 5%;
 }
 
 #battle-panel .battle-position
@@ -58,54 +58,40 @@
 #battle-panel .battle-driver
 {
     text-align: left !important;
-    width: 40%;
-
-    padding-right: 5px;
-    padding-left: 5px;
-}
-
-#battle-panel .battle-driver-text
-{
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: block;
-    width: 100%;
+    width: 20%;
 }
 
 #battle-panel .battle-logo
 {
+    width: 5%;
     min-width: var(--weather-panel-img-width);
 }
 
 #battle-panel .battle-number
 {
     font-weight: var(--battle-panel-font-weight) + 200;
-    min-width: 5%;
+    width: 5%;
 }
 
 #battle-panel .battle-gap
 {
     font-weight: var(--battle-panel-font-weight) + 100;
-    width: 5%;
+    width: 10%;
 }
 
 #battle-panel .battle-tire
 {
     font-weight: var(--battle-panel-font-weight) + 100;
-    text-align: center;
-    width: 10%;
+    width: 5%;
 }
 
 #battle-panel .battle-kmh
 {
-    text-align: center;
     width: 10%;
 }
 
 #battle-panel .battle-class
 {
     font-weight: var(--battle-panel-font-weight) + 100;
-    text-align: center;
     width: 10%;
 }

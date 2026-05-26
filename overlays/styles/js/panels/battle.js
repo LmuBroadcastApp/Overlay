@@ -142,12 +142,13 @@ class BattlePanel
             return `<span style="color: ${TireCompoundColor(vehicle.tire_compound[0])}">${tire}</span>`;
         }
 
-        return `<span style="font-size: 0.65em;">
+        return `<div style="font-size: 0.65em; line-height: 1;">
             <span style="color: ${TireCompoundColor(vehicle.tire_compound[0])}"></span>
             <span style="margin-left: 2px; color: ${TireCompoundColor(vehicle.tire_compound[1])}"></span>
+            <br/>
             <span style="color: ${TireCompoundColor(vehicle.tire_compound[2])}"></span>
             <span style="margin-left: 2px; color: ${TireCompoundColor(vehicle.tire_compound[3])}"></span>
-        </span>`;
+        </div>`;
     }
 
     getBattleFirstCol(vehicle)
@@ -245,11 +246,11 @@ class BattlePanel
                 <td class="battle-position">
                     P${vehicle.race_position_class}
                 </td>
-                <td class="battle-driver">
-                    <span class="battle-driver-text">${name}</span>
+                <td class="battle-driver overflow-hidden">
+                    ${name}
                 </td>
                 <td class="battle-logo">
-                    <img height="20px" alt="" src="styles/img/brandlogo/${manufacturer}.png" />
+                    <img height="24px" alt="" src="styles/img/brandlogo/${manufacturer}.png" />
                 </td>
                 <td class="battle-number">
                     #${vehicle.vehicle_number}

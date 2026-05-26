@@ -113,6 +113,7 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--battle-panel-position-left', settings.relative.position_left);
     root.style.setProperty('--battle-panel-font-weight', settings.relative.font_weight);
     root.style.setProperty('--battle-panel-font-size', settings.relative.font_size);
+    root.style.setProperty('--battle-panel-width', settings.relative.panel_width);
 
     // notifications
     g_PanelEnabled.notifications = settings.notifications?.enabled !== false;
