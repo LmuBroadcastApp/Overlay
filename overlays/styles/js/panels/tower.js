@@ -333,7 +333,7 @@ class TowerPanel
     {
         let renderInfo =
         {
-            rightColumn: this.controls.right_column.toLowerCase(),
+            extras: this.controls.extras,
             isRace: this.session.name.toLowerCase().includes("race"),
 
             update_rate: this.controls.update_rate,
