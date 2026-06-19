@@ -14,10 +14,10 @@
 
 #driver-panel table
 {
-    min-width: var(--driver-panel-width);
+    width: var(--driver-panel-width);
     border-collapse: separate;
-    border-spacing: 1px;
-    width: 100%;
+    border-spacing: 1px 1px;
+    table-layout: fixed;
 }
 
 #driver-panel table td
@@ -25,12 +25,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    max-width: 0;
-}
-
-#driver-panel thead
-{
-    background-color: var(--driver-panel-background-color);
+    padding: 2px 4px;
 }
 
 #driver-panel tbody
@@ -38,8 +33,27 @@
     background-color: var(--driver-panel-background-color);
 }
 
+#driver-panel .driver-vehicle-position
+{
+    width: 20%;
+    background-color: var(--driver-panel-vehicle-position-background-color);
+    font-size: calc(var(--driver-panel-font-size) + 0.5em);
+    text-align: center;
+    font-weight: bold;
+    color: black;
+}
+
+#driver-panel .driver-panel-pos-diff
+{
+    width: 20%;
+    text-align: center;
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
 #driver-panel .driver-panel-name
 {
+    width: 40%;
     font-weight: bold;
     text-align: center;
     padding-right: 5px;
@@ -48,6 +62,7 @@
 
 #driver-panel .driver-panel-team
 {
+    width: 60%;
     font-weight: lighter;
     text-align: center;
     padding-right: 5px;
@@ -56,20 +71,72 @@
 
 #driver-panel .driver-vehicle-number
 {
+    width: 20%;
     background-color: var(--driver-panel-vehicle-number-background-color);
     font-size: calc(var(--driver-panel-font-size) + 0.5em);
-
     text-align: center;
     font-weight: bold;
     color: white;
 }
 
-#driver-panel .driver-vehicle-position
+#driver-panel .driver-vehicle-class
 {
-    background-color: var(--driver-panel-vehicle-position-background-color);
-    font-size: calc(var(--driver-panel-font-size) + 0.5em);
-
+    width: 20%;
     text-align: center;
+    padding: 0;
+    vertical-align: middle;
+}
+
+#driver-panel .vehicle-class-name
+{
+    font-size: 0.85em;
+    opacity: 0.7;
+
+    text-transform: uppercase;
+    line-height: 1.3;
+}
+
+#driver-panel .vehicle-class-ve
+{
+    margin-left: 5px;
+    font-size: 0.78em;
     font-weight: bold;
-    color: black;
+    line-height: 1.3;
+}
+
+#driver-panel .driver-panel-lap
+{
+    width: 40%;
+    text-align: center;
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#driver-panel .lap-label
+{
+    opacity: 0.5;
+    margin-right: 3px;
+    font-size: 0.85em;
+}
+
+#driver-panel .driver-panel-last-lap
+{
+    font-weight: bold;
+}
+
+#driver-panel .driver-panel-best-lap
+{
+    font-weight: bold;
+    color: rgb(0, 200, 83);
+}
+
+#driver-panel .best-lap-class-leader
+{
+    color: rgb(200, 155, 255);
+}
+
+#driver-panel tbody tr:nth-child(3) td
+{
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 4px;
 }

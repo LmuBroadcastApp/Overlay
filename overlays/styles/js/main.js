@@ -1,4 +1,37 @@
+/** @brief Usee to disable panels when replay is active. */
 let g_ReplayActive = false;
+
+/** @brief Used to enable/disable panels. */
+let g_PanelEnabled =
+{
+    standings: true,
+    session: true,
+    driver: true,
+    weather: true,
+    map: true,
+    replay: true,
+    relative: true,
+    telemetry: true,
+    notifications: true
+};
+
+function ApplyPanelVisibility(replayActive)
+{
+    let speed = stateManager.getState("controls")?.overlay_animation_speed;
+    speed = isNaN(speed) ? 0 : speed * 1000;
+
+    let show = !replayActive;
+    $.fn.showIf = function(condition) { return condition ? this.show(speed) : this.hide(speed); };
+
+    $("#tower-panel").showIf(show && g_PanelEnabled.standings);
+    $("#battle-panel").showIf(show && g_PanelEnabled.relative);
+    $("#session-panel").showIf(show && g_PanelEnabled.session);
+    $("#weather-panel").showIf(show && g_PanelEnabled.weather);
+    $("#track-map-panel").showIf(show && g_PanelEnabled.map);
+    $("#telemetry-panel").showIf(show && g_PanelEnabled.telemetry);
+    $("#driver-panel").showIf(show && g_PanelEnabled.driver);
+    $("#replay-banner").showIf(!show && g_PanelEnabled.replay);
+}
 
 function ToggleOverlayByReplay(stateManager)
 {
@@ -8,31 +41,7 @@ function ToggleOverlayByReplay(stateManager)
     if (g_ReplayActive == active) return;
     g_ReplayActive = active;
 
-    let speed = stateManager.getState("controls")?.overlay_animation_speed;
-    speed = isNaN(speed) ? 0 : speed * 1000;
-
-    if (active)
-    {
-        $("#tower-panel").hide(speed);
-        $("#battle-panel").hide(speed);
-        $("#session-panel").hide(speed);
-        $("#weather-panel").hide(speed);
-        $("#track-map-panel").hide(speed);
-        $("#telemetry-panel").hide(speed);
-
-        $("#replay-banner").show(speed);
-    }
-    else
-    {
-        $("#tower-panel").show(speed);
-        $("#battle-panel").show(speed);
-        $("#session-panel").show(speed);
-        $("#weather-panel").show(speed);
-        $("#track-map-panel").show(speed);
-        $("#telemetry-panel").show(speed);
-
-        $("#replay-banner").hide(speed);
-    }
+    ApplyPanelVisibility(active);
 }
 
 function UpdateOverlaySettings(settings)
@@ -41,6 +50,7 @@ function UpdateOverlaySettings(settings)
     console.log(settings);
 
     // standings panel
+    g_PanelEnabled.standings = settings.standings?.enabled !== false;
     root.style.setProperty('--standings-panel-position-left', settings.standings.position_left);
     root.style.setProperty('--standings-panel-position-top', settings.standings.position_top);
 
@@ -62,10 +72,12 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--standings-panel-col-07-width', settings.standings.col_07_width);
 
     // session panel
+    g_PanelEnabled.session = settings.session?.enabled !== false;
     root.style.setProperty('--session-panel-position-top', settings.session.position_top);
     root.style.setProperty('--session-panel-font-size', settings.session.font_size);
 
     // driver panel
+    g_PanelEnabled.driver = settings.driver?.enabled !== false;
     root.style.setProperty('--driver-panel-position-bottom', settings.driver.position_bottom);
     root.style.setProperty('--driver-panel-position-right', settings.driver.position_right);
 
@@ -74,6 +86,7 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--driver-panel-width', settings.driver.width);
 
     // weather panel
+    g_PanelEnabled.weather = settings.weather?.enabled !== false;
     root.style.setProperty('--weather-panel-position-right', settings.weather.position_right);
     root.style.setProperty('--weather-panel-position-top', settings.weather.position_top);
 
@@ -85,25 +98,35 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--weather-panel-text-color', settings.weather.text_color);
 
     // map panel
+    g_PanelEnabled.map = settings.map?.enabled !== false;
     root.style.setProperty('--map-panel-position-right', settings.map.position_right);
     root.style.setProperty('--map-panel-position-top', settings.map.position_top);
 
     // replay banner
+    g_PanelEnabled.replay = settings.replay?.enabled !== false;
     root.style.setProperty('--replay-banner-position-left', settings.replay.position_left);
     root.style.setProperty('--replay-banner-position-top', settings.replay.position_top);
 
     // battle panel
+    g_PanelEnabled.relative = settings.relative?.enabled !== false;
     root.style.setProperty('--battle-panel-position-bottom', settings.relative.position_bottom);
     root.style.setProperty('--battle-panel-position-left', settings.relative.position_left);
+    root.style.setProperty('--battle-panel-font-weight', settings.relative.font_weight);
+    root.style.setProperty('--battle-panel-font-size', settings.relative.font_size);
+    root.style.setProperty('--battle-panel-width', settings.relative.panel_width);
 
     // notifications
+    g_PanelEnabled.notifications = settings.notifications?.enabled !== false;
     root.style.setProperty('--notification-panel-position-left', settings.notifications.position_left);
     root.style.setProperty('--notification-panel-position-top', settings.notifications.position_top);
     root.style.setProperty('--notification-panel-font-size', settings.notifications.font_size);
     root.style.setProperty('--notification-panel-width', settings.notifications.panel_width);
 
     // telemetry
+    g_PanelEnabled.telemetry = settings.telemetry?.enabled !== false;
     root.style.setProperty('--telemetry-gauge-size', settings.telemetry.gauge_size);
+
+    ApplyPanelVisibility(g_ReplayActive);
 }
 
 const callBacks =

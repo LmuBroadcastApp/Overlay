@@ -3,30 +3,20 @@
     bottom: var(--battle-panel-position-bottom);
     left: var(--battle-panel-position-left);
 
-    font-weight: var(--standings-panel-font-weight);
-    font-size: var(--standings-panel-font-size);
+    font-weight: var(--battle-panel-font-weight);
+    font-size: var(--battle-panel-font-size);
 
     position: absolute;
     display: none;
     color: white;
 }
 
-#battle-panel .battle-header
-{
-    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-    background-color: rgba(0, 0, 0, 0.8);
-
-    letter-spacing: 1px;
-    padding-right: 5px;
-    padding-left: 5px;
-
-    text-transform: uppercase;
-    font-weight: 700;
-}
-
 #battle-panel .battle-table
 {
     background-color: rgba(0, 0, 0, 0.6);
+    width: var(--battle-panel-width);
+    table-layout: fixed;
+
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -40,52 +30,68 @@
     padding-left: 5px;
 }
 
+#battle-panel .battle-header
+{
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(0, 0, 0, 0.8);
+
+    padding-right: 5px;
+    padding-left: 5px;
+
+    font-weight: var(--battle-panel-font-weight) + 200;
+    text-transform: uppercase;
+}
+
+#battle-panel .battle-status
+{
+    font-weight: var(--battle-panel-font-weight) + 100;
+    width: 5%;
+}
+
 #battle-panel .battle-position
 {
-    width: var(--standings-panel-col-02-width);
+    font-weight: var(--battle-panel-font-weight) + 200;
     text-align: left !important;
-    font-weight: 700;
+    width: 5%;
 }
 
 #battle-panel .battle-driver
 {
-    width: var(--standings-panel-col-03-width);
     text-align: left !important;
-
-    padding-right: 5px;
-    padding-left: 5px;
-}
-
-#battle-panel .battle-driver-text
-{
-    width: var(--standings-panel-col-03-width);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    display: block;
+    width: 20%;
 }
 
 #battle-panel .battle-logo
 {
-    width: var(--weather-panel-img-width);
+    width: 5%;
+    min-width: var(--weather-panel-img-width);
 }
 
 #battle-panel .battle-number
 {
-    font-weight: 700;
-    width: 48px;
+    font-weight: var(--battle-panel-font-weight) + 200;
+    width: 5%;
 }
 
 #battle-panel .battle-gap
 {
-    font-weight: 600;
-    width: 64px;
+    font-weight: var(--battle-panel-font-weight) + 100;
+    width: 10%;
+}
+
+#battle-panel .battle-tire
+{
+    font-weight: var(--battle-panel-font-weight) + 100;
+    width: 5%;
+}
+
+#battle-panel .battle-kmh
+{
+    width: 10%;
 }
 
 #battle-panel .battle-class
 {
-    text-align: center;
-    font-weight: 600;
-    display: block;
-    width: 64px;
+    font-weight: var(--battle-panel-font-weight) + 100;
+    width: 10%;
 }

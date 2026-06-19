@@ -108,13 +108,13 @@
 
 #notification-container .class-type
 {
-    width: 56px;
+    width: 14%;
 }
 
 #notification-container .vehicle-number
 {
     background: rgba(240, 240, 240);
-    width: 56px; color: black;
+    width: 14%; color: black;
 
     justify-content: center;
     display: flex;
@@ -122,5 +122,5 @@
 
 #notification-container .name
 {
-    width: 150px;
+    width: 45%;
 }

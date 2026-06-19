@@ -57,6 +57,7 @@
     /** Battle panel */
     --battle-panel-position-bottom: 1rem;   /** Position from the bottom of the screen */
     --battle-panel-position-left: 45rem;    /** Position from the left of the screen */
+    --battle-panel-width: 500px;
 
     /** Telemetry */
     --telemetry-gauge-size: 60px;
