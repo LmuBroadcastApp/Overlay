@@ -6,6 +6,7 @@ class NotificationController
         this.stateManager = stateManager;
 
         this.fast_lap = new Map();
+        this.possible_fast_lap = new Map();
         this.stateManager.subscribe(this.handleStateChange.bind(this));
 
         this.notifications = null;
@@ -38,6 +39,7 @@ class NotificationController
             {
                 this.session = value;
                 this.fast_lap.clear();
+                this.possible_fast_lap.clear();
             }
         }
 
@@ -50,6 +52,27 @@ class NotificationController
         {
             this._update();
         }
+
+        if (this.session != null && this.session.name == "QUALIFY")
+        {
+            this._notifyPossibleFastLap();
+        }
+    }
+
+    _notifyPossibleFastLap()
+    {
+        let fast_lap = this.notifications?.possible_fast_lap ?? false;
+        if (!this.standings_curr || fast_lap == false)
+        {
+            return
+        }
+
+        let splits = GetByClasses(this.standings_curr);
+        splits.forEach((vehicles, classNmae) =>
+        {
+            let v = this._computePossbibleBestLap(vehicles);
+            this._possibleBestLap(v);
+        });
     }
 
     _update()
@@ -136,6 +159,54 @@ class NotificationController
             let duration = this.notifications?.duration_sec * 1000 ?? 5000;
             this.notifier.show({ type: 'fast-lap', subtype: vehicle.vehicle_class, message: vehicle, duration: duration });
         }
+    }
+
+    _possibleBestLap(vehicle)
+    {
+        if (!vehicle) return;
+
+        let last = this.possible_fast_lap.get(vehicle.vehicle_class);
+        if (last && last.slot_id === vehicle.slot_id) return;
+
+        this.possible_fast_lap.set(vehicle.vehicle_class, vehicle);
+
+        let duration = this.notifications?.duration_sec * 1000 ?? 5000;
+        this.notifier.show({ type: 'possible-best-lap', subtype: vehicle.vehicle_class, message: vehicle, duration: duration });
+    }
+
+    _computePossbibleBestLap(vehicles)
+    {
+        let classBest = Infinity;
+        vehicles.forEach((v) =>
+        {
+            if (v.best_lap > 0 && v.best_lap < classBest) classBest = v.best_lap;
+        });
+
+        const result = [];
+        vehicles.forEach((v) =>
+        {
+            if (v.best_lap > 0 && v.current_lap > 0)
+            {
+                let projected = v.best_lap + v.telemetry.delta;
+                if (projected < classBest)
+                {
+                    result.push
+                    ({
+                        slot_id: v.slot_id,
+                        vehicle_number: v.vehicle_number,
+                        vehicle_class: v.vehicle_class,
+                        driver: v.driver,
+                        best_lap: v.best_lap,
+                        projected_lap: projected
+                    });
+                }
+            }
+        });
+
+        const compareProjected = (a, b) => a.projected_lap - b.projected_lap;
+        result.sort(compareProjected);
+
+        return result.length > 0 ? result[0] : null;
     }
 
     _penalty(curr, prev)
