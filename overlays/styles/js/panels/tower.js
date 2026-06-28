@@ -114,23 +114,15 @@ class TowerPanel
 
         if (this.controls.vehicle_class.toLowerCase() == "multiclass")
         {
-            this.showMultiClass();
+            this._showMultiClass();
         }
         else
         {
-            this.showOneClass();
+            this._showOneClass();
         }
     }
 
-    hasPenalty(vehicle)
-    {
-        let dt = vehicle.penalties.drive_through;
-        let tp = vehicle.penalties.time_penalty;
-        let sg = vehicle.penalties.stop_and_go;
-        return dt > 0 || sg > 0 || tp > 0;
-    }
-
-    getGapColor(gap, position, isRace)
+    _getGapColor(gap, position, isRace)
     {
         if (this.controls.gap_mode.toLowerCase() != "ahead" || !isRace || position <= 1)
             return "";
@@ -140,7 +132,7 @@ class TowerPanel
         return "";
     }
 
-    getFirstColumnMeta(vehicle, bestLap)
+    _getFirstColumnMeta(vehicle, bestLap)
     {
         if (!vehicle.in_pits && vehicle.telemetry.speed < 50)
         {
@@ -161,24 +153,24 @@ class TowerPanel
         return { background: "", img: "" };
     }
 
-    getRaceFlags(vehicle)
+    _getRaceFlags(vehicle)
     {
         let flag_txt = "";
 
         if (vehicle.in_pits && vehicle.status != "Finished" && vehicle.status != "DNF" && vehicle.status != "DQ")
         {
-            flag_txt += "<span class='vehicle-in-pits'>PIT</span>";
+            flag_txt += "<td><span class='vehicle-in-pits'>PIT</span></td>";
         }
 
         if (vehicle.status == "Finished")
         {
-            flag_txt = "<span><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></span>";
+            flag_txt = "<td><span><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></span></td>";
         }
 
-        return flag_txt == "" ? "" : `<td>${flag_txt}</td>`;
+        return flag_txt;
     }
 
-    getPenalty(vehicle)
+    _getPenalty(vehicle)
     {
         let penalty_txt = "";
 
@@ -205,14 +197,14 @@ class TowerPanel
         return penalty_txt == "" ? "" : `<td>${penalty_txt}</td>`;
     }
 
-    createRow(vehicle, position, isRace, tableRow, bestLap, extras)
+    _createRow(vehicle, position, isRace, tableRow, bestLap, extras)
     {
         let name = VehicleGetName(vehicle, this.controls, isRace);
         let gap = VehicleGetGap(vehicle, this.controls, isRace);
         let manufacturer = vehicle.manufacturer.trim() || "Default";
         let selected_color = vehicle.focus ? "color-selected" : "";
-        let gap_color = this.getGapColor(gap, position, isRace);
-        let firstCol = this.getFirstColumnMeta(vehicle, bestLap);
+        let gap_color = this._getGapColor(gap, position, isRace);
+        let firstCol = this._getFirstColumnMeta(vehicle, bestLap);
 
         if (position == 1) gap = "-";
 
@@ -221,7 +213,7 @@ class TowerPanel
             .map(col => col.cellRenderer(vehicle))
             .join('');
 
-        return `<tr class="${selected_color}">
+        return `<tr class="${selected_color} vehicle-${vehicle.slot_id}">
             <td class="vehicle-icons" ${firstCol.background}">${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
             <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span></td>
@@ -229,12 +221,12 @@ class TowerPanel
             <td class="vehicle-number standings-primary-color">#${vehicle.vehicle_number}</td>
             <td class="vehicle-gap standings-secondary-color ${gap_color}">${gap}</td>
             ${extraCells}
-            ${this.getRaceFlags(vehicle)}
-            ${this.getPenalty(vehicle)}
+            ${this._getRaceFlags(vehicle)}
+            ${this._getPenalty(vehicle)}
         </tr>`;
     }
 
-    renderOneStandingsClass(renderInfo)
+    _renderOneStandingsClass(renderInfo)
     {
         let v = renderInfo.standings;
         let c = renderInfo.vehicle_class;
@@ -242,12 +234,12 @@ class TowerPanel
         let gap_txt = this.controls.gap_mode.toLowerCase() == "ahead" ? "INT" : "GAP";
         let bestLap = GetBestLapTime(v);
 
-        let content = this.buildClassHeader(c, v, gap_txt, renderInfo.extras);
-        let range = this.getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
+        let content = this._buildClassHeader(c, v, gap_txt, renderInfo.extras);
+        let range = this._getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
 
         for (let i = range.start; i < range.end; i++)
         {
-            let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
+            let row = this._createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
             content = content.concat(row);
         }
 
@@ -256,7 +248,7 @@ class TowerPanel
             content = content.concat("<tr><td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3); height: 1px;'></td></tr>");
             for (let i = range.scroll.start; i < Math.min(v.length, range.scroll.end); i++)
             {
-                let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
+                let row = this._createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
                 content = content.concat(row);
             }
         }
@@ -264,8 +256,12 @@ class TowerPanel
         return "<table>" + content + "</tbody></table>";
     }
 
-    buildClassHeader(c, v, gap_txt, extras)
+    _buildClassHeader(c, v, gap_txt, extras)
     {
+        //let race_laps = GetTotalRaceLaps(v[0], this.session.trackDistance, this.session.currentEventTime + this.session.eventTimeRemaining);
+        let race_laps = GetTotalRaceLaps(v, this.session.currentEventTime + this.session.eventTimeRemaining);
+        let num_laps = `${v[0].laps} / ${race_laps}`;
+
         let header = `<thead>
             <tr>
                 <th></th>
@@ -273,6 +269,7 @@ class TowerPanel
                     <div style="display: flex; justify-content: space-between;">
                         <span style="margin: 0 5px auto;">󰶓  &nbsp; ${v.length}</span>
                         <span style="margin: 0 auto;">${c}</span>
+                        <span style="margin-right: 5px;">${num_laps}</span>
                     </div>
                 </th>
                 <th class="standings-secondary-color">
@@ -292,7 +289,7 @@ class TowerPanel
         return header;
     }
 
-    getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
+    _getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
     {
         if (v.length <= static_entries)
         {
@@ -329,7 +326,7 @@ class TowerPanel
         return { start: 0, end: static_entries, scroll: opt };
     }
 
-    showOneClass()
+    _showOneClass()
     {
         let renderInfo =
         {
@@ -344,11 +341,11 @@ class TowerPanel
             standings: GetVehicleOfClass(this.standings, this.controls.vehicle_class)
         }
 
-        let html = this.renderOneStandingsClass(renderInfo);
+        let html = this._renderOneStandingsClass(renderInfo);
         this.element.innerHTML = html;
     }
 
-    showMultiClass()
+    _showMultiClass()
     {
         let html = "";
         for (const [c, s] of GetByClasses(this.standings))
@@ -371,7 +368,7 @@ class TowerPanel
                 standings: s
             }
 
-            html += this.renderOneStandingsClass(renderInfo);
+            html += this._renderOneStandingsClass(renderInfo);
         }
         this.element.innerHTML = html;
     }

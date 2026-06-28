@@ -123,10 +123,10 @@ function GetVehicleFuelVe(vehicle)
 function GetBestLapTime(standings)
 {
     let bestLap =
-        {
-            lap: null,
-            id : null
-        };
+    {
+        lap: null,
+        id : null
+    };
 
     for (const vehicle of standings)
     {
@@ -141,6 +141,37 @@ function GetBestLapTime(standings)
     }
 
     return bestLap;
+}
+
+function GetLastValidLap(standings)
+{
+    for (const vehicle of standings)
+    {
+        if (vehicle.last_lap > 0)
+        {
+            return vehicle.last_lap;
+        }
+    }
+
+    return -1;
+}
+
+function GetTotalRaceLaps(vehicle, trackDistance, raceTime)
+{
+    let travelled_distance = vehicle.spline * trackDistance;
+    let travelled_time = vehicle.current_lap;
+
+    let avg_speed = travelled_distance / travelled_time;
+    let total_distance = avg_speed * raceTime;
+
+    const laps = total_distance / trackDistance;
+    return laps.toFixed(1);
+}
+
+function GetTotalRaceLaps(standings, raceTime)
+{
+    let laps = raceTime / GetLastValidLap(standings);
+    return laps.toFixed(1);
 }
 
 function GetVehicleOfClass(standings, className)
