@@ -31,8 +31,12 @@ class WeatherPanel
         }
 
         let when = "󰔛";
-        let idx = this.session.weatherForecast.length; let content = "";
+        let idx = this.session.weatherForecast.length;
         let perc = this.session.currentEventTime / this.session.endEventTime;
+
+        let raining = this.session.raining * 100;
+        let sky = this.session.cloudCoverage;
+        let content = "";
 
         for (let i = 0; i < this.session.weatherForecast.length - 1; ++i)
         {
@@ -56,14 +60,16 @@ class WeatherPanel
                 let remainingTime = timeSlot - this.session.currentEventTime;
 
                 let div = 1.0 / 60.0;
+                sky = this.session.weatherForecast[i].sky;
                 when = Math.floor(remainingTime * div) + "'";
+                raining = this.session.weatherForecast[i].rainChance;
             }
 
-            let icon = `<img src="styles/img/weather/${this.session.weatherForecast[i].sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
+            let icon = `<img src="styles/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
             let time = `${when}`;
 
             header += `<th>${time}</th>`;
-            body += `<td>${icon}</td>`;
+            body += `<td class="progress-cell" style="--progress: ${raining}%;width: var(--weather-panel-img-width);">${icon}</td>`;
         }
 
         this.element.querySelector('.weather-panel-track-body').textContent = this._gripLevel2String(this.session.gripLevel, this.session.averagePathWetness);

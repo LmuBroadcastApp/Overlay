@@ -259,7 +259,7 @@ class TowerPanel
     _buildClassHeader(c, v, gap_txt, extras)
     {
         //let race_laps = GetTotalRaceLaps(v[0], this.session.trackDistance, this.session.currentEventTime + this.session.eventTimeRemaining);
-        let race_laps = GetTotalRaceLaps(v, this.session.currentEventTime + this.session.eventTimeRemaining);
+        let race_laps = GetTotalRaceLaps(v, this.session.eventTimeRemaining);
         let num_laps = `${v[0].laps + 1} / ${race_laps}`;
 
         let header = `<thead>

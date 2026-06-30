@@ -48,7 +48,7 @@ class NotificationController
             this.notifications = value.notifications;
         }
 
-        if (this.session != null && this.session.name != "QUALIFY")
+        if (this.session != null)
         {
             this._update();
         }
@@ -174,21 +174,24 @@ class NotificationController
         this.notifier.show({ type: 'possible-best-lap', subtype: vehicle.vehicle_class, message: vehicle, duration: duration });
     }
 
-    _computePossbibleBestLap(vehicles)
+    _computePossbibleBestLap(standings)
     {
         let classBest = Infinity;
-        vehicles.forEach((v) =>
+        standings.forEach((v) =>
         {
             if (v.best_lap > 0 && v.best_lap < classBest) classBest = v.best_lap;
         });
 
         const result = [];
-        vehicles.forEach((v) =>
+        standings.forEach((v) =>
         {
             if (v.best_lap > 0 && v.current_lap > 0)
             {
+                let sector1_notification = v.current_lap_sectors.sector1 > 0;
+                let sector2_notification = v.current_lap_sectors.sector2 > 0;
                 let projected = v.best_lap + v.telemetry.delta;
-                if (projected < classBest)
+
+                if (projected < classBest && (sector1_notification || sector2_notification))
                 {
                     result.push
                     ({

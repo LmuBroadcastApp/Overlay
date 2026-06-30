@@ -143,13 +143,23 @@ function GetBestLapTime(standings)
     return bestLap;
 }
 
-function GetLastValidLap(standings)
+function GetLapTimeForTotalRaceLaps(standings)
 {
     for (const vehicle of standings)
     {
         if (vehicle.last_lap > 0)
         {
             return vehicle.last_lap;
+        }
+
+        if (vehicle.best_lap > 0)
+        {
+            return vehicle.best_lap;
+        }
+
+        if (vehicle.qualy_best_lap > 0)
+        {
+            return vehicle.qualy_best_lap;
         }
     }
 
@@ -170,8 +180,8 @@ function GetTotalRaceLaps(vehicle, trackDistance, raceTime)
 
 function GetTotalRaceLaps(standings, raceTime)
 {
-    let laps = raceTime / GetLastValidLap(standings);
-    return laps.toFixed(1);
+    let laps = raceTime / GetLapTimeForTotalRaceLaps(standings);
+    return laps <= 0 ? "-" : (laps + standings[0].laps + 1).toFixed(1);
 }
 
 function GetVehicleOfClass(standings, className)
