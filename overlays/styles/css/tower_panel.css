@@ -157,7 +157,7 @@
     background-color: rgba(255, 255, 255, 0.15);
     border-radius: 2px;
     overflow: hidden;
-    height: 1px;
+    height: 2px;
     flex: 1;
 }
 
@@ -173,5 +173,6 @@
 .sector-bar-fill-3 { background-color: #3498db; }
 
 .sector-bar-inactive .sector-bar-fill { background-color: #888; }
+.sector-bar-active { background-color: rgb(150, 150, 150); }
 
 /**********************************************************************************************************************/
