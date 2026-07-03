@@ -135,4 +135,43 @@
     padding-left: 10px;
 }
 
+.sector-bars
+{
+    display: flex;
+    gap: 2px;
+    height: 0;
+    overflow: visible;
+}
+
+.sector-bar
+{
+    height: 4px;
+    flex: 1;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.sector-bar
+{
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+    overflow: hidden;
+    height: 1px;
+    flex: 1;
+}
+
+.sector-bar-fill
+{
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.sector-bar-fill-1 { background-color: #e74c3c; }
+.sector-bar-fill-2 { background-color: #2ecc71; }
+.sector-bar-fill-3 { background-color: #3498db; }
+
+.sector-bar-inactive .sector-bar-fill { background-color: #888; }
+
 /**********************************************************************************************************************/

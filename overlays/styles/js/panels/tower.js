@@ -67,6 +67,7 @@ class TowerPanel
             return;
         }
 
+        this.sectors = new TrackSectors();
         this.vehicle_control = new Map();
         this.stateManager.subscribe(this.handleStateChange.bind(this));
 
@@ -82,7 +83,8 @@ class TowerPanel
             name_source: "driver",
             driver_name: "short",
             right_column: "energy",
-            vehicle_class: "multiclass"
+            vehicle_class: "multiclass",
+            sector_bars: true
         };
     }
 
@@ -91,6 +93,9 @@ class TowerPanel
         if (key === 'session')
         {
             this.session = value.trackName !== "" ? value : null;
+
+            if (this.session == null) this.sectors.reset();
+            else this.sectors.setTrackDistance(value.trackDistance);
         }
         else if (key === 'standings')
         {
@@ -100,6 +105,10 @@ class TowerPanel
         {
             this.vehicle_control.clear();
             this.controls = value;
+        }
+        else if (key === 'map')
+        {
+            this.sectors.setSectors(value.sectors.sector1, value.sectors.sector2, value.sectors.sector3)
         }
     }
 
@@ -208,6 +217,20 @@ class TowerPanel
 
         if (position == 1) gap = "-";
 
+        let sectorBars = '';
+        if (this.controls.sector_bars)
+        {
+            let trackDistance = this.sectors.trackDistance;
+            let distance = vehicle.spline * trackDistance;
+            let { progress: [p1, p2, p3], active: [a1, a2, a3] } = this.sectors.getSectorProgress(distance);
+
+            sectorBars = `<div class="sector-bars">
+                <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-1" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-2" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-3" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
+            </div>`;
+        }
+
         let extraCells = EXTRA_COLUMNS
             .filter(col => extras[col.key])
             .map(col => col.cellRenderer(vehicle))
@@ -216,7 +239,7 @@ class TowerPanel
         return `<tr class="${selected_color} vehicle-${vehicle.slot_id}">
             <td class="vehicle-icons" ${firstCol.background}">${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
-            <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span></td>
+            <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span>${sectorBars}</td>
             <td class="vehicle-logo standings-primary-color"><img height="23px" alt="" src="styles/img/brandlogo/${manufacturer}.png" /></td>
             <td class="vehicle-number standings-primary-color">#${vehicle.vehicle_number}</td>
             <td class="vehicle-gap standings-secondary-color ${gap_color}">${gap}</td>
