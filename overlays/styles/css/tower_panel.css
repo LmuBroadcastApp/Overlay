@@ -168,12 +168,10 @@
     transition: width 0.3s ease;
 }
 
-.sector-bar-fill-1 { background-color: #e74c3c; }
-.sector-bar-fill-2 { background-color: #2ecc71; }
-.sector-bar-fill-3 { background-color: #3498db; }
-
-.sector-bar-inactive .sector-bar-fill { background-color: #888; }
-.sector-bar-active { background-color: rgb(150, 150, 150); }
+.sector-bar-inactive { background-color: var(--standings-panel-sector-inactive-color); }
+.sector-bar-fill-1   { background-color: var(--standings-panel-sector-1-color); }
+.sector-bar-fill-2   { background-color: var(--standings-panel-sector-2-color); }
+.sector-bar-fill-3   { background-color: var(--standings-panel-sector-3-color); }
 
 /**********************************************************************************************************************/
 

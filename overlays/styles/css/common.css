@@ -14,6 +14,14 @@
     --standings-panel-gap-less-1-color: rgb(242, 92, 84);   /** Interval GAP less than 0.5 seconds */
     --standings-panel-gap-less-2-color: rgb(247, 178, 103); /** Interval GAP less than   2 seconds */
 
+    --standings-panel-gain-position-color-color: rgb(41, 156, 143); /* Row color for when a vehicle gain position */
+    --standings-panel-lost-position-color-color: rgb(230, 110, 79); /* Row color for when a vehicle lost position */
+
+    --standings-panel-sector-inactive-color: rgb(100, 100, 100);    /* Color for the a vehicle has not been on that sector yet */
+    --standings-panel-sector-1-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-2-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-3-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
+
     --standings-panel-col-01-width:  24px;                  /** Fast lap and exclamation icons */
     --standings-panel-col-02-width:  32px;                  /** Vehicle position */
     --standings-panel-col-03-width: 160px;                  /** Driver/Team name */

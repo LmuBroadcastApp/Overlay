@@ -78,6 +78,9 @@ class TowerPanel
         this.tree = null;
         this.vdom = new VirtualDOM();
 
+        this.counter_standings_curr = 0;
+        this.counter_standings_test = 0;
+
         this.controls =
         {
             update_rate: 3,
@@ -103,7 +106,8 @@ class TowerPanel
         }
         else if (key === 'standings')
         {
-            this.standings_prev = this.standings;
+            this.standings_prev = this.standings?.slice();
+            this.counter_standings_curr++;
             this.standings = value;
         }
         else if (key === 'controls')
@@ -129,7 +133,14 @@ class TowerPanel
             return;
         }
 
+        if (this.counter_standings_curr == this.counter_standings_test)
+        {
+            return;
+        }
+
+        this.counter_standings_test++;
         let newTree;
+
         if (this.controls.vehicle_class.toLowerCase() == "multiclass")
         {
             newTree = this._buildMultiClassTree();
@@ -172,7 +183,7 @@ class TowerPanel
 
     _getFirstColumnMeta(vehicle, bestLap, session)
     {
-        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase >= 5)
+        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase == 5)
         {
             return {
                 background: "style='background-color: rgb(249, 199, 79)'",
@@ -253,9 +264,9 @@ class TowerPanel
             let { progress: [p1, p2, p3], active: [a1, a2, a3] } = this.sectors.getSectorProgress(distance);
 
             sectorBars = `<div class="sector-bars">
-                <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-active" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-active" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-active" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-1" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-2" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-3" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
             </div>`;
         }
 
@@ -280,19 +291,18 @@ class TowerPanel
     {
         let v = renderInfo.standings;
         let c = renderInfo.vehicle_class;
-        let isRace = renderInfo.isRace;
+
         let gap_txt = this.controls.gap_mode.toLowerCase() == "ahead" ? "INT" : "GAP";
         let bestLap = GetBestLapTime(v);
 
+        let rows = [];
         let headerHtml = this._buildClassHeader(c, v, gap_txt, renderInfo.extras);
         let range = this._getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
 
-        let rows = [];
-
         for (let i = range.start; i < range.end; i++)
         {
-            let rowHtml = this._createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
-            let cls = (v[i].focus ? "color-selected" : "") + " vehicle-" + v[i].slot_id;
+            let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, 1, bestLap, renderInfo.extras);
+            let cls = "vehicle-" + v[i].slot_id + (v[i].focus ? " color-selected" : "");
             rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: cls, htmlContent: rowHtml }));
         }
 
@@ -301,8 +311,8 @@ class TowerPanel
             rows.push(this.vdom.h('tr', { htmlContent: "<td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3); height: 1px;'></td>" }));
             for (let i = range.scroll.start; i < Math.min(v.length, range.scroll.end); i++)
             {
-                let rowHtml = this._createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
-                let cls = (v[i].focus ? "color-selected" : "") + " vehicle-" + v[i].slot_id;
+                let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, 1, bestLap, renderInfo.extras);
+                let cls = "vehicle-" + v[i].slot_id; + (v[i].focus ? " color-selected" : "")
                 rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: cls, htmlContent: rowHtml }));
             }
         }
@@ -431,7 +441,6 @@ class TowerPanel
         return this.vdom.h('div', null, tables);
     }
 
-
     _checkAndAnimateOvertakes(curr, prev)
     {
         for (let i = 0; i < Math.min(curr.length, prev.length) - 1; i++)
@@ -442,14 +451,20 @@ class TowerPanel
                 if (gainerRow)
                 {
                     gainerRow.classList.add('overtake-gain');
-                    gainerRow.addEventListener('animationend', (e) => {e.target.classList.remove('overtake-gain');});
+                    let cleanup = () => gainerRow.classList.remove('overtake-gain');
+
+                    gainerRow.addEventListener('animationend', cleanup, { once: true });
+                    setTimeout(() => gainerRow.classList.remove('overtake-gain'), 3500);
                 }
 
                 let loserRow = this.element.querySelector(`tr.vehicle-${curr[i + 1].slot_id}`);
                 if (loserRow)
                 {
                     loserRow.classList.add('overtake-lost');
-                    loserRow.addEventListener('animationend', (e) => { e.target.classList.remove('overtake-lost'); });
+                    let cleanup = () => loserRow.classList.remove('overtake-lost');
+
+                    loserRow.addEventListener('animationend', cleanup, { once: true });
+                    setTimeout(() => loserRow.classList.remove('overtake-lost'), 3500);
                 }
             }
         }
