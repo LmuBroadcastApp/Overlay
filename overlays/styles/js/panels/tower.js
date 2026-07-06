@@ -44,11 +44,11 @@ const EXTRA_COLUMNS =
                 return `<td class="vehicle-extra-column standings-secondary-color" style="color: ${TireCompoundColor(v.tire_compound[0])};">${tire}</td>`;
             }
             return `<td class="vehicle-extra-column standings-secondary-color" style="font-size: 0.5em;">
-                    <span style="color: ${TireCompoundColor(v.tire_compound[0])}"><span>
-                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[1])}"><span>
+                    <span style="color: ${TireCompoundColor(v.tire_compound[0])}"></span>
+                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[1])}"></span>
                         <br/>
-                    <span style="color: ${TireCompoundColor(v.tire_compound[2])}"><span>
-                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[3])}"><span>
+                    <span style="color: ${TireCompoundColor(v.tire_compound[2])}"></span>
+                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[3])}"></span>
                 </td>`;
         }
     }
@@ -77,6 +77,9 @@ class TowerPanel
 
         this.tree = null;
         this.vdom = new VirtualDOM();
+
+        // slot_id -> { cls, expiry }; rendered declaratively as part of the row className
+        this.overtake_flashes = new Map();
 
         this.counter_standings_curr = 0;
         this.counter_standings_test = 0;
@@ -130,18 +133,31 @@ class TowerPanel
                 this.tree = null;
                 this.vdom.render(this.vdom.h('div'), this.element);
             }
+
+            this.overtake_flashes.clear();
             return;
         }
 
-        if (this.counter_standings_curr == this.counter_standings_test)
+        let newData = this.counter_standings_curr !== this.counter_standings_test;
+        let flashesExpired = this._purgeExpiredFlashes();
+
+        if (!newData && !flashesExpired) return;
+        this.counter_standings_test = this.counter_standings_curr;
+
+        if (newData && this.standings_prev)
         {
-            return;
+            let curr = GetByClasses(this.standings);
+            let prev = GetByClasses(this.standings_prev);
+
+            curr.forEach((value, key) =>
+            {
+                this._checkAndAnimateOvertakes(value, prev.get(key));
+            });
         }
 
-        this.counter_standings_test++;
         let newTree;
 
-        if (this.controls.vehicle_class.toLowerCase() == "multiclass")
+        if (this.controls.vehicle_class.toLowerCase() === "multiclass")
         {
             newTree = this._buildMultiClassTree();
         }
@@ -158,22 +174,11 @@ class TowerPanel
         {
             this.tree = this.vdom.patch(this.tree, newTree, this.element);
         }
-
-        if (this.standings && this.standings_prev)
-        {
-            let curr = GetByClasses(this.standings);
-            let prev = GetByClasses(this.standings_prev);
-
-            curr.forEach((value, key) =>
-            {
-                this._checkAndAnimateOvertakes(value, prev.get(key));
-            });
-        }
     }
 
     _getGapColor(gap, position, isRace)
     {
-        if (this.controls.gap_mode.toLowerCase() != "ahead" || !isRace || position <= 1)
+        if (this.controls.gap_mode.toLowerCase() !== "ahead" || !isRace || position <= 1)
             return "";
 
         if (gap < 0.5) return "gap-less-1";
@@ -183,7 +188,7 @@ class TowerPanel
 
     _getFirstColumnMeta(vehicle, bestLap, session)
     {
-        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase == 5)
+        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase === 5)
         {
             return {
                 background: "style='background-color: rgb(249, 199, 79)'",
@@ -191,7 +196,7 @@ class TowerPanel
             };
         }
 
-        if (vehicle.slot_id == bestLap.id)
+        if (vehicle.slot_id === bestLap.id)
         {
             return {
                 background: "style='background-color: #0076D7;'",
@@ -206,12 +211,12 @@ class TowerPanel
     {
         let flag_txt = "";
 
-        if (vehicle.in_pits && vehicle.status != "Finished" && vehicle.status != "DNF" && vehicle.status != "DQ")
+        if (vehicle.in_pits && vehicle.status !== "Finished" && vehicle.status !== "DNF" && vehicle.status !== "DQ")
         {
             flag_txt += "<td><span class='vehicle-in-pits'>PIT</span></td>";
         }
 
-        if (vehicle.status == "Finished")
+        if (vehicle.status === "Finished")
         {
             flag_txt = "<td><span><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></span></td>";
         }
@@ -223,7 +228,7 @@ class TowerPanel
     {
         let penalty_txt = "";
 
-        if (vehicle.status == "DNF" || vehicle.status == "DQ")
+        if (vehicle.status === "DNF" || vehicle.status === "DQ")
         {
             return "";
         }
@@ -243,10 +248,10 @@ class TowerPanel
             penalty_txt += "<span class='penalty-style'>+" + vehicle.penalties.time_penalty + "</span>";
         }
 
-        return penalty_txt == "" ? "" : `<td>${penalty_txt}</td>`;
+        return penalty_txt === "" ? "" : `<td>${penalty_txt}</td>`;
     }
 
-    _createRow(vehicle, position, isRace, tableRow, bestLap, extras)
+    _createRow(vehicle, position, isRace, bestLap, extras)
     {
         let name = VehicleGetName(vehicle, this.controls, isRace);
         let gap = VehicleGetGap(vehicle, this.controls, isRace);
@@ -254,9 +259,9 @@ class TowerPanel
         let gap_color = this._getGapColor(gap, position, isRace);
         let firstCol = this._getFirstColumnMeta(vehicle, bestLap, this.session);
 
-        if (position == 1) gap = "-";
-
+        if (position === 1) gap = "-";
         let sectorBars = '';
+
         if (this.controls.sector_bars)
         {
             let trackDistance = this.sectors.trackDistance;
@@ -264,9 +269,9 @@ class TowerPanel
             let { progress: [p1, p2, p3], active: [a1, a2, a3] } = this.sectors.getSectorProgress(distance);
 
             sectorBars = `<div class="sector-bars">
-                <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-1" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-2" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill sector-bar-fill-3" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-1' : ''}" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-2' : ''}" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-3' : ''}" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
             </div>`;
         }
 
@@ -276,7 +281,7 @@ class TowerPanel
             .join('');
 
         return `
-            <td class="vehicle-icons" ${firstCol.background}">${firstCol.img}</td>
+            <td class="vehicle-icons" ${firstCol.background}>${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
             <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span>${sectorBars}</td>
             <td class="vehicle-logo standings-primary-color"><img height="23px" alt="" src="styles/img/brandlogo/${manufacturer}.png" /></td>
@@ -292,7 +297,7 @@ class TowerPanel
         let v = renderInfo.standings;
         let c = renderInfo.vehicle_class;
 
-        let gap_txt = this.controls.gap_mode.toLowerCase() == "ahead" ? "INT" : "GAP";
+        let gap_txt = this.controls.gap_mode.toLowerCase() === "ahead" ? "INT" : "GAP";
         let bestLap = GetBestLapTime(v);
 
         let rows = [];
@@ -301,9 +306,8 @@ class TowerPanel
 
         for (let i = range.start; i < range.end; i++)
         {
-            let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, 1, bestLap, renderInfo.extras);
-            let cls = "vehicle-" + v[i].slot_id + (v[i].focus ? " color-selected" : "");
-            rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: cls, htmlContent: rowHtml }));
+            let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, bestLap, renderInfo.extras);
+            rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: this._getRowClass(v[i]), htmlContent: rowHtml }));
         }
 
         if (range.scroll)
@@ -311,9 +315,8 @@ class TowerPanel
             rows.push(this.vdom.h('tr', { htmlContent: "<td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3); height: 1px;'></td>" }));
             for (let i = range.scroll.start; i < Math.min(v.length, range.scroll.end); i++)
             {
-                let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, 1, bestLap, renderInfo.extras);
-                let cls = "vehicle-" + v[i].slot_id; + (v[i].focus ? " color-selected" : "")
-                rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: cls, htmlContent: rowHtml }));
+                let rowHtml = this._createRow(v[i], i + 1, renderInfo.isRace, bestLap, renderInfo.extras);
+                rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: this._getRowClass(v[i]), htmlContent: rowHtml }));
             }
         }
 
@@ -413,13 +416,14 @@ class TowerPanel
     _buildMultiClassTree()
     {
         let tables = [];
+
+        if (!this.session || this.session.name === "")
+        {
+            return this.vdom.h('div', null, tables);
+        }
+
         for (const [c, s] of GetByClasses(this.standings))
         {
-            if (this.session.name == undefined)
-            {
-                continue;
-            }
-
             let renderInfo =
             {
                 extras: this.controls.extras,
@@ -443,30 +447,48 @@ class TowerPanel
 
     _checkAndAnimateOvertakes(curr, prev)
     {
+        if (curr == null || prev == null)
+        {
+            return;
+        }
+
         for (let i = 0; i < Math.min(curr.length, prev.length) - 1; i++)
         {
-            if (curr[i + 0].slot_id == prev[i + 1].slot_id)
+            if (curr[i + 0].slot_id === prev[i + 1].slot_id)
             {
-                let gainerRow = this.element.querySelector(`tr.vehicle-${curr[i + 0].slot_id}`);
-                if (gainerRow)
-                {
-                    gainerRow.classList.add('overtake-gain');
-                    let cleanup = () => gainerRow.classList.remove('overtake-gain');
-
-                    gainerRow.addEventListener('animationend', cleanup, { once: true });
-                    setTimeout(() => gainerRow.classList.remove('overtake-gain'), 3500);
-                }
-
-                let loserRow = this.element.querySelector(`tr.vehicle-${curr[i + 1].slot_id}`);
-                if (loserRow)
-                {
-                    loserRow.classList.add('overtake-lost');
-                    let cleanup = () => loserRow.classList.remove('overtake-lost');
-
-                    loserRow.addEventListener('animationend', cleanup, { once: true });
-                    setTimeout(() => loserRow.classList.remove('overtake-lost'), 3500);
-                }
+                this._setFlash(curr[i + 0].slot_id, 'overtake-gain');
+                this._setFlash(curr[i + 1].slot_id, 'overtake-lost');
             }
         }
+    }
+
+    _setFlash(slotId, cls)
+    {
+        // Matches the 3s CSS animation; expiry removes the class via a re-render.
+        this.overtake_flashes.set(slotId, { cls, expiry: Date.now() + 3000 });
+    }
+
+    _purgeExpiredFlashes()
+    {
+        let now = Date.now();
+        let changed = false;
+
+        for (let [slotId, flash] of this.overtake_flashes)
+        {
+            if (now >= flash.expiry)
+            {
+                this.overtake_flashes.delete(slotId);
+                changed = true;
+            }
+        }
+
+        return changed;
+    }
+
+    _getRowClass(vehicle)
+    {
+        let cls = "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
+        let flash = this.overtake_flashes.get(vehicle.slot_id);
+        return flash ? cls + " " + flash.cls : cls;
     }
 }

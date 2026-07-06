@@ -26,6 +26,13 @@ class VirtualDOM
     {
         const flatChildren = this._flatten(children);
         const key = (attrs && attrs.key) || null;
+
+        if (attrs && attrs.htmlContent != null && flatChildren.length > 0)
+        {
+            console.warn('VirtualDOM: "htmlContent" and children are mutually exclusive; children will be ignored.', tag);
+            return new this._VNode(tag, attrs, [], key);
+        }
+
         return new this._VNode(tag, attrs || {}, flatChildren, key);
     }
 
@@ -204,6 +211,13 @@ class VirtualDOM
             return;
         }
 
+        if (name === 'value' || name === 'checked' || name === 'disabled' || name === 'selected')
+        {
+            // Set as a property so live form state is updated
+            el[name] = val;
+            return;
+        }
+
         if (name.slice(0, 2) === 'on')
         {
             const evt = name.slice(2).toLowerCase();
@@ -224,7 +238,50 @@ class VirtualDOM
             return;
         }
 
-        el.setAttribute(name, val);
+        if (val == null || val === false)
+        {
+            el.removeAttribute(name);
+            return;
+        }
+
+        el.setAttribute(name, val === true ? '' : val);
+    }
+
+    /**
+     * Shallowly compares two style objects for equality.
+     *
+     * @param {Object} a - The first style object.
+     * @param {Object} b - The second style object.
+     * @returns {boolean} True if both objects contain the same keys and values.
+     */
+    _styleEquals(a, b)
+    {
+        if (a === b)
+        {
+            return true;
+        }
+
+        if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object')
+        {
+            return false;
+        }
+
+        const aKeys = Object.keys(a);
+        const bKeys = Object.keys(b);
+        if (aKeys.length !== bKeys.length)
+        {
+            return false;
+        }
+
+        for (let k of aKeys)
+        {
+            if (a[k] !== b[k])
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -279,6 +336,12 @@ class VirtualDOM
         // 2. Set new/updated properties
         for (let k in now)
         {
+            // Deep-compare style objects so fresh-but-identical literals don't reset inline styles
+            if (k === 'style' && this._styleEquals(old[k], now[k]))
+            {
+                continue;
+            }
+
             if (now[k] !== old[k]) this._setProp(el, k, now[k]);
         }
     }
