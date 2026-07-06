@@ -79,7 +79,7 @@ class TowerPanel
         this.vdom = new VirtualDOM();
 
         // slot_id -> { cls, expiry }; rendered declaratively as part of the row className
-        this.overtake_flashes = new Map();
+        this.animation_timers = new Map();
 
         this.counter_standings_curr = 0;
         this.counter_standings_test = 0;
@@ -94,7 +94,8 @@ class TowerPanel
             driver_name: "short",
             right_column: "energy",
             vehicle_class: "multiclass",
-            sector_bars: true
+            sector_bars: false,
+            overtake_animations: false
         };
     }
 
@@ -126,7 +127,7 @@ class TowerPanel
 
     update()
     {
-        if (this.standings == null || this.session == null)
+        if (this.standings == null || this.session == null || this.standings.length === 0)
         {
             if (this.tree !== null)
             {
@@ -134,17 +135,17 @@ class TowerPanel
                 this.vdom.render(this.vdom.h('div'), this.element);
             }
 
-            this.overtake_flashes.clear();
+            this.animation_timers.clear();
             return;
         }
 
-        let newData = this.counter_standings_curr !== this.counter_standings_test;
-        let flashesExpired = this._purgeExpiredFlashes();
+        this._purgeExpiredAnimations();
+        let noNewData = this.counter_standings_curr === this.counter_standings_test;
 
-        if (!newData && !flashesExpired) return;
+        if (noNewData) return;
         this.counter_standings_test = this.counter_standings_curr;
 
-        if (newData && this.standings_prev)
+        if (this.controls.overtake_animations && this.standings_prev)
         {
             let curr = GetByClasses(this.standings);
             let prev = GetByClasses(this.standings_prev);
@@ -465,19 +466,19 @@ class TowerPanel
     _setFlash(slotId, cls)
     {
         // Matches the 3s CSS animation; expiry removes the class via a re-render.
-        this.overtake_flashes.set(slotId, { cls, expiry: Date.now() + 3000 });
+        this.animation_timers.set(slotId, { cls, expiry: Date.now() + 3000 });
     }
 
-    _purgeExpiredFlashes()
+    _purgeExpiredAnimations()
     {
         let now = Date.now();
         let changed = false;
 
-        for (let [slotId, flash] of this.overtake_flashes)
+        for (let [slotId, flash] of this.animation_timers)
         {
             if (now >= flash.expiry)
             {
-                this.overtake_flashes.delete(slotId);
+                this.animation_timers.delete(slotId);
                 changed = true;
             }
         }
@@ -488,7 +489,7 @@ class TowerPanel
     _getRowClass(vehicle)
     {
         let cls = "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
-        let flash = this.overtake_flashes.get(vehicle.slot_id);
+        let flash = this.animation_timers.get(vehicle.slot_id);
         return flash ? cls + " " + flash.cls : cls;
     }
 }
