@@ -271,8 +271,8 @@ class TowerPanel
 
             sectorBars = `<div class="sector-bars">
                 <div class="sector-bar ${a1 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-1' : ''}" style="width: ${(p1 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-2' : ''}" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
-                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a1 ? 'sector-bar-fill-3' : ''}" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a2 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a2 ? 'sector-bar-fill-2' : ''}" style="width: ${(p2 * 100).toFixed(1)}%;"></div></div>
+                <div class="sector-bar ${a3 ? '' : 'sector-bar-inactive'}"><div class="sector-bar-fill ${a3 ? 'sector-bar-fill-3' : ''}" style="width: ${(p3 * 100).toFixed(1)}%;"></div></div>
             </div>`;
         }
 
