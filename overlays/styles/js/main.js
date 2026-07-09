@@ -71,8 +71,8 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--standings-panel-col-06-width', settings.standings.col_06_width);
     root.style.setProperty('--standings-panel-col-07-width', settings.standings.col_07_width);
 
-    root.style.setProperty('--standings-panel-gain-position-color-color', settings.standings.gain_position_color);
-    root.style.setProperty('--standings-panel-lost-position-color-color', settings.standings.lost_position_color);
+    root.style.setProperty('--standings-panel-gain-position-color', settings.standings.gain_position_color);
+    root.style.setProperty('--standings-panel-lost-position-color', settings.standings.lost_position_color);
 
     root.style.setProperty('--standings-panel-sector-inactive-color', settings.standings.sector_inactive_color);
     root.style.setProperty('--standings-panel-sector-1-color', settings.standings.sector_1_color);

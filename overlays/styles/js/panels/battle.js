@@ -160,7 +160,7 @@ class BattlePanel
 
         if (!vehicle.in_pits && vehicle.telemetry?.speed < 50)
         {
-            return { content: "<span style='color: #1a1a1a;'></span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
+            return { content: "<span style='color: #1a1a1a;'></span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
         }
 
         if (vehicle.penalties?.time_penalty > 0)

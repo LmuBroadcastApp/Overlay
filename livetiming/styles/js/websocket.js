@@ -80,12 +80,21 @@ class WebSocketWrapper
             console.log("WebSocket disconnected from " + ws.url);
         };
 
-        ws.onerror = function(error)
+        ws.onerror = function()
         {
-            console.log("WebSocket error: " + error.message);
+            console.log("WebSocket error occurred");
         };
 
         this.ws = ws;
+    }
+
+    disconnect()
+    {
+        if (this.ws)
+        {
+            this.ws.close();
+            this.ws = null;
+        }
     }
 }
 

@@ -134,7 +134,7 @@ class WeatherPanel
             case 3: return "High";
             case 4: return "Saturated";
 
-            default: return gripLevel;
+            default: return String(gripLevel);
         }
     }
 }
