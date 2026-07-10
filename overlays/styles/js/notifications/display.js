@@ -198,7 +198,7 @@ class NotificationSystem
                 <div class='vehicle-number padding overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
-                <div class='vehicle-data fast-lap'>
+                <div class='vehicle-data possible-best-lap'>
                     <span class='name overflow padding'>${NAME}</span>
                     <span class='padding'>${TIME}</span>
                 </div>

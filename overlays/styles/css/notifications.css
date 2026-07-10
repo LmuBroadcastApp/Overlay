@@ -35,6 +35,16 @@
     flex: 1;
 }
 
+#notification-container .possible-best-lap
+{
+    background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(0, 200, 220, 1.0));
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+
+    justify-content: space-between;
+    display: flex;
+    flex: 1;
+}
+
 #notification-container .penalty
 {
     background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(242, 92, 84, 1.0));
