@@ -107,6 +107,26 @@
     display: block;
 }
 
+.vehicle-driver-row
+{
+    position: relative;
+    display: flex;
+}
+
+.pit-stop-lap
+{
+    width: calc(var(--standings-panel-col-03-width) * 0.30);
+    position: absolute;
+    right: 0px;
+
+    background-color: rgb(249, 199, 79);
+    color: black;
+
+    text-align: center;
+    font-size: 0.75em;
+    font-weight: bold;
+}
+
 .vehicle-logo
 {
     text-align: center;

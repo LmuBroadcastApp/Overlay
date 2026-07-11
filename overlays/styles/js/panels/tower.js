@@ -193,7 +193,8 @@ class TowerPanel
         {
             return {
                 background: "style='background-color: rgb(249, 199, 79)'",
-                img: "<span class='icon-container' style='color: #1a1a1a;'></span>"
+                img: "<span class='icon-container' style='color: #1a1a1a;'>!</span>"
+                //img: "<span class='icon-container' style='color: #1a1a1a;'></span>"
             };
         }
 
@@ -284,7 +285,13 @@ class TowerPanel
         return `
             <td class="vehicle-icons" ${firstCol.background}>${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
-            <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span>${sectorBars}</td>
+            <td class="vehicle-driver standings-primary-color">
+                <div class="vehicle-driver-row">
+                    <span class="vehicle-driver-truncate-text">${name}</span>
+                    ${vehicle.pitstops && vehicle.pitstops.length > 0 ? `<span class="pit-stop-lap">L${vehicle.pitstops[vehicle.pitstops.length - 1].lap}</span>` : ''}
+                </div>
+                ${sectorBars}
+            </td>
             <td class="vehicle-logo standings-primary-color"><img height="23px" alt="" src="styles/img/brandlogo/${manufacturer}.png" /></td>
             <td class="vehicle-number standings-primary-color">#${vehicle.vehicle_number}</td>
             <td class="vehicle-gap standings-secondary-color ${gap_color}">${gap}</td>
@@ -466,7 +473,7 @@ class TowerPanel
     _setFlash(slotId, cls)
     {
         // Matches the 3s CSS animation; expiry removes the class via a re-render.
-        this.animation_timers.set(slotId, { cls, expiry: Date.now() + 3000 });
+        this.animation_timers.set(slotId, { cls, expiry: Date.now() + 2900 });
     }
 
     _purgeExpiredAnimations()
