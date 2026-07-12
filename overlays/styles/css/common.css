@@ -123,34 +123,6 @@ img
     display: none;
 }
 
-.penalty-style
-{
-    background-color: red;
-    color: white;
-
-    text-align: center;
-    min-width: 30px;
-}
-
-.vehicle-in-pits
-{
-    background-color: rgb(249, 199, 79);
-    color: black;
-
-    text-align: center;
-    min-width: 30px;
-}
-
-.gain-position
-{
-    color: rgb(27, 153, 139);
-}
-
-.lost-position
-{
-    color: rgb(244, 96, 54);
-}
-
 .overflow-hidden
 {
     overflow: hidden;

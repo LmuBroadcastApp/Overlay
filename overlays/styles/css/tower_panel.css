@@ -77,6 +77,40 @@
     background-color: rgba(190, 74, 9, 1.0);
 }
 
+.gain-position
+{
+    color: rgb(27, 153, 139);
+}
+
+.lost-position
+{
+    color: rgb(244, 96, 54);
+}
+
+.penalty-style
+{
+    background-color: rgb(246, 26, 54);
+    color: whitesmoke;
+
+    font-size: calc(var(--standings-panel-font-size) * 0.90);
+    font-weight: 550;
+
+    text-align: center;
+    min-width: 30px;
+}
+
+.vehicle-in-pits
+{
+    background-color: rgb(249, 199, 79);
+    color: black;
+
+    font-size: calc(var(--standings-panel-font-size) * 0.90);
+    font-weight: 550;
+
+    text-align: center;
+    min-width: 30px;
+}
+
 /**********************************************************************************************************************/
 
 .vehicle-icons
@@ -120,6 +154,7 @@
     position: absolute;
     right: 0px;
 
+    box-shadow: -3px 0px 20px 0px rgba(0, 0, 0);
     background-color: rgb(249, 199, 79);
     color: black;
 

@@ -42,11 +42,29 @@ const EXTRA_COLUMNS =
         headerLabel: '#P',
         cellRenderer: (v) =>
         {
+            if (v.qualy_position_class == 0)
+            {
+                return `<td class="vehicle-extra-column standings-secondary-color">-</td>`;
+            }
+
             let diff = v.race_position_class - v.qualy_position_class;
-            let cls = diff < 0 ? "gain-position" : diff > 0 ? "lost-position" : "";
             let num = String(Math.abs(diff)).padStart(2, '0');
-            let txt = (v.qualy_position_class > 0) ? (diff > 0 ? "⮟ " + num : diff < 0 ? "⮝ " + num : "-") : "-";
-            return `<td class="vehicle-extra-column standings-secondary-color ${cls}">${txt}</td>`;
+
+            let arrow = '';
+            let cls = '';
+
+            if (diff < 0)
+            {
+                cls = "gain-position";
+                arrow = "⮝";
+            }
+            else if (diff > 0)
+            {
+                cls = "lost-position";
+                arrow = "⮟";
+            }
+
+            return `<td class="vehicle-extra-column standings-secondary-color"><span class="${cls}">${arrow}</span> ${num}</td>`;
         }
     },
     {
@@ -303,7 +321,7 @@ class TowerPanel
             .map(col => col.cellRenderer(vehicle))
             .join('');
 
-        if (vehicle.pitstops.length > 0 && vehicle.pitstops[vehicle.pitstops.length - 1].session === "RACE")
+        if (this.controls.show_last_pitstop && vehicle.pitstops.length > 0 && vehicle.pitstops[vehicle.pitstops.length - 1].session === "RACE")
         {
             lastPitStop = `<span class="pit-stop-lap">L${vehicle.pitstops[vehicle.pitstops.length - 1].lap}</span>`;
         }
