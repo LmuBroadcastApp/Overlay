@@ -128,19 +128,17 @@ img
     background-color: red;
     color: white;
 
-    padding-right: 3px;
-    padding-left: 3px;
-    margin-left: 2px;
+    text-align: center;
+    min-width: 30px;
 }
 
 .vehicle-in-pits
 {
-    background-color: orange;
+    background-color: rgb(249, 199, 79);
     color: black;
 
-    padding-right: 3px;
-    padding-left: 3px;
-    margin-left: 2px;
+    text-align: center;
+    min-width: 30px;
 }
 
 .gain-position

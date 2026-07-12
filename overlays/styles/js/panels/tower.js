@@ -8,19 +8,35 @@ const EXTRA_COLUMNS =
     {
         key: 'best_lap',
         headerLabel: 'BEST',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.best_lap)}</td>` },
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.best_lap)}</td>`
+    },
     {
         key: 'last_lap',
         headerLabel: 'LAST',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.last_lap)}</td>` },
-    {
-        key: 'num_pit_stops',
-        headerLabel: '#PITS',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.pit_stops}</td>` },
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.last_lap)}</td>`
+    },
     {
         key: 'damage',
         headerLabel: 'DMG',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.damage.toFixed(1)}%</td>` },
+        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.damage.toFixed(1)}%</td>`
+    },
+    {
+        key: 'num_pit_stops',
+        headerLabel: '#PITS',
+        cellRenderer: (v) =>
+        {
+            let time = '';
+            let lap = '';
+
+            if (v.pitstops.length > 0 && v.pitstops[v.pitstops.length - 1].session === "RACE")
+            {
+                lap = '&ensp;&ensp;L' + v.pitstops[v.pitstops.length - 1].lap;
+                time = '&ensp;&ensp;' + LaptimeToString(v.pitstops[v.pitstops.length - 1].pit_lane_time);
+            }
+
+            return `<td class="vehicle-extra-column standings-secondary-color">${v.pit_stops}${lap}${time}</td>`
+        }
+    },
     {
         key: 'pos_gain_lost',
         headerLabel: '#P',
@@ -215,12 +231,17 @@ class TowerPanel
 
         if (vehicle.in_pits && vehicle.status !== "Finished" && vehicle.status !== "DNF" && vehicle.status !== "DQ")
         {
-            flag_txt += "<td><span class='vehicle-in-pits'>PIT</span></td>";
+            flag_txt = "<td><div class='vehicle-in-pits'>PIT</div></td>";
+        }
+
+        if (vehicle.status === "Request")
+        {
+            flag_txt = "<td><div class='vehicle-in-pits'>REQ</div></td>";
         }
 
         if (vehicle.status === "Finished")
         {
-            flag_txt = "<td><span><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></span></td>";
+            flag_txt = "<td><div><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></div></td>";
         }
 
         return flag_txt;
@@ -237,20 +258,20 @@ class TowerPanel
 
         if (vehicle.penalties.drive_through > 0)
         {
-            penalty_txt += "<span class='penalty-style'>DT</span>";
+            penalty_txt += "<td><div class='penalty-style'>DT</div></td>";
         }
 
         if (vehicle.penalties.stop_and_go > 0)
         {
-            penalty_txt += "<span class='penalty-style'>SG</span>";
+            penalty_txt += "<td><div class='penalty-style'>SG</div></td>";
         }
 
         if (vehicle.penalties.time_penalty > 0)
         {
-            penalty_txt += "<span class='penalty-style'>+" + vehicle.penalties.time_penalty + "</span>";
+            penalty_txt += "<td><div class='penalty-style'>+" + vehicle.penalties.time_penalty + "</div></td>";
         }
 
-        return penalty_txt === "" ? "" : `<td>${penalty_txt}</td>`;
+        return penalty_txt;
     }
 
     _createRow(vehicle, position, isRace, bestLap, extras)
@@ -262,7 +283,7 @@ class TowerPanel
         let firstCol = this._getFirstColumnMeta(vehicle, bestLap, this.session);
 
         if (position === 1) gap = "-";
-        let sectorBars = '';
+        let lastPitStop = '', sectorBars = '';
 
         if (this.controls.sector_bars)
         {
@@ -282,13 +303,18 @@ class TowerPanel
             .map(col => col.cellRenderer(vehicle))
             .join('');
 
+        if (vehicle.pitstops.length > 0 && vehicle.pitstops[vehicle.pitstops.length - 1].session === "RACE")
+        {
+            lastPitStop = `<span class="pit-stop-lap">L${vehicle.pitstops[vehicle.pitstops.length - 1].lap}</span>`;
+        }
+
         return `
             <td class="vehicle-icons" ${firstCol.background}>${firstCol.img}</td>
             <td class="vehicle-position standings-primary-color">${position}</td>
             <td class="vehicle-driver standings-primary-color">
                 <div class="vehicle-driver-row">
                     <span class="vehicle-driver-truncate-text">${name}</span>
-                    ${vehicle.pitstops && vehicle.pitstops.length > 0 ? `<span class="pit-stop-lap">L${vehicle.pitstops[vehicle.pitstops.length - 1].lap}</span>` : ''}
+                    ${lastPitStop}
                 </div>
                 ${sectorBars}
             </td>
