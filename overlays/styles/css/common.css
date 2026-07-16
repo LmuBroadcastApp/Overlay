@@ -2,33 +2,33 @@
 :root
 {
     /** Standings panel variables */
-    --standings-panel-position-left: 1.0rem;                /** Position from the left of the screen */
-    --standings-panel-position-top: 1.0rem;                 /** Position from the top of the screen */
+    --standings-panel-position-left: 1.0rem;                          /** Position from the left of the screen */
+    --standings-panel-position-top: 1.0rem;                           /** Position from the top of the screen */
 
-    --standings-panel-font-weight: 550;                     /** How bold the font will be seen */
-    --standings-panel-font-size: 1em;                       /** General font size of the panel */
+    --standings-panel-font-weight: 550;                               /** How bold the font will be seen */
+    --standings-panel-font-size: 1em;                                 /** General font size of the panel */
 
-    --standings-panel-primary-color: rgba(0, 0, 0, 0.6);    /** Vehicle position, driver/team, number, icon */
-    --standings-panel-secondary-color: rgba(0, 0, 0, 0.4);  /** Vehicle gap and right column */
+    --standings-panel-primary-color: rgba(0, 0, 0, 0.6);            /** Vehicle position, driver/team, number, icon */
+    --standings-panel-secondary-color: rgba(0, 0, 0, 0.4);          /** Vehicle gap and right column */
 
-    --standings-panel-gap-less-1-color: rgb(242, 92, 84);   /** Interval GAP less than 0.5 seconds */
-    --standings-panel-gap-less-2-color: rgb(247, 178, 103); /** Interval GAP less than   2 seconds */
+    --standings-panel-gap-less-1-color: rgb(242, 92, 84);           /** Interval GAP less than 0.5 seconds */
+    --standings-panel-gap-less-2-color: rgb(247, 178, 103);         /** Interval GAP less than   2 seconds */
 
-    --standings-panel-gain-position-color-color: rgb(41, 156, 143); /* Row color for when a vehicle gain position */
-    --standings-panel-lost-position-color-color: rgb(230, 110, 79); /* Row color for when a vehicle lost position */
+    --standings-panel-gain-position-color: rgb(41, 156, 143);       /** Row color for when a vehicle gain position */
+    --standings-panel-lost-position-color: rgb(230, 110, 79);       /** Row color for when a vehicle lost position */
 
-    --standings-panel-sector-inactive-color: rgb(100, 100, 100);    /* Color for the a vehicle has not been on that sector yet */
-    --standings-panel-sector-1-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
-    --standings-panel-sector-2-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
-    --standings-panel-sector-3-color: rgb(150, 150, 150);           /* Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-inactive-color: rgb(100, 100, 100);    /** Color for the a vehicle has not been on that sector yet */
+    --standings-panel-sector-1-color: rgb(150, 150, 150);           /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-2-color: rgb(150, 150, 150);           /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-3-color: rgb(150, 150, 150);           /** Color for when vehicle is or has been on the sector */
 
-    --standings-panel-col-01-width:  24px;                  /** Fast lap and exclamation icons */
-    --standings-panel-col-02-width:  32px;                  /** Vehicle position */
-    --standings-panel-col-03-width: 160px;                  /** Driver/Team name */
-    --standings-panel-col-04-width:  48px;                  /** Vehicle icon */
-    --standings-panel-col-05-width:  48px;                  /** Vehicle number */
-    --standings-panel-col-06-width:  48px;                  /** Vehicle gap */
-    --standings-panel-col-07-width:  48px;                  /** Min width of the "right column" */
+    --standings-panel-col-01-width:  24px;                            /** Fast lap and exclamation icons */
+    --standings-panel-col-02-width:  32px;                            /** Vehicle position */
+    --standings-panel-col-03-width: 160px;                            /** Driver/Team name */
+    --standings-panel-col-04-width:  48px;                            /** Vehicle icon */
+    --standings-panel-col-05-width:  48px;                            /** Vehicle number */
+    --standings-panel-col-06-width:  48px;                            /** Vehicle gap */
+    --standings-panel-col-07-width:  48px;                            /** Min width of the "right column" */
 
     /** Session panel variables */
     --session-panel-width: calc(var(--standings-panel-col-02-width) + var(--standings-panel-col-03-width) + var(--standings-panel-col-04-width) + var(--standings-panel-col-05-width) + var(--standings-panel-col-06-width));
@@ -41,42 +41,42 @@
     --driver-panel-font-size: 1em;                                                  /** General font size of the panel */
     --driver-panel-position-right: 1.0rem;                                          /** Position from the right of the screen */
     --driver-panel-position-bottom: 1.0rem;                                         /** Position from the bottom of the screen */
-    --driver-panel-background-color: rgba(0, 0, 0, 0.7);                            /** Panel general background */
-    --driver-panel-vehicle-number-background-color: rgba(255, 255, 255, 0.6);       /** This will be overridden by the vehicle class color */
-    --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);     /** Vehicle position background */
+    --driver-panel-background-color: rgba(0, 0, 0, 0.7);                          /** Panel general background */
+    --driver-panel-vehicle-number-background-color: rgba(255, 255, 255, 0.6);     /** This will be overridden by the vehicle class color */
+    --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);   /** Vehicle position background */
 
     /** Weather forecast panel */
     --weather-panel-header-background-color: rgba(33, 37, 41, 0.9);     /** Background color for the table header */
     --weather-panel-body-background-color: rgba(0, 0, 0, 0.4);          /** Background color for the table body */
-    --weather-panel-text-color: rgb(240, 240, 240);                     /* Header and body text color */
-    --weather-panel-position-right: 1.0rem;                             /** Position from the right of the screen */
-    --weather-panel-position-top: 1.0rem;                               /** Position from the top of the screen */
-    --weather-panel-img-width: 24px;                                    /** Width of each item (icon, time, temperature) */
-    --weather-panel-font-size: 1em;                                     /** General font size of the panel */
+    --weather-panel-text-color: rgb(240, 240, 240);                     /** Header and body text color */
+    --weather-panel-position-right: 1.0rem;                               /** Position from the right of the screen */
+    --weather-panel-position-top: 1.0rem;                                 /** Position from the top of the screen */
+    --weather-panel-img-width: 24px;                                      /** Width of each item (icon, time, temperature) */
+    --weather-panel-font-size: 1em;                                       /** General font size of the panel */
 
     /** Map panel */
-    --map-panel-position-right: 1rem;    /** Position from the right of the screen */
-    --map-panel-position-top: 30rem;     /** Position from the top of the screen */
+    --map-panel-position-right: 1rem;       /** Position from the right of the screen */
+    --map-panel-position-top: 30rem;        /** Position from the top of the screen */
 
     /** Replay banner */
-    --replay-banner-position-left: 1rem; /** Position from the left of the screen */
-    --replay-banner-position-top: 1rem;  /** Position from the top of the screen */
+    --replay-banner-position-left: 1rem;    /** Position from the left of the screen */
+    --replay-banner-position-top: 1rem;     /** Position from the top of the screen */
 
     /** Battle panel */
     --battle-panel-position-bottom: 1rem;   /** Position from the bottom of the screen */
     --battle-panel-position-left: 45rem;    /** Position from the left of the screen */
     --battle-panel-width: 500px;
 
-    /** Telemetry */
-    --telemetry-gauge-size: 60px;
-    --telemetry-text-scale: calc(var(--telemetry-gauge-size) * 0.35);
-    --telemetry-unit-scale: calc(var(--telemetry-gauge-size) * 0.15);
-
     /** Notification */
     --notification-panel-position-left: 50rem;  /** Position from the left of the screen */
     --notification-panel-position-top: 1rem;    /** Position from the top of the screen */
     --notification-panel-font-size: 1em;        /** General font size of the panel */
     --notification-panel-width: 400px;          /** Minimum width of the panel */
+
+    /** Telemetry */
+    --telemetry-gauge-size: 60px;
+    --telemetry-text-scale: calc(var(--telemetry-gauge-size) * 0.35);
+    --telemetry-unit-scale: calc(var(--telemetry-gauge-size) * 0.15);
 }
 
 /**********************************************************************************************************************/
@@ -125,9 +125,9 @@ img
 
 .overflow-hidden
 {
-    overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 /**********************************************************************************************************************/

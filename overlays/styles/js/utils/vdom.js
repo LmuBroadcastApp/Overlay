@@ -200,15 +200,23 @@ class VirtualDOM
             return;
         }
 
-        if (name === 'style' && typeof val === 'object')
+        if (name === 'style')
         {
-            // Clear old inline styles before applying new ones if updating
-            el.style.cssText = '';
-            for (let k in val)
+            if (val == null || val === false)
             {
-                el.style[k] = val[k];
+                el.removeAttribute('style');
+                return;
             }
-            return;
+
+            if (typeof val === 'object')
+            {
+                el.style.cssText = '';
+                for (let k in val)
+                {
+                    el.style[k] = val[k];
+                }
+                return;
+            }
         }
 
         if (name === 'htmlContent')
@@ -316,7 +324,7 @@ class VirtualDOM
                 }
                 else if (k === 'style')
                 {
-                    el.style.cssText = '';
+                    el.removeAttribute('style');
                 }
                 else if (k === 'htmlContent')
                 {
