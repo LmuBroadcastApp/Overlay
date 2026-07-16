@@ -38,19 +38,19 @@
     padding-right: 5px;
     padding-left: 5px;
 
-    font-weight: var(--battle-panel-font-weight) + 200;
+    font-weight: calc(calc(var(--battle-panel-font-weight) + 200));
     text-transform: uppercase;
 }
 
 #battle-panel .battle-status
 {
-    font-weight: var(--battle-panel-font-weight) + 100;
+    font-weight: calc(var(--battle-panel-font-weight) + 100);
     width: 5%;
 }
 
 #battle-panel .battle-position
 {
-    font-weight: var(--battle-panel-font-weight) + 200;
+    font-weight: calc(var(--battle-panel-font-weight) + 200);
     text-align: left !important;
     width: 5%;
 }
@@ -69,19 +69,19 @@
 
 #battle-panel .battle-number
 {
-    font-weight: var(--battle-panel-font-weight) + 200;
+    font-weight: calc(var(--battle-panel-font-weight) + 200);
     width: 5%;
 }
 
 #battle-panel .battle-gap
 {
-    font-weight: var(--battle-panel-font-weight) + 100;
+    font-weight: calc(var(--battle-panel-font-weight) + 100);
     width: 10%;
 }
 
 #battle-panel .battle-tire
 {
-    font-weight: var(--battle-panel-font-weight) + 100;
+    font-weight: calc(var(--battle-panel-font-weight) + 100);
     width: 5%;
 }
 
@@ -92,6 +92,6 @@
 
 #battle-panel .battle-class
 {
-    font-weight: var(--battle-panel-font-weight) + 100;
+    font-weight: calc(var(--battle-panel-font-weight) + 100);
     width: 10%;
 }

@@ -201,15 +201,6 @@
 
 .sector-bar
 {
-    height: 4px;
-    flex: 1;
-    background-color: rgba(255, 255, 255, 0.15);
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.sector-bar
-{
     background-color: var(--standings-panel-sector-inactive-color);
     border-radius: 2px;
     overflow: hidden;

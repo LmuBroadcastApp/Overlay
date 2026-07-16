@@ -65,6 +65,8 @@
     /** Battle panel */
     --battle-panel-position-bottom: 1rem;   /** Position from the bottom of the screen */
     --battle-panel-position-left: 45rem;    /** Position from the left of the screen */
+    --battle-panel-font-weight: 550;        /** How bold the font will be seen */
+    --battle-panel-font-size: 1em;          /** General font size of the panel */
     --battle-panel-width: 500px;
 
     /** Notification */
