@@ -190,7 +190,13 @@ class VirtualDOM
 
         if (name === 'className' || name === 'class')
         {
-            el.className = val || '';
+            const next = val || '';
+
+            if (el.className !== next)
+            {
+                el.className = next;
+            }
+
             return;
         }
 

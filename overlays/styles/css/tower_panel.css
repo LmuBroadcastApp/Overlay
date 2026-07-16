@@ -246,7 +246,7 @@ tr.overtake-gain::after
     height: 100%;
     background: var(--standings-panel-gain-position-color);
     pointer-events: none;
-    animation: OvertakeGainAnimation 3s ease-out;
+    animation: OvertakeGainAnimation 2s ease-out;
 }
 
 tr.overtake-lost
@@ -264,7 +264,7 @@ tr.overtake-lost::after
     height: 100%;
     background: var(--standings-panel-lost-position-color);
     pointer-events: none;
-    animation: OvertakeLostAnimation 3s ease-out;
+    animation: OvertakeLostAnimation 2s ease-out;
 }
 
 @keyframes OvertakeGainAnimation

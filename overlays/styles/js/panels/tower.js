@@ -504,43 +504,91 @@ class TowerPanel
             return;
         }
 
-        for (let i = 0; i < Math.min(curr.length, prev.length) - 1; i++)
+        let prevPos = new Map();
+        let currPos = new Map();
+        let animatedLost = new Set();
+
+        for (let i = 0; i < prev.length; i++)
         {
-            if (curr[i + 0].slot_id === prev[i + 1].slot_id)
+            prevPos.set(prev[i].slot_id, i);
+        }
+
+        for (let i = 0; i < curr.length; i++)
+        {
+            currPos.set(curr[i].slot_id, i);
+        }
+
+        for (let i = 0; i < curr.length; i++)
+        {
+            let gained = curr[i];
+            let prevIdx = prevPos.get(gained.slot_id);
+
+            if (prevIdx == null || prevIdx <= i)
             {
-                this._setFlash(curr[i + 0].slot_id, 'overtake-gain');
-                this._setFlash(curr[i + 1].slot_id, 'overtake-lost');
+                continue;
+            }
+
+            let didOvertake = false;
+
+            // Cars that were between the new and old position in prev[] were overtaken.
+            for (let j = i; j < prevIdx; j++)
+            {
+                let lostSlotId = prev[j].slot_id;
+
+                if (lostSlotId === gained.slot_id)
+                {
+                    continue;
+                }
+
+                let lostCurrIdx = currPos.get(lostSlotId);
+                if (lostCurrIdx == null || lostCurrIdx <= i)
+                {
+                    continue;
+                }
+
+                didOvertake = true;
+                if (!animatedLost.has(lostSlotId))
+                {
+                    animatedLost.add(lostSlotId);
+                    this._setOvertake(lostSlotId, 'overtake-lost');
+                }
+            }
+
+            if (didOvertake)
+            {
+                this._setOvertake(gained.slot_id, 'overtake-gain');
             }
         }
     }
 
-    _setFlash(slotId, cls)
+    _setOvertake(slotId, cls)
     {
-        // Matches the 3s CSS animation; expiry removes the class via a re-render.
-        this.animation_timers.set(slotId, { cls, expiry: Date.now() + 2900 });
+        let now = Date.now();
+        let existing = this.animation_timers.get(slotId);
+
+        if (existing && existing.cls === cls && now < existing.expiry)
+        {
+            return;
+        }
+
+        this.animation_timers.set(slotId, { cls, expiry: now + 1900 });
     }
 
     _purgeExpiredAnimations()
     {
-        let now = Date.now();
-        let changed = false;
-
-        for (let [slotId, flash] of this.animation_timers)
+        for (let [slotId, entry] of this.animation_timers)
         {
-            if (now >= flash.expiry)
+            if (Date.now() >= entry.expiry)
             {
                 this.animation_timers.delete(slotId);
-                changed = true;
             }
         }
-
-        return changed;
     }
 
     _getRowClass(vehicle)
     {
         let cls = "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
-        let flash = this.animation_timers.get(vehicle.slot_id);
-        return flash ? cls + " " + flash.cls : cls;
+        let overtake = this.animation_timers.get(vehicle.slot_id);
+        return overtake ? cls + " " + overtake.cls : cls;
     }
 }
