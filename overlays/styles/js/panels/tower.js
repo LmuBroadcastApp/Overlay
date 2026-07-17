@@ -127,7 +127,7 @@ class TowerPanel
 
         // slot_id -> { colorType, color, startTime }; rendered as inline background-color
         this.animation_timers = new Map();
-        this.animation_duration = 3000;
+        this.animation_duration = 2000;
 
         this.counter_standings_curr = 0;
         this.counter_standings_test = 0;
@@ -137,6 +137,7 @@ class TowerPanel
             update_rate: 3,
             static_entries: 5,
             dynamic_entries: 5,
+            overtake_animation_speed: 2,
             gap_mode: "leader",
             name_source: "driver",
             driver_name: "short",
@@ -164,8 +165,9 @@ class TowerPanel
         }
         else if (key === 'controls')
         {
-            this.vehicle_control.clear();
             this.controls = value;
+            this.vehicle_control.clear();
+            this.animation_duration = this.controls.overtake_animation_speed * 1000;
         }
         else if (key === 'map')
         {
@@ -232,6 +234,7 @@ class TowerPanel
 
         if (gap < 0.5) return "gap-less-1";
         if (gap < 2) return "gap-less-2";
+
         return "";
     }
 
@@ -260,21 +263,17 @@ class TowerPanel
     {
         if (vehicle.in_pits && vehicle.status !== "Finished" && vehicle.status !== "DNF" && vehicle.status !== "DQ")
         {
-            return this.vdom.h('td', null,
-                this.vdom.h('div', { className: 'vehicle-in-pits' }, 'PIT'));
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'PIT'));
         }
 
         if (vehicle.status === "Request")
         {
-            return this.vdom.h('td', null,
-                this.vdom.h('div', { className: 'vehicle-in-pits' }, 'REQ'));
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'REQ'));
         }
 
         if (vehicle.status === "Finished")
         {
-            return this.vdom.h('td', null,
-                this.vdom.h('div', null,
-                    this.vdom.h('img', { alt: 'finish-flag', height: '23', src: 'styles/img/others/flag_finish.jpg' })));
+            return this.vdom.h('td', null, this.vdom.h('div', null, this.vdom.h('img', { alt: 'finish-flag', height: '23', src: 'styles/img/others/flag_finish.jpg' })));
         }
 
         return null;
@@ -371,7 +370,6 @@ class TowerPanel
         if (raceFlag) cells.push(raceFlag);
 
         cells.push(...this._getPenalties(vehicle));
-
         return cells;
     }
 
@@ -528,7 +526,7 @@ class TowerPanel
 
     _checkAndAnimateOvertakes(curr, prev)
     {
-        if (curr == null || prev == null)
+        if (curr == null || prev == null || this.animation_duration <= 0)
         {
             return;
         }
