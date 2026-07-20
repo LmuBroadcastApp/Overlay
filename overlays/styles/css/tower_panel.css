@@ -154,7 +154,7 @@
     position: absolute;
     right: 0px;
 
-    box-shadow: -3px 0px 20px 0px rgba(0, 0, 0);
+    box-shadow: -12px 0px 8px 4px rgba(0, 0, 0, 0.2);
     background-color: rgb(249, 199, 79);
     color: black;
 

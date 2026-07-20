@@ -115,6 +115,8 @@ class TowerPanel
         }
 
         this.sectors = new TrackSectors();
+        this.animation_duration = 2000;
+
         this.vehicle_control = new Map();
         this.stateManager.subscribe(this.handleStateChange.bind(this));
 
@@ -124,10 +126,6 @@ class TowerPanel
 
         this.tree = null;
         this.vdom = new VirtualDOM();
-
-        // slot_id -> { colorType, color, startTime }; rendered as inline background-color
-        this.animation_timers = new Map();
-        this.animation_duration = 2000;
 
         this.counter_standings_curr = 0;
         this.counter_standings_test = 0;
@@ -143,8 +141,7 @@ class TowerPanel
             driver_name: "short",
             right_column: "energy",
             vehicle_class: "multiclass",
-            sector_bars: false,
-            overtake_animations: false
+            sector_bars: false
         };
     }
 
@@ -185,26 +182,11 @@ class TowerPanel
                 this.vdom.render(this.vdom.h('div'), this.element);
             }
 
-            this.animation_timers.clear();
             return;
         }
 
-        this._purgeExpiredAnimations();
-        let noNewData = this.counter_standings_curr === this.counter_standings_test;
-
-        if (noNewData) return;
-        this.counter_standings_test = this.counter_standings_curr;
-
-        if (this.controls.overtake_animations && this.standings_prev)
-        {
-            let curr = GetByClasses(this.standings);
-            let prev = GetByClasses(this.standings_prev);
-
-            curr.forEach((value, key) =>
-            {
-                this._checkAndAnimateOvertakes(value, prev.get(key));
-            });
-        }
+        if (this.counter_standings_curr === this.counter_standings_test) return;
+        this.counter_standings_test = this.counter_standings_curr
 
         let newTree;
 
@@ -524,99 +506,6 @@ class TowerPanel
         return this.vdom.h('div', null, tables);
     }
 
-    _checkAndAnimateOvertakes(curr, prev)
-    {
-        if (curr == null || prev == null || this.animation_duration <= 0)
-        {
-            return;
-        }
-
-        let prevPos = new Map();
-        let currPos = new Map();
-        let animatedLost = new Set();
-
-        for (let i = 0; i < prev.length; i++)
-        {
-            prevPos.set(prev[i].slot_id, i);
-        }
-
-        for (let i = 0; i < curr.length; i++)
-        {
-            currPos.set(curr[i].slot_id, i);
-        }
-
-        for (let i = 0; i < curr.length; i++)
-        {
-            let gained = curr[i];
-            let prevIdx = prevPos.get(gained.slot_id);
-
-            if (prevIdx == null || prevIdx <= i)
-            {
-                continue;
-            }
-
-            let didOvertake = false;
-
-            // Cars that were between the new and old position in prev[] were overtaken.
-            for (let j = i; j < prevIdx; j++)
-            {
-                let lostSlotId = prev[j].slot_id;
-
-                if (lostSlotId === gained.slot_id)
-                {
-                    continue;
-                }
-
-                let lostCurrIdx = currPos.get(lostSlotId);
-                if (lostCurrIdx == null || lostCurrIdx <= i)
-                {
-                    continue;
-                }
-
-                didOvertake = true;
-                if (!animatedLost.has(lostSlotId))
-                {
-                    animatedLost.add(lostSlotId);
-                    this._setOvertake(lostSlotId, 'overtake-lost');
-                }
-            }
-
-            if (didOvertake)
-            {
-                this._setOvertake(gained.slot_id, 'overtake-gain');
-            }
-        }
-    }
-
-    _setOvertake(slotId, colorType)
-    {
-        let now = Date.now();
-        let existing = this.animation_timers.get(slotId);
-
-        if (existing && existing.colorType === colorType && now < existing.startTime + this.animation_duration)
-        {
-            return;
-        }
-
-        let color = colorType === 'overtake-gain'
-            ? getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-gain-position-color').trim()
-            : getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-lost-position-color').trim();
-
-        this.animation_timers.set(slotId, { colorType, color, startTime: now });
-    }
-
-    _purgeExpiredAnimations()
-    {
-        let now = Date.now();
-        for (let [slotId, entry] of this.animation_timers)
-        {
-            if (now >= entry.startTime + this.animation_duration)
-            {
-                this.animation_timers.delete(slotId);
-            }
-        }
-    }
-
     _getRowClass(vehicle)
     {
         return "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
@@ -624,13 +513,30 @@ class TowerPanel
 
     _getRowStyle(vehicle)
     {
-        let overtake = this.animation_timers.get(vehicle.slot_id);
-        if (!overtake) return null;
+        if (Date.now() >= vehicle.overtake_highligh_lost_until && Date.now() >= vehicle.overtake_highligh_gain_until)
+        {
+            return null;
+        }
 
-        let elapsed = Date.now() - overtake.startTime;
+        let color = 'rgba(0, 0, 0, 0)';
+        let startTime = 0;
+
+        if (Date.now() < vehicle.overtake_highligh_lost_until)
+        {
+            color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-lost-position-color').trim();
+            startTime = vehicle.overtake_highligh_lost_until;
+        }
+
+        if (Date.now() < vehicle.overtake_highligh_gain_until)
+        {
+            color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-gain-position-color').trim();
+            startTime = vehicle.overtake_highligh_gain_until;
+        }
+
+        let elapsed = Date.now() - startTime;
         let alpha = Math.max(0, 1 - elapsed / this.animation_duration);
 
-        let parts = overtake.color.replace(')', '').split(',');
+        let parts = color.replace(')', '').split(',');
         parts[parts.length - 1] = ` ${alpha})`;
 
         return { backgroundColor: parts.join(',') };
