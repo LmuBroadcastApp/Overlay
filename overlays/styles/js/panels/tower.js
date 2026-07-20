@@ -518,23 +518,22 @@ class TowerPanel
             return null;
         }
 
-        let color = 'rgba(0, 0, 0, 0)';
         let startTime = 0;
+        let color = 'rgba(0, 0, 0, 0)';
 
-        if (Date.now() < vehicle.overtake_highligh_lost_until)
+        if (vehicle.overtake_highligh_lost_until > vehicle.overtake_highligh_gain_until)
         {
             color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-lost-position-color').trim();
             startTime = vehicle.overtake_highligh_lost_until;
         }
-
-        if (Date.now() < vehicle.overtake_highligh_gain_until)
+        else
         {
             color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-gain-position-color').trim();
             startTime = vehicle.overtake_highligh_gain_until;
         }
 
-        let elapsed = Date.now() - startTime;
-        let alpha = Math.max(0, 1 - elapsed / this.animation_duration);
+        let elapsed = startTime - Date.now();
+        let alpha = Math.max(0, elapsed / this.animation_duration);
 
         let parts = color.replace(')', '').split(',');
         parts[parts.length - 1] = ` ${alpha})`;
