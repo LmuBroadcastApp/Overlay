@@ -14,33 +14,33 @@ function SessionTimeString(session)
 
 function SessionTrackStatusString(session)
 {
-    let resul = "Yellow: ";
+    let result = "Yellow: ";
     let hasYellow = false;
 
     if (session.sectorFlags[0])
     {
         hasYellow = true;
-        resul += "S1 ";
+        result += "S1 ";
     }
 
     if (session.sectorFlags[1])
     {
         hasYellow = true;
-        resul += "S2 ";
+        result += "S2 ";
     }
 
     if (session.sectorFlags[2])
     {
         hasYellow = true;
-        resul += "S3 ";
+        result += "S3 ";
     }
 
     if (!hasYellow)
     {
-        resul += "None";
+        result += "None";
     }
 
-    return resul.trim();
+    return result.trim();
 }
 
 function SessionTemperatureString(session)

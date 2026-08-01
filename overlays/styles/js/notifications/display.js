@@ -179,6 +179,33 @@ class NotificationSystem
         </div>`;
     }
 
+    _possibleBestLap(message)
+    {
+        let VEHICLE_NUMBER = message.vehicle_number;
+        let TIME = LaptimeToString(message.projected_lap);
+        let CLASS = message.vehicle_class;
+        let NAME = message.driver;
+
+        return `<div class='notification-entry'>
+            <div class='header'>
+                <span class='padding'>Qualifying</span>
+                <span class='padding'>On a flyer</span>
+            </div>
+            <div class='info'>
+                <div class='${CLASS} class-type padding overflow'>
+                    ${CLASS}
+                </div>
+                <div class='vehicle-number padding overflow'>
+                    #${VEHICLE_NUMBER}
+                </div>
+                <div class='vehicle-data possible-best-lap'>
+                    <span class='name overflow padding'>${NAME}</span>
+                    <span class='padding'>${TIME}</span>
+                </div>
+            </div>
+        </div>`;
+    }
+
     _message(message)
     {
         return `<div class='message'>${message}</div>`;
@@ -215,6 +242,10 @@ class NotificationSystem
         else if (type == 'penalty')
         {
             notification.innerHTML = this._penalty(next.message);
+        }
+        else if (type == 'possible-best-lap')
+        {
+            notification.innerHTML = this._possibleBestLap(next.message);
         }
         else if (type == 'winner')
         {

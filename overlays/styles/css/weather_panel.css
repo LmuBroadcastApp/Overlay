@@ -36,6 +36,20 @@
 #weather-panel table td
 {
     background-color: var(--weather-panel-body-background-color);
+    position: relative;
+
     padding-right: 10px;
     padding-left: 10px;
+}
+
+#weather-panel .progress-cell::after
+{
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: var(--progress, 0%);
+    height: 3px;
+    background: #2b7cff;
+    transition: width 0.3s ease;
 }

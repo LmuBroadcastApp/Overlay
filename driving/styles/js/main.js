@@ -64,6 +64,7 @@ function fnc_main_loop(timestamp)
 window.addEventListener('beforeunload', () =>
 {
     cancelAnimationFrame(animationId);
+    webSocketWrapper.disconnect();
 });
 
 window.addEventListener('load', () =>

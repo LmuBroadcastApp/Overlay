@@ -3,53 +3,100 @@ const EXTRA_COLUMNS =
     {
         key: 'energy_fuel',
         headerLabel: (c) => (c.toLowerCase() === "gt3" || c.toLowerCase() === "hyper") ? "NRG" : "FUEL",
-        cellRenderer: (v) => { let f = GetVehicleFuelVe(v); return `<td class="vehicle-extra-column standings-secondary-color" ${f.style}>${f.text}</td>`; }
+        cellRenderer: (v, vdom) =>
+        {
+            let f = GetVehicleFuelVe(v);
+            let colorMatch = f.style.match(/color:\s*([^"]+)/);
+            let styleObj = colorMatch ? { color: colorMatch[1].trim() } : {};
+
+            return vdom.h('td',
+                { className: 'vehicle-extra-column standings-secondary-color', style: styleObj },
+                f.text);
+        }
     },
     {
         key: 'best_lap',
         headerLabel: 'BEST',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.best_lap)}</td>` },
+        cellRenderer: (v, vdom) => vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' }, LaptimeToString(v.best_lap))
+    },
     {
         key: 'last_lap',
         headerLabel: 'LAST',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${LaptimeToString(v.last_lap)}</td>` },
-    {
-        key: 'num_pit_stops',
-        headerLabel: '#PITS',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.pit_stops}</td>` },
+        cellRenderer: (v, vdom) => vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' }, LaptimeToString(v.last_lap))
+    },
     {
         key: 'damage',
         headerLabel: 'DMG',
-        cellRenderer: (v) => `<td class="vehicle-extra-column standings-secondary-color">${v.damage.toFixed(1)}%</td>` },
+        cellRenderer: (v, vdom) => vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' }, v.damage.toFixed(1) + '%')
+    },
+    {
+        key: 'num_pit_stops',
+        headerLabel: '#PITS',
+        cellRenderer: (v, vdom) =>
+        {
+            let lap = '';
+            let time = '';
+
+            if (v.pitstops.length > 0 && v.pitstops[v.pitstops.length - 1].session === "RACE")
+            {
+                lap = '\u2002\u2002L' + v.pitstops[v.pitstops.length - 1].lap;
+                time = '\u2002\u2002' + LaptimeToString(v.pitstops[v.pitstops.length - 1].pit_lane_time);
+            }
+
+            return vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' }, `${v.pit_stops}${lap}${time}`);
+        }
+    },
     {
         key: 'pos_gain_lost',
         headerLabel: '#P',
-        cellRenderer: (v) =>
+        cellRenderer: (v, vdom) =>
         {
+            if (v.qualy_position_class == 0)
+            {
+                return vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' }, '-');
+            }
+
             let diff = v.race_position_class - v.qualy_position_class;
-            let cls = diff < 0 ? "gain-position" : diff > 0 ? "lost-position" : "";
             let num = String(Math.abs(diff)).padStart(2, '0');
-            let txt = (v.qualy_position_class > 0) ? (diff > 0 ? "⮟ " + num : diff < 0 ? "⮝ " + num : "-") : "-";
-            return `<td class="vehicle-extra-column standings-secondary-color ${cls}">${txt}</td>`;
+
+            let arrow = '';
+            let cls = '';
+
+            if (diff < 0)
+            {
+                cls = "gain-position";
+                arrow = "\u2B9D";
+            }
+            else if (diff > 0)
+            {
+                cls = "lost-position";
+                arrow = "\u2B9E";
+            }
+
+            return vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' },
+                vdom.h('span', { className: cls }, arrow),
+                ' ' + num);
         }
     },
     {
         key: 'tires',
         headerLabel: 'TIRES',
-        cellRenderer: (v) =>
+        cellRenderer: (v, vdom) =>
         {
             if (HasOneTireCompound(v))
             {
                 let tire = "(" + v.tire_compound[0][0] + ")";
-                return `<td class="vehicle-extra-column standings-secondary-color" style="color: ${TireCompoundColor(v.tire_compound[0])};">${tire}</td>`;
+                return vdom.h('td',
+                    { className: 'vehicle-extra-column standings-secondary-color', style: { color: TireCompoundColor(v.tire_compound[0]) } },
+                    tire);
             }
-            return `<td class="vehicle-extra-column standings-secondary-color" style="font-size: 0.5em;">
-                    <span style="color: ${TireCompoundColor(v.tire_compound[0])}"><span>
-                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[1])}"><span>
-                        <br/>
-                    <span style="color: ${TireCompoundColor(v.tire_compound[2])}"><span>
-                    <span style="margin-left: 5px; color: ${TireCompoundColor(v.tire_compound[3])}"><span>
-                </td>`;
+            return vdom.h('td',
+                { className: 'vehicle-extra-column standings-secondary-color', style: { fontSize: '0.5em' } },
+                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[0]) } }),
+                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[1]) } }),
+                vdom.h('br'),
+                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[2]) } }),
+                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[3]) } }));
         }
     }
 ];
@@ -67,22 +114,34 @@ class TowerPanel
             return;
         }
 
+        this.sectors = new TrackSectors();
+        this.animation_duration = 2000;
+
         this.vehicle_control = new Map();
         this.stateManager.subscribe(this.handleStateChange.bind(this));
 
         this.session = null;
         this.standings = null;
+        this.standings_prev = null;
+
+        this.tree = null;
+        this.vdom = new VirtualDOM();
+
+        this.counter_standings_curr = 0;
+        this.counter_standings_test = 0;
 
         this.controls =
         {
             update_rate: 3,
             static_entries: 5,
             dynamic_entries: 5,
+            overtake_animation_speed: 2,
             gap_mode: "leader",
             name_source: "driver",
             driver_name: "short",
             right_column: "energy",
-            vehicle_class: "multiclass"
+            vehicle_class: "multiclass",
+            sector_bars: false
         };
     }
 
@@ -91,208 +150,276 @@ class TowerPanel
         if (key === 'session')
         {
             this.session = value.trackName !== "" ? value : null;
+
+            if (this.session == null) this.sectors.reset();
+            else this.sectors.setTrackDistance(value.trackDistance);
         }
         else if (key === 'standings')
         {
+            this.standings_prev = this.standings?.slice();
+            this.counter_standings_curr++;
             this.standings = value;
         }
         else if (key === 'controls')
         {
-            this.vehicle_control.clear();
             this.controls = value;
+            this.vehicle_control.clear();
+            this.animation_duration = this.controls.overtake_animation_speed * 1000;
+        }
+        else if (key === 'map')
+        {
+            this.sectors.setSectors(value.sectors.sector1, value.sectors.sector2, value.sectors.sector3)
         }
     }
 
     update()
     {
-        this.element.innerHTML = '';
-
-        if (this.standings == null || this.session == null)
+        if (this.standings == null || this.session == null || this.standings.length === 0)
         {
-            return
+            if (this.tree !== null)
+            {
+                this.tree = null;
+                this.vdom.render(this.vdom.h('div'), this.element);
+            }
+
+            return;
         }
 
-        if (this.controls.vehicle_class.toLowerCase() == "multiclass")
+        if (this.counter_standings_curr === this.counter_standings_test) return;
+        this.counter_standings_test = this.counter_standings_curr
+
+        let newTree;
+
+        if (this.controls.vehicle_class.toLowerCase() === "multiclass")
         {
-            this.showMultiClass();
+            newTree = this._buildMultiClassTree();
         }
         else
         {
-            this.showOneClass();
+            newTree = this._buildOneClassTree();
+        }
+
+        if (this.tree === null)
+        {
+            this.tree = this.vdom.render(newTree, this.element);
+        }
+        else
+        {
+            this.tree = this.vdom.patch(this.tree, newTree, this.element);
         }
     }
 
-    hasPenalty(vehicle)
+    _getGapColor(gap, position, isRace)
     {
-        let dt = vehicle.penalties.drive_through;
-        let tp = vehicle.penalties.time_penalty;
-        let sg = vehicle.penalties.stop_and_go;
-        return dt > 0 || sg > 0 || tp > 0;
-    }
-
-    getGapColor(gap, position, isRace)
-    {
-        if (this.controls.gap_mode.toLowerCase() != "ahead" || !isRace || position <= 1)
+        if (this.controls.gap_mode.toLowerCase() !== "ahead" || !isRace || position <= 1)
             return "";
 
         if (gap < 0.5) return "gap-less-1";
         if (gap < 2) return "gap-less-2";
+
         return "";
     }
 
-    getFirstColumnMeta(vehicle, bestLap)
+    _getFirstColumnMeta(vehicle, bestLap, session)
     {
-        if (!vehicle.in_pits && vehicle.telemetry.speed < 50)
+        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase === 5)
         {
             return {
-                background: "style='background-color: rgb(249, 199, 79)'",
-                img: "<span class='icon-container' style='color: #1a1a1a;'></span>"
+                style: { backgroundColor: 'rgb(249, 199, 79)' },
+                icon: this.vdom.h('span', { className: 'icon-container', style: { color: '#1a1a1a' } }, '!')
             };
         }
 
-        if (vehicle.slot_id == bestLap.id)
+        if (vehicle.slot_id === bestLap.id)
         {
             return {
-                background: "style='background-color: #0076D7;'",
-                img: "<span class='icon-container'>󰔛</span>"
+                style: { backgroundColor: '#0076D7' },
+                icon: this.vdom.h('span', { className: 'icon-container' }, '\u{F051B}')
             };
         }
 
-        return { background: "", img: "" };
+        return { style: null, icon: null };
     }
 
-    getRaceFlags(vehicle)
+    _getRaceFlags(vehicle)
     {
-        let flag_txt = "";
-
-        if (vehicle.in_pits && vehicle.status != "Finished" && vehicle.status != "DNF" && vehicle.status != "DQ")
+        if (vehicle.in_pits && vehicle.status !== "Finished" && vehicle.status !== "DNF" && vehicle.status !== "DQ")
         {
-            flag_txt += "<span class='vehicle-in-pits'>PIT</span>";
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'PIT'));
         }
 
-        if (vehicle.status == "Finished")
+        if (vehicle.status === "Request")
         {
-            flag_txt = "<span><img alt='finish-flag' height='23' src='styles/img/others/flag_finish.jpg'/></span>";
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'REQ'));
         }
 
-        return flag_txt == "" ? "" : `<td>${flag_txt}</td>`;
+        if (vehicle.status === "Finished")
+        {
+            return this.vdom.h('td', null, this.vdom.h('div', null, this.vdom.h('img', { alt: 'finish-flag', height: '23', src: 'styles/img/others/flag_finish.jpg' })));
+        }
+
+        return null;
     }
 
-    getPenalty(vehicle)
+    _getPenalties(vehicle)
     {
-        let penalty_txt = "";
-
-        if (vehicle.status == "DNF" || vehicle.status == "DQ")
+        if (vehicle.status === "DNF" || vehicle.status === "DQ")
         {
-            return "";
+            return [];
         }
+
+        let cells = [];
 
         if (vehicle.penalties.drive_through > 0)
         {
-            penalty_txt += "<span class='penalty-style'>DT</span>";
+            cells.push(this.vdom.h('td', null,
+                this.vdom.h('div', { className: 'penalty-style' }, 'DT')));
         }
 
         if (vehicle.penalties.stop_and_go > 0)
         {
-            penalty_txt += "<span class='penalty-style'>SG</span>";
+            cells.push(this.vdom.h('td', null,
+                this.vdom.h('div', { className: 'penalty-style' }, 'SG')));
         }
 
         if (vehicle.penalties.time_penalty > 0)
         {
-            penalty_txt += "<span class='penalty-style'>+" + vehicle.penalties.time_penalty + "</span>";
+            cells.push(this.vdom.h('td', null,
+                this.vdom.h('div', { className: 'penalty-style' }, '+' + vehicle.penalties.time_penalty)));
         }
 
-        return penalty_txt == "" ? "" : `<td>${penalty_txt}</td>`;
+        return cells;
     }
 
-    createRow(vehicle, position, isRace, tableRow, bestLap, extras)
+    _createRow(vehicle, position, isRace, bestLap, extras)
     {
         let name = VehicleGetName(vehicle, this.controls, isRace);
         let gap = VehicleGetGap(vehicle, this.controls, isRace);
         let manufacturer = vehicle.manufacturer.trim() || "Default";
-        let selected_color = vehicle.focus ? "color-selected" : "";
-        let gap_color = this.getGapColor(gap, position, isRace);
-        let firstCol = this.getFirstColumnMeta(vehicle, bestLap);
+        let gap_color = this._getGapColor(gap, position, isRace);
+        let firstCol = this._getFirstColumnMeta(vehicle, bestLap, this.session);
 
-        if (position == 1) gap = "-";
+        if (position === 1) gap = "-";
+
+        let sectorBars = null;
+
+        if (this.controls.sector_bars)
+        {
+            let trackDistance = this.sectors.trackDistance;
+            let distance = vehicle.spline * trackDistance;
+            let { progress: [p1, p2, p3], active: [a1, a2, a3] } = this.sectors.getSectorProgress(distance);
+
+            sectorBars = this.vdom.h('div', { className: 'sector-bars' },
+                this.vdom.h('div', { className: `sector-bar ${a1 ? '' : 'sector-bar-inactive'}` },
+                    this.vdom.h('div', { className: `sector-bar-fill ${a1 ? 'sector-bar-fill-1' : ''}`, style: { width: `${(p1 * 100).toFixed(1)}%` } })),
+                this.vdom.h('div', { className: `sector-bar ${a2 ? '' : 'sector-bar-inactive'}` },
+                    this.vdom.h('div', { className: `sector-bar-fill ${a2 ? 'sector-bar-fill-2' : ''}`, style: { width: `${(p2 * 100).toFixed(1)}%` } })),
+                this.vdom.h('div', { className: `sector-bar ${a3 ? '' : 'sector-bar-inactive'}` },
+                    this.vdom.h('div', { className: `sector-bar-fill ${a3 ? 'sector-bar-fill-3' : ''}`, style: { width: `${(p3 * 100).toFixed(1)}%` } })));
+        }
 
         let extraCells = EXTRA_COLUMNS
             .filter(col => extras[col.key])
-            .map(col => col.cellRenderer(vehicle))
-            .join('');
+            .map(col => col.cellRenderer(vehicle, this.vdom));
 
-        return `<tr class="${selected_color}">
-            <td class="vehicle-icons" ${firstCol.background}">${firstCol.img}</td>
-            <td class="vehicle-position standings-primary-color">${position}</td>
-            <td class="vehicle-driver standings-primary-color"><span class="vehicle-driver-truncate-text">${name}</span></td>
-            <td class="vehicle-logo standings-primary-color"><img height="23px" alt="" src="styles/img/brandlogo/${manufacturer}.png" /></td>
-            <td class="vehicle-number standings-primary-color">#${vehicle.vehicle_number}</td>
-            <td class="vehicle-gap standings-secondary-color ${gap_color}">${gap}</td>
-            ${extraCells}
-            ${this.getRaceFlags(vehicle)}
-            ${this.getPenalty(vehicle)}
-        </tr>`;
+        let lastPitStop = null;
+
+        if (this.controls.show_last_pitstop && vehicle.pitstops.length > 0 && vehicle.pitstops[vehicle.pitstops.length - 1].session === "RACE")
+        {
+            lastPitStop = this.vdom.h('span', { className: 'pit-stop-lap' },
+                'L' + vehicle.pitstops[vehicle.pitstops.length - 1].lap);
+        }
+
+        let iconAttrs = { className: 'vehicle-icons' };
+        if (firstCol.style) iconAttrs.style = firstCol.style;
+
+        let cells = [
+            this.vdom.h('td', iconAttrs, firstCol.icon),
+            this.vdom.h('td', { className: 'vehicle-position standings-primary-color' }, String(position)),
+            this.vdom.h('td', { className: 'vehicle-driver standings-primary-color' },
+                this.vdom.h('div', { className: 'vehicle-driver-row' },
+                    this.vdom.h('span', { className: 'vehicle-driver-truncate-text' }, name),
+                    lastPitStop),
+                sectorBars),
+            this.vdom.h('td', { className: 'vehicle-logo standings-primary-color' },
+                this.vdom.h('img', { height: '23px', alt: '', src: `styles/img/brandlogo/${manufacturer}.png` })),
+            this.vdom.h('td', { className: 'vehicle-number standings-primary-color' }, '#' + vehicle.vehicle_number),
+            this.vdom.h('td', { className: `vehicle-gap standings-secondary-color ${gap_color}` }, gap),
+            ...extraCells
+        ];
+
+        let raceFlag = this._getRaceFlags(vehicle);
+        if (raceFlag) cells.push(raceFlag);
+
+        cells.push(...this._getPenalties(vehicle));
+        return cells;
     }
 
-    renderOneStandingsClass(renderInfo)
+    _renderOneStandingsClass(renderInfo)
     {
         let v = renderInfo.standings;
         let c = renderInfo.vehicle_class;
-        let isRace = renderInfo.isRace;
-        let gap_txt = this.controls.gap_mode.toLowerCase() == "ahead" ? "INT" : "GAP";
+
+        let gap_txt = this.controls.gap_mode.toLowerCase() === "ahead" ? "INT" : "GAP";
         let bestLap = GetBestLapTime(v);
 
-        let content = this.buildClassHeader(c, v, gap_txt, renderInfo.extras);
-        let range = this.getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
+        let rows = [];
+        let headerCells = this._buildClassHeader(c, v, gap_txt, renderInfo.extras);
+        let range = this._getScrollRange(c, v, renderInfo.static_entries, renderInfo.dynamic_entries, renderInfo.update_rate);
 
         for (let i = range.start; i < range.end; i++)
         {
-            let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
-            content = content.concat(row);
+            let rowCells = this._createRow(v[i], i + 1, renderInfo.isRace, bestLap, renderInfo.extras);
+            rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: this._getRowClass(v[i]), style: this._getRowStyle(v[i]) }, rowCells));
         }
 
         if (range.scroll)
         {
-            content = content.concat("<tr><td></td><td colspan='6' style='background-color: rgba(224, 224, 224, 0.3); height: 1px;'></td></tr>");
+            rows.push(this.vdom.h('tr', null,
+                this.vdom.h('td', null),
+                this.vdom.h('td', { colspan: '6', style: { backgroundColor: 'rgba(224, 224, 224, 0.3)', height: '1px' } })));
+
             for (let i = range.scroll.start; i < Math.min(v.length, range.scroll.end); i++)
             {
-                let row = this.createRow(v[i], i + 1, isRace, 1, bestLap, renderInfo.extras);
-                content = content.concat(row);
+                let rowCells = this._createRow(v[i], i + 1, renderInfo.isRace, bestLap, renderInfo.extras);
+                rows.push(this.vdom.h('tr', { key: v[i].slot_id, className: this._getRowClass(v[i]), style: this._getRowStyle(v[i]) }, rowCells));
             }
         }
 
-        return "<table>" + content + "</tbody></table>";
+        return this.vdom.h('table', null,
+            this.vdom.h('thead', null, this.vdom.h('tr', null, headerCells)),
+            this.vdom.h('tbody', null, rows));
     }
 
-    buildClassHeader(c, v, gap_txt, extras)
+    _buildClassHeader(c, v, gap_txt, extras)
     {
-        let header = `<thead>
-            <tr>
-                <th></th>
-                <th class="${CSSClassFromVehicleClass(c)}" colspan="4">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="margin: 0 5px auto;">󰶓  &nbsp; ${v.length}</span>
-                        <span style="margin: 0 auto;">${c}</span>
-                    </div>
-                </th>
-                <th class="standings-secondary-color">
-                    ${gap_txt}
-                </th>`;
+        let race_laps = GetTotalRaceLaps(v, this.session.eventTimeRemaining);
+        let num_laps = `${v[0].laps + 1} / ${race_laps}`;
+
+        let headerCells = [
+            this.vdom.h('th', null),
+            this.vdom.h('th',
+                { className: CSSClassFromVehicleClass(c), colspan: '4' },
+                this.vdom.h('div', { style: { display: 'flex', justifyContent: 'space-between' } },
+                    this.vdom.h('span', { style: { margin: '0 5px auto' } }, '\u{F0D93}\u00A0\u00A0' + v.length),
+                    this.vdom.h('span', { style: { margin: '0 auto' } }, c),
+                    this.vdom.h('span', { style: { marginRight: '5px' } }, num_laps))),
+            this.vdom.h('th', { className: 'standings-secondary-color' }, gap_txt)
+        ];
 
         for (let col of EXTRA_COLUMNS)
         {
             if (extras[col.key])
             {
                 let label = typeof col.headerLabel === 'function' ? col.headerLabel(c) : col.headerLabel;
-                header += `<th class="standings-secondary-color">${label}</th>`;
+                headerCells.push(this.vdom.h('th', { className: 'standings-secondary-color' }, label));
             }
         }
 
-        header += `</tr></thead><tbody>`;
-        return header;
+        return headerCells;
     }
 
-    getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
+    _getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
     {
         if (v.length <= static_entries)
         {
@@ -329,7 +456,7 @@ class TowerPanel
         return { start: 0, end: static_entries, scroll: opt };
     }
 
-    showOneClass()
+    _buildOneClassTree()
     {
         let renderInfo =
         {
@@ -344,20 +471,20 @@ class TowerPanel
             standings: GetVehicleOfClass(this.standings, this.controls.vehicle_class)
         }
 
-        let html = this.renderOneStandingsClass(renderInfo);
-        this.element.innerHTML = html;
+        return this._renderOneStandingsClass(renderInfo);
     }
 
-    showMultiClass()
+    _buildMultiClassTree()
     {
-        let html = "";
+        let tables = [];
+
+        if (!this.session || this.session.name === "")
+        {
+            return this.vdom.h('div', null, tables);
+        }
+
         for (const [c, s] of GetByClasses(this.standings))
         {
-            if (this.session.name == undefined)
-            {
-                continue;
-            }
-
             let renderInfo =
             {
                 extras: this.controls.extras,
@@ -371,8 +498,46 @@ class TowerPanel
                 standings: s
             }
 
-            html += this.renderOneStandingsClass(renderInfo);
+            let table = this._renderOneStandingsClass(renderInfo);
+            table.key = c;
+            tables.push(table);
         }
-        this.element.innerHTML = html;
+
+        return this.vdom.h('div', null, tables);
+    }
+
+    _getRowClass(vehicle)
+    {
+        return "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
+    }
+
+    _getRowStyle(vehicle)
+    {
+        if (Date.now() >= vehicle.overtake_highligh_lost_until && Date.now() >= vehicle.overtake_highligh_gain_until)
+        {
+            return null;
+        }
+
+        let startTime = 0;
+        let color = 'rgba(0, 0, 0, 0)';
+
+        if (vehicle.overtake_highligh_lost_until > vehicle.overtake_highligh_gain_until)
+        {
+            color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-lost-position-color').trim();
+            startTime = vehicle.overtake_highligh_lost_until;
+        }
+        else
+        {
+            color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-gain-position-color').trim();
+            startTime = vehicle.overtake_highligh_gain_until;
+        }
+
+        let elapsed = startTime - Date.now();
+        let alpha = Math.max(0, elapsed / this.animation_duration);
+
+        let parts = color.replace(')', '').split(',');
+        parts[parts.length - 1] = ` ${alpha})`;
+
+        return { backgroundColor: parts.join(',') };
     }
 }
