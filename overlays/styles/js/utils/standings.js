@@ -120,7 +120,7 @@ function GetVehicleFuelVe(vehicle)
     return result;
 }
 
-function GetBestLapTime(standings)
+function GetBestLapTime(standings, vehicle_class)
 {
     let bestLap =
     {
@@ -130,6 +130,11 @@ function GetBestLapTime(standings)
 
     for (const vehicle of standings)
     {
+        if (vehicle_class !== undefined && vehicle.vehicle_class !== vehicle_class)
+        {
+            continue;
+        }
+
         if (vehicle.best_lap > 0)
         {
             if (bestLap.lap === null || vehicle.best_lap < bestLap.lap)
@@ -215,6 +220,34 @@ function GetByClasses(standings)
     return perCategory;
 }
 
+function ClassExists(className)
+{
+    if (className.trim() === '') return false;
+    className = className.replace('.', '');
+
+    for (let sheet of document.styleSheets)
+    {
+        try
+        {
+            const rules = sheet.cssRules || sheet.rules;
+            for (let rule of rules)
+            {
+                if (rule.selectorText && rule.selectorText.includes('.' + className))
+                {
+                    return true;
+                }
+            }
+        }
+        catch(e)
+        {
+            // Cross-origin stylesheets may cause errors
+            //console.warn('Cannot access stylesheet:', e);
+        }
+    }
+
+    return false;
+}
+
 function ColorFromVehicleClass(className)
 {
     switch (className.toLowerCase())
@@ -252,8 +285,8 @@ function ColorFromVehicleClass(className)
 
 function CSSClassFromVehicleClass(className)
 {
-    //return "generic-class";
-    return (className || '').replace(/[^a-zA-Z0-9]/g, '_');
+    let cls = (className || '').replace(/[^a-zA-Z0-9]/g, '_');
+    return ClassExists(cls) ? cls : 'generic-class';
 }
 
 function StandingsGetFocus(standings)
@@ -325,4 +358,62 @@ function TireCompoundColor(compound)
             return "rgba(79, 93, 117, 1.0)";
         }
     }
+}
+
+function GetBestSectors(standings, vehicle_class)
+{
+    let result = { S1: -1, S2: -1, S3: -1 };
+    if (standings.length < 1) return result;
+
+    for (let i = 0; i < standings.length; ++i)
+    {
+        if (standings[i].vehicle_class != vehicle_class)
+        {
+            continue;
+        }
+
+        if (standings[i].best_lap_sectors.sector1 > 0 && result.S1 < 0)
+        {
+            result.S1 = standings[i].best_lap_sectors.sector1;
+        }
+        else if (standings[i].best_lap_sectors.sector1 > 0 && standings[i].best_lap_sectors.sector1 < result.S1)
+        {
+            result.S1 = standings[i].best_lap_sectors.sector1;
+        }
+
+        if (standings[i].best_lap_sectors.sector2 > 0 && result.S2 < 0)
+        {
+            result.S2 = standings[i].best_lap_sectors.sector2;
+        }
+        else if (standings[i].best_lap_sectors.sector2 > 0 && standings[i].best_lap_sectors.sector2 < result.S2)
+        {
+            result.S2 = standings[i].best_lap_sectors.sector2;
+        }
+
+        if (standings[i].best_lap_sectors.sector3 > 0 && result.S3 < 0)
+        {
+            result.S3 = standings[i].best_lap_sectors.sector3;
+        }
+        else if (standings[i].best_lap_sectors.sector3 > 0 && standings[i].best_lap_sectors.sector3 < result.S3)
+        {
+            result.S3 = standings[i].best_lap_sectors.sector3;
+        }
+    }
+
+    return result;
+}
+
+function Sector2String(sector)
+{
+    if (sector <= 0.01)
+    {
+        return '--:---';
+    }
+
+    return sector.toFixed(3);
+}
+
+function IsValidTime(time)
+{
+    return time > 0;
 }

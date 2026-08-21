@@ -8,6 +8,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
 
+        <link rel="stylesheet" href="styles/css/telemetry_panel.css"/>
         <link rel="stylesheet" href="styles/css/notifications.css"/>
         <link rel="stylesheet" href="styles/css/session_panel.css"/>
         <link rel="stylesheet" href="styles/css/weather_panel.css"/>
@@ -15,7 +16,6 @@
         <link rel="stylesheet" href="styles/css/battle_panel.css"/>
         <link rel="stylesheet" href="styles/css/tower_panel.css"/>
         <link rel="stylesheet" href="styles/css/map_panel.css"/>
-        <link rel="stylesheet" href="styles/css/telemetry.css"/>
         <link rel="stylesheet" href="styles/css/common.css"/>
 
         <script src="styles/js/network/websocket.js"></script>
@@ -92,23 +92,91 @@
 
             <section id="driver-panel" aria-label="Focused driver">
                 <div id="telemetry-panel">
-                    <div id="gauges">
-                        <div class="gauge">
-                            <canvas id="speedChart"></canvas>
-                            <div class="speed-label">
-                                <div id="speedValue">0</div>
-                                <div id="speedUnit">km/h</div>
+                    <div id="gauges-panel">
+                        <div id="gauges">
+                            <div class="gauge">
+                                <canvas id="speedChart"></canvas>
+                                <div class="speed-label">
+                                    <div id="speedValue">0</div>
+                                    <div id="speedUnit">km/h</div>
+                                </div>
+                            </div>
+                            <div class="gauge">
+                                <canvas id="rpmChart"></canvas>
+                                <div class="rpm-label" id="gearLabel">N</div>
+                                <div class="rpm-bottom" id="rpmNumber">0</div>
                             </div>
                         </div>
-                        <div class="gauge">
-                            <canvas id="rpmChart"></canvas>
-                            <div class="rpm-label" id="gearLabel">N</div>
-                            <div class="rpm-bottom" id="rpmNumber">0</div>
+                        <div id="inputs">
+                            <div class="bar"><div id="throttleFill" class="fill"></div></div>
+                            <div class="bar"><div id="brakeFill" class="fill"></div></div>
                         </div>
                     </div>
-                    <div id="inputs">
-                        <div class="bar"><div id="throttleFill" class="fill"></div></div>
-                        <div class="bar"><div id="brakeFill" class="fill"></div></div>
+                    <div id="timing-tower">
+                        <div class="times-section">
+                            <div class="time-row">
+                                <div class="time-block">
+                                    <span class="time-label">LAST</span>
+                                    <span class="time-val last-lap-time"></span>
+                                </div>
+                                <div class="time-block">
+                                    <span class="time-label">INT</span>
+                                    <span class="time-val gap-to-next"></span>
+                                </div>
+                            </div>
+                            <div class="time-row">
+                                <div class="time-block">
+                                    <span class="time-label">BEST</span>
+                                    <span class="time-val best-lap-time"></span>
+                                </div>
+                                <div class="time-block">
+                                    <span class="time-label">LDR</span>
+                                    <span class="time-val gap-to-ldr"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sectors-section">
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-1-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-1-time"></div>
+                            </div>
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-2-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-2-time"></div>
+                            </div>
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-3-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-3-time"></div>
+                            </div>
+                        </div>
+                        <div class="tyre-box">
+                            <div class="tyre-icon"></div>
+                            <div class="tyre-age"></div>
+                        </div>
                     </div>
                 </div>
                 <table>

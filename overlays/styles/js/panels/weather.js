@@ -34,9 +34,10 @@ class WeatherPanel
         let idx = this.session.weatherForecast.length;
         let perc = this.session.currentEventTime / this.session.endEventTime;
 
+        let wind_speed = this.session.windSpeed;
         let raining = this.session.raining * 100;
         let sky = this.session.cloudCoverage;
-        let content = "";
+
 
         for (let i = 0; i < this.session.weatherForecast.length - 1; ++i)
         {
@@ -45,8 +46,14 @@ class WeatherPanel
 
             if (p0 < perc && perc < p1)
             {
-                idx = i;break;
+                idx = i;
+                break;
             }
+        }
+
+        if (idx < this.session.weatherForecast.length)
+        {
+            wind_speed = this.session.weatherForecast[idx].wind_speed;
         }
 
         let header = "";
@@ -68,13 +75,13 @@ class WeatherPanel
             let icon = `<img src="styles/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
             let time = `${when}`;
 
-            header += `<th>${time}</th>`;
             body += `<td class="progress-cell" style="--progress: ${raining}%;width: var(--weather-panel-img-width);">${icon}</td>`;
+            header += `<th>${time}</th>`;
         }
 
         this.element.querySelector('.weather-panel-track-body').textContent = this._gripLevel2String(this.session.gripLevel, this.session.averagePathWetness);
         this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
-        this.element.querySelector('.weather-panel-wind-body').innerHTML = `${this.session.windSpeed.toFixed(1)}&nbsp;KM/H`;
+        this.element.querySelector('.weather-panel-wind-body').innerHTML = `${wind_speed.toFixed(1)}&nbsp;Km/h`;
 
         this.element.querySelector('.weather-panel-forecast-header').innerHTML = header;
         this.element.querySelector('.weather-panel-forecast-body').innerHTML = body;

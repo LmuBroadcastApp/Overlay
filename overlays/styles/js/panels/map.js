@@ -231,7 +231,7 @@ class TrackMapPanel
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const dpr = window.devicePixelRatio || 1;
 
-        if (this.map == null || this.standings == null)
+        if (this.map == null || this.map.track_map.length == 0 || this.standings == null)
         {
             return;
         }

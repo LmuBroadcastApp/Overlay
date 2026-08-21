@@ -42,41 +42,6 @@
     background-image: linear-gradient(to right, rgba(200, 200, 200, 1.0), rgba(0, 0, 0, 0.0));
 }
 
-#tower-panel .generic_class
-{
-    background-color: rgba(79, 93, 117, 1.0);
-}
-
-#tower-panel .GT3
-{
-    background-color: rgba(0, 143, 55, 1.0);
-}
-
-#tower-panel .GTE
-{
-    background-color: rgba(240, 140, 0, 1.0);
-}
-
-#tower-panel .LMP2
-{
-    background-color: rgba(6, 75, 145, 1.0);
-}
-
-#tower-panel .LMP3
-{
-    background-color: rgba(58, 25, 74, 1.0);
-}
-
-#tower-panel .Hyper
-{
-    background-color: rgba(171, 24, 20, 1.0);
-}
-
-#tower-panel .LMP2_ELMS
-{
-    background-color: rgba(190, 74, 9, 1.0);
-}
-
 #tower-panel .gain-position
 {
     color: rgb(27, 153, 139);

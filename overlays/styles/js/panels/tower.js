@@ -243,9 +243,9 @@ class TowerPanel
 
     _getRaceFlags(vehicle)
     {
-        if (vehicle.in_pits && vehicle.status !== "Finished" && vehicle.status !== "DNF" && vehicle.status !== "DQ")
+        if (vehicle.status === "Finished")
         {
-            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'PIT'));
+            return this.vdom.h('td', null, this.vdom.h('div', null, this.vdom.h('img', { alt: 'finish-flag', height: '23', src: 'styles/img/others/flag_finish.jpg' })));
         }
 
         if (vehicle.status === "Request")
@@ -253,9 +253,14 @@ class TowerPanel
             return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'REQ'));
         }
 
-        if (vehicle.status === "Finished")
+        if (vehicle.status === "In Garage")
         {
-            return this.vdom.h('td', null, this.vdom.h('div', null, this.vdom.h('img', { alt: 'finish-flag', height: '23', src: 'styles/img/others/flag_finish.jpg' })));
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'GAR'));
+        }
+
+        if (vehicle.in_pits && vehicle.status !== "DNF" && vehicle.status !== "DQ")
+        {
+            return this.vdom.h('td', null, this.vdom.h('div', { className: 'vehicle-in-pits' }, 'PIT'));
         }
 
         return null;
@@ -326,8 +331,7 @@ class TowerPanel
 
         if (this.controls.show_last_pitstop && vehicle.pitstops.length > 0 && vehicle.pitstops[vehicle.pitstops.length - 1].session === "RACE")
         {
-            lastPitStop = this.vdom.h('span', { className: 'pit-stop-lap' },
-                'L' + vehicle.pitstops[vehicle.pitstops.length - 1].lap);
+            lastPitStop = this.vdom.h('span', { className: 'pit-stop-lap' }, 'L' + vehicle.pitstops[vehicle.pitstops.length - 1].lap);
         }
 
         let iconAttrs = { className: 'vehicle-icons' };
