@@ -222,7 +222,7 @@ class TowerPanel
 
     _getFirstColumnMeta(vehicle, bestLap, session)
     {
-        if (!vehicle.in_pits && vehicle.telemetry.speed < 50 && session.gamePhase === 5)
+        if (!vehicle.in_pits && vehicle.show_warning_icon && session.gamePhase === 5)
         {
             return {
                 style: { backgroundColor: 'rgb(249, 199, 79)' },

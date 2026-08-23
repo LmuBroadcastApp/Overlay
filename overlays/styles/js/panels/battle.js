@@ -158,7 +158,7 @@ class BattlePanel
             return { content: "<span style='color: #1a1a1a;'>PIT</span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
         }
 
-        if (!vehicle.in_pits && vehicle.telemetry?.speed < 50)
+        if (!vehicle.in_pits && vehicle.show_warning_icon)
         {
             return { content: "<span style='color: #1a1a1a;'></span>", style: "background-color: rgb(249, 199, 79); min-width: 32px;", cls: '' };
         }
