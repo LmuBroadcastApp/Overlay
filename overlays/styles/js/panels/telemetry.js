@@ -34,6 +34,7 @@ class TelemetryPanel
 
         this.currentSectors = [];
         this.bestSectors = [];
+        this.miniBlocks = [];
 
         for (let i = 1; i <= 3; i++)
         {
@@ -41,9 +42,15 @@ class TelemetryPanel
             this.bestSectors.push(this.element.querySelector(`.best-sector-${i}-time`));
         }
 
+        for (const container of this.element.querySelectorAll('.mini-sectors'))
+        {
+            this.miniBlocks.push(Array.from(container.querySelectorAll('.mini-block')));
+        }
+
         this.speedChart = this._createGaugeChart('speedChart', '#00aaff', this.maxSpeed);
         this.rpmChart = this._createGaugeChart('rpmChart', '#00ff88', this.maxRpm);
 
+        this.classBestMiniSectors = [];
         this.stateManager.subscribe(this.handleStateChange.bind(this));
     }
 
@@ -81,6 +88,7 @@ class TelemetryPanel
         {
             this.standings = value;
             this.vehicle = value ? StandingsGetFocus(value) : null;
+            this.classBestMiniSectors = this._getClassBestMiniSectors();
         }
         else if (key === 'controls')
         {
@@ -162,6 +170,89 @@ class TelemetryPanel
         this._setStateClass(el, SECTOR_STATES, state);
     }
 
+    _getClassBestMiniSectors()
+    {
+        const best =
+        [
+            new Array(6).fill(-1),
+            new Array(6).fill(-1),
+            new Array(6).fill(-1)
+        ];
+
+        if (!this.standings || !this.vehicle)
+        {
+            return best;
+        }
+
+        for (const v of this.standings)
+        {
+            if (v.vehicle_class !== this.vehicle.vehicle_class || !v.mini_sector_best)
+            {
+                continue;
+            }
+
+            for (let s = 0; s < 3; s++)
+            {
+                const times = v.mini_sector_best[s]?.time;
+                if (!times)
+                {
+                    continue;
+                }
+
+                for (let k = 0; k < 6; k++)
+                {
+                    if (IsValidTime(times[k]) && (best[s][k] < 0 || times[k] < best[s][k]))
+                    {
+                        best[s][k] = times[k];
+                    }
+                }
+            }
+        }
+
+        return best;
+    }
+
+    _updateMiniSectors()
+    {
+        for (let s = 0; s < 3; s++)
+        {
+            const blocks = this.miniBlocks[s];
+            const current = this.vehicle.mini_sector_current[s];
+
+            const classBest = this.classBestMiniSectors[s];
+            const ownBest = this.vehicle.mini_sector_best[s];
+
+            if (!blocks || !current)
+            {
+                continue;
+            }
+
+            blocks.forEach((block, k) =>
+            {
+                let state = 'inactive';
+                const t = current[k];
+
+                if (IsValidTime(t))
+                {
+                    if (IsValidTime(classBest[k]) && t <= classBest[k] + 0.001)
+                    {
+                        state = 'purple';
+                    }
+                    else if (!IsValidTime(ownBest[k]) || t < ownBest[k])
+                    {
+                        state = 'green';
+                    }
+                    else
+                    {
+                        state = 'yellow';
+                    }
+                }
+
+                this._setStateClass(block, SECTOR_STATES, state);
+            });
+        }
+    }
+
     _updateBestLap(bestLap)
     {
         const isClassBest = bestLap.lap != null && Math.abs(bestLap.lap - this.vehicle.best_lap) < 0.001;
@@ -226,6 +317,7 @@ class TelemetryPanel
 
         this._updateBestLap(bestLap);
         this._updateLastLap();
+        this._updateMiniSectors();
         this._updateTires();
     }
 
