@@ -10,6 +10,22 @@ class CircularQueue
         this.count = 0;
     }
 
+    reeet()
+    {
+        this.head = 0;
+        this.tail = -1;
+        this.count = 0;
+    }
+
+    fill(value)
+    {
+        this.buffer.fill(value);
+        this.count = this.capacity;
+
+        this.head = 0;
+        this.tail = this.capacity - 1;
+    }
+
     enqueue(value)
     {
         this.buffer[this.tail] = value;
@@ -65,10 +81,16 @@ class TelemetryChart
         this.ctx.lineJoin = 'round';
 
         this.steering = new CircularQueue(this.queueCapacity);
-        this.throttle = new CircularQueue(this.queueCapacity);
-        this.brake = new CircularQueue(this.queueCapacity);
+        this.steering.fill(0);
 
-        this.colors = {
+        this.throttle = new CircularQueue(this.queueCapacity);
+        this.throttle.fill(0);
+
+        this.brake = new CircularQueue(this.queueCapacity);
+        this.brake.fill(0);
+
+        this.colors =
+        {
             throttle: { line: '#51cf66', fill: 'rgba(81, 207, 102, 0.12)' },
             brake:    { line: '#ff6b6b', fill: 'rgba(255, 107, 107, 0.12)' },
             steering: { line: 'rgba(110, 231, 255, 0.5)', fill: 'rgba(110, 231, 255, 0.05)' },
