@@ -336,8 +336,8 @@ class TelemetryChart
         // gear
         const gear = this.vehicle.telemetry.gear;
         this.ctx.font = 'bold 14px Titillium Web, sans-serif';
-        this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : '#6ee7ff';
-        this.ctx.fillText(gear < 0 ? 'R' : gear, x, y + 26);
+        this.ctx.fillStyle = gear < 0 ? gear == 0 ? '#ffffff' : '#ff6b6b' : '#6ee7ff';
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 26);
 
         this.ctx.restore();
     }
