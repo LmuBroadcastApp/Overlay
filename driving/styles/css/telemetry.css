@@ -1,6 +1,10 @@
 #telemetry-input-chart
 {
-    background-color: rgba(0, 0, 0, 0.6);
+    background: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
     position: absolute;
 
     height: var(--telemetry-input-chart-height);
@@ -12,30 +16,72 @@
 
 #telemetry-pit-stop-estimation
 {
-    background-color: rgba(0, 0, 0, 0.6);
-    border-radius: 5px;
-    font-size: 1.5em;
+    background: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
 
     position: absolute;
-    color: whitesmoke;
+    color: #e0e0e0;
+    padding: 10px 14px;
+    min-width: 200px;
 
     left: var(--telemetry-pit-stop-estimation-left);
     top: var(--telemetry-pit-stop-estimation-top);
 }
 
-#telemetry-pit-stop-estimation th, td
+.pit-stop-header
 {
-    padding-right: 5px;
-    padding-left: 5px;
+    font-size: 0.6em;
+    font-weight: 600;
+    color: #8899aa;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
 }
 
-#telemetry-pit-stop-estimation th
+.pit-stop-row
 {
-    text-align: left;
+    justify-content: space-between;
+    display: flex;
+
+    transition: color 0.2s ease;
+    align-items: center;
+    padding: 2px 0;
+
 }
 
-#telemetry-pit-stop-estimation td
+.pit-stop-label
 {
-    text-align: right;
-    min-width: 100px;
+    color: #8899aa;
+
+    font-size: 0.8em;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pit-stop-value
+{
+    color: #ffffff;
+
+    font-size: 0.9em;
+    font-weight: 700;
+
+    font-variant-numeric: tabular-nums;
+}
+
+.pit-stop-divider
+{
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+.pit-stop-total-value
+{
+    color: #6ee7ff;
+    font-size: 1.1em;
+    text-shadow: 0 0 10px rgba(110, 231, 255, 0.3);
 }
