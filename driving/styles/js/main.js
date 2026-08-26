@@ -4,8 +4,8 @@ function UpdateOverlaySettings(settings)
     console.log(settings);
 
     // pit stop estimation panel
-    root.style.setProperty('--telemetry-pit-stop-estimation-left', settings.driving_pitstop.position_left);
-    root.style.setProperty('--telemetry-pit-stop-estimation-top', settings.driving_pitstop.position_top);
+    root.style.setProperty('--pit-stop-estimation-left', settings.driving_pitstop.position_left);
+    root.style.setProperty('--pit-stop-estimation-top', settings.driving_pitstop.position_top);
 
     // input telemetry panel
     root.style.setProperty('--telemetry-input-chart-left', settings.driving_telemetry.position_left);
@@ -14,6 +14,10 @@ function UpdateOverlaySettings(settings)
     // wather forecast
     root.style.setProperty('--weather-forecast-left', settings.driving_weather.position_left);
     root.style.setProperty('--weather-forecast-top', settings.driving_weather.position_top);
+
+    // wather forecast
+    root.style.setProperty('--damage-left', settings.driving_damage.position_left);
+    root.style.setProperty('--damage-top', settings.driving_damage.position_top);
 }
 
 function HideIfNotInRealTime()
@@ -49,9 +53,10 @@ const webSocketWrapper = new WebSocketWrapper(`ws://${window.location.hostname}:
 webSocketWrapper.SetCallback(callBacks);
 
 // Register panels
-panelRegistry.register('PitStopEstimation', PitStopEstimation, '#telemetry-pit-stop-estimation');
+panelRegistry.register('PitStopEstimation', PitStopEstimation, '#pit-stop-estimation');
 panelRegistry.register('TelemetryChart', TelemetryChart, '#telemetry-input-chart');
 panelRegistry.register('Weather', WeatherPanel, '#weather-panel');
+panelRegistry.register('Damage', DamagePanel, '#damage-panel');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

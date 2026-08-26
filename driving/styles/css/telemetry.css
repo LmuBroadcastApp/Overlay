@@ -14,7 +14,7 @@
     top: var(--telemetry-input-chart-top);
 }
 
-#telemetry-pit-stop-estimation
+#pit-stop-estimation
 {
     background: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -27,8 +27,8 @@
     padding: 10px 14px;
     min-width: 200px;
 
-    left: var(--telemetry-pit-stop-estimation-left);
-    top: var(--telemetry-pit-stop-estimation-top);
+    left: var(--pit-stop-estimation-left);
+    top: var(--pit-stop-estimation-top);
 }
 
 .pit-stop-header

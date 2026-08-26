@@ -30,12 +30,12 @@ class PitStopEstimation
             return;
         }
 
-        this.element.querySelector('.telemetry-pit-stop-estimation-driver-swap').textContent = this.pitStop.driverSwap.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-penalties').textContent = this.pitStop.penalties.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-damage').textContent = this.pitStop.damage.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-tires').textContent = this.pitStop.tires.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-fuel').textContent = this.pitStop.fuel.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-ve').textContent = this.pitStop.ve.toFixed(1) + 's';
-        this.element.querySelector('.telemetry-pit-stop-estimation-total').textContent = this.pitStop.total.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-driver-swap').textContent = this.pitStop.driverSwap.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-penalties').textContent = this.pitStop.penalties.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-damage').textContent = this.pitStop.damage.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-tires').textContent = this.pitStop.tires.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-fuel').textContent = this.pitStop.fuel.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-ve').textContent = this.pitStop.ve.toFixed(1) + 's';
+        this.element.querySelector('.pit-stop-estimation-total').textContent = this.pitStop.total.toFixed(1) + 's';
     }
 }

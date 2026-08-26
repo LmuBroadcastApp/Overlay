@@ -1,8 +1,8 @@
 
 :root
 {
-    --telemetry-pit-stop-estimation-left: 1%;    /** Position from the left of the screen */
-    --telemetry-pit-stop-estimation-top: 1%;     /** Position from the top of the screen */
+    --pit-stop-estimation-left: 1%;    /** Position from the left of the screen */
+    --pit-stop-estimation-top: 1%;     /** Position from the top of the screen */
 
     --telemetry-input-chart-left: 1%;            /** Position from the left of the screen */
     --telemetry-input-chart-top: 1%;             /** Position from the top of the screen */
@@ -10,9 +10,11 @@
     --weather-forecast-left: 1%;                /** Position from the left of the screen */
     --weather-forecast-top: 1%;                 /** Position from the top of the screen */
 
+    --damage-left: 1%;                          /** Position from the left of the screen */
+    --damage-top: 1%;                           /** Position from the top of the screen */
+
     --telemetry-input-chart-height: 100px;
     --telemetry-input-chart-width: 530px;
-
 }
 
 /**********************************************************************************************************************/

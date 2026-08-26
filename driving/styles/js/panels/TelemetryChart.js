@@ -53,9 +53,10 @@ class TelemetryChart
         }
 
         this.stateManager.subscribe(this.handleStateChange.bind(this));
-        this.lineWidth = 2;
-        this.queueCapacity = 256;
         this.vehicle = null;
+
+        this.queueCapacity = 512;
+        this.lineWidth = 2;
 
         this.canvas = document.getElementById(selector.slice(1));
         this.ctx = this.canvas.getContext('2d');
@@ -76,12 +77,15 @@ class TelemetryChart
 
     handleStateChange(key, value)
     {
-        this.vehicle = this._StandingsGetFocus(value);
-        if (this.vehicle == null) return;
+        if (key === 'standings')
+        {
+            this.vehicle = this._StandingsGetFocus(value);
+            if (this.vehicle == null) return;
 
-        this.steering.enqueue((this.vehicle.telemetry.steering + 1) * 0.5);
-        this.throttle.enqueue(this.vehicle.telemetry.throttle);
-        this.brake.enqueue(this.vehicle.telemetry.brake);
+            this.steering.enqueue((this.vehicle.telemetry.steering + 1) * 0.5);
+            this.throttle.enqueue(this.vehicle.telemetry.throttle);
+            this.brake.enqueue(this.vehicle.telemetry.brake);
+        }
     }
 
     update()

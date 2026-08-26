@@ -11,6 +11,7 @@
         <link rel="stylesheet" href="styles/css/telemetry.css"/>
         <link rel="stylesheet" href="styles/css/weather.css"/>
         <link rel="stylesheet" href="styles/css/common.css"/>
+        <link rel="stylesheet" href="styles/css/damage.css"/>
 
         <script src="styles/js/utils/websocket.js"></script>
         <script src="styles/js/utils/network.js"></script>
@@ -22,23 +23,31 @@
 
         <script src="styles/js/panels/PitStopEstimation.js"></script>
         <script src="styles/js/panels/TelemetryChart.js"></script>
-        ç<script src="styles/js/panels/Weather.js"></script>
+        <script src="styles/js/panels/Weather.js"></script>
+        <script src="styles/js/panels/Damange.js"></script>
 
         <script src="styles/js/main.js"></script>
     </head>
     <body>
         <canvas id="telemetry-input-chart"></canvas>
 
-        <div id="telemetry-pit-stop-estimation">
+        <div id="damage-panel">
+            <div class="pit-stop-header">DAMAGE</div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Aero</span><span class="pit-stop-value damage-panel-aero">10%</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Body</span><span class="pit-stop-value damage-panel-body">10%</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Susp</span><span class="pit-stop-value damage-panel-susp">10%</span></div>
+        </div>
+
+        <div id="pit-stop-estimation">
             <div class="pit-stop-header">PIT STOP ESTIMATION</div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Driver swap</span><span class="pit-stop-value telemetry-pit-stop-estimation-driver-swap">0.0s</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Penalties</span><span class="pit-stop-value telemetry-pit-stop-estimation-penalties">0.0s</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Damage</span><span class="pit-stop-value telemetry-pit-stop-estimation-damage">0.0s</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Tires</span><span class="pit-stop-value telemetry-pit-stop-estimation-tires">0.0s</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Fuel</span><span class="pit-stop-value telemetry-pit-stop-estimation-fuel">0.0s</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">VE</span><span class="pit-stop-value telemetry-pit-stop-estimation-ve">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Driver swap</span><span class="pit-stop-value pit-stop-estimation-driver-swap">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Penalties</span><span class="pit-stop-value pit-stop-estimation-penalties">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Damage</span><span class="pit-stop-value pit-stop-estimation-damage">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Tires</span><span class="pit-stop-value pit-stop-estimation-tires">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Fuel</span><span class="pit-stop-value pit-stop-estimation-fuel">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">VE</span><span class="pit-stop-value pit-stop-estimation-ve">0.0s</span></div>
             <div class="pit-stop-divider"></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Total</span><span class="pit-stop-value pit-stop-total-value telemetry-pit-stop-estimation-total">0.0s</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Total</span><span class="pit-stop-value pit-stop-total-value pit-stop-estimation-total">0.0s</span></div>
         </div>
 
         <div id="weather-panel">
