@@ -1,0 +1,54 @@
+#weather-panel
+{
+    left: var(--weather-forecast-left);
+    top: var(--weather-forecast-top);
+
+    position: fixed;
+    display: flex;
+}
+
+#weather-panel table
+{
+    color: rgb(240, 240, 240);
+    text-align: center;
+}
+
+#weather-panel .weather-panel-forecast
+{
+    border-collapse: separate;
+    border-spacing: 0 0;
+}
+
+#weather-panel .weather-panel-conditions
+{
+    border-collapse: separate;
+    border-spacing: 2px 0;
+}
+
+#weather-panel table th
+{
+    background-color: rgba(33, 37, 41, 0.9);
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+#weather-panel table td
+{
+    background-color: rgba(0, 0, 0, 0.4);
+    position: relative;
+
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+#weather-panel .progress-cell::after
+{
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: var(--progress, 0%);
+    height: 3px;
+    background: #2b7cff;
+    transition: width 0.3s ease;
+}

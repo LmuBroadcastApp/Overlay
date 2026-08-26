@@ -10,23 +10,37 @@ function UpdateOverlaySettings(settings)
     // input telemetry panel
     root.style.setProperty('--telemetry-input-chart-left', settings.driving_telemetry.position_left);
     root.style.setProperty('--telemetry-input-chart-top', settings.driving_telemetry.position_top);
+
+    // wather forecast
+    root.style.setProperty('--weather-forecast-left', settings.driving_weather.position_left);
+    root.style.setProperty('--weather-forecast-top', settings.driving_weather.position_top);
+}
+
+function HideIfNotInRealTime()
+{
+    document.getElementsByTagName("BODY")[0].style.display = "block";
 }
 
 const callBacks =
 {
+    onOverlaySettingsUpdate: (data) =>
+    {
+        UpdateOverlaySettings(data);
+    },
+
     onPitStopEstimation: (data) =>
     {
         stateManager.setState('onPitStopEstimation', data);
     },
 
+    onSessionUpdate: (data) =>
+    {
+        stateManager.setState('session', data);
+    },
+
     onStandingsUpdate: (data) =>
     {
         stateManager.setState('standings', data);
-    },
-
-    onOverlaySettingsUpdate: (data) =>
-    {
-        UpdateOverlaySettings(data);
     }
 };
 
@@ -37,6 +51,7 @@ webSocketWrapper.SetCallback(callBacks);
 // Register panels
 panelRegistry.register('PitStopEstimation', PitStopEstimation, '#telemetry-pit-stop-estimation');
 panelRegistry.register('TelemetryChart', TelemetryChart, '#telemetry-input-chart');
+panelRegistry.register('Weather', WeatherPanel, '#weather-panel');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

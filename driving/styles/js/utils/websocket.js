@@ -9,6 +9,12 @@ class WebSocketWrapper
 
     SetCallback(callback)
     {
+        if (typeof callback.onOverlaySettingsUpdate !== 'function')
+        {
+            console.log('Callback object must implement onOverlaySettingsUpdate method');
+            return false
+        }
+
         if (typeof callback.onPitStopEstimation !== 'function')
         {
             console.log('Callback object must implement onStandingsUpdate method');
@@ -21,9 +27,9 @@ class WebSocketWrapper
             return false
         }
 
-        if (typeof callback.onOverlaySettingsUpdate !== 'function')
+        if (typeof callback.onSessionUpdate !== 'function')
         {
-            console.log('Callback object must implement onOverlaySettingsUpdate method');
+            console.log('Callback object must implement onSessionUpdate method');
             return false
         }
 
@@ -49,6 +55,11 @@ class WebSocketWrapper
                 case 'standings':
                 {
                     cb.onStandingsUpdate(data.payload);
+                } break;
+
+                case 'session':
+                {
+                    cb.onSessionUpdate(data.payload);
                 } break;
 
                 case 'pitStopEstimation':

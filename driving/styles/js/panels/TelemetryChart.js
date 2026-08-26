@@ -53,7 +53,7 @@ class TelemetryChart
         }
 
         this.stateManager.subscribe(this.handleStateChange.bind(this));
-        this.lineWidth = 2; this.queueCapacity = 128;
+        this.lineWidth = 2; this.queueCapacity = 256;
         this.vehicle = null;
 
         this.canvas = document.getElementById(selector.slice(1));
@@ -79,11 +79,11 @@ class TelemetryChart
 
     StandingsGetFocus(standings)
     {
-        for (const vehicle of standings)
+        for (let i = 0; i < standings.length; ++i)
         {
-            if (vehicle.focus)
+            if (standings[i].focus)
             {
-                return vehicle;
+                return standings[i];
             }
         }
 

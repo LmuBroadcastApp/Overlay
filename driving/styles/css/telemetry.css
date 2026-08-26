@@ -1,0 +1,41 @@
+#telemetry-input-chart
+{
+    background-color: rgba(0, 0, 0, 0.6);
+    position: absolute;
+
+    height: var(--telemetry-input-chart-height);
+    width: var(--telemetry-input-chart-width);
+
+    left: var(--telemetry-input-chart-left);
+    top: var(--telemetry-input-chart-top);
+}
+
+#telemetry-pit-stop-estimation
+{
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 5px;
+    font-size: 1.5em;
+
+    position: absolute;
+    color: whitesmoke;
+
+    left: var(--telemetry-pit-stop-estimation-left);
+    top: var(--telemetry-pit-stop-estimation-top);
+}
+
+#telemetry-pit-stop-estimation th, td
+{
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#telemetry-pit-stop-estimation th
+{
+    text-align: left;
+}
+
+#telemetry-pit-stop-estimation td
+{
+    text-align: right;
+    min-width: 100px;
+}

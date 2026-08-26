@@ -8,6 +8,8 @@
         <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
 
+        <link rel="stylesheet" href="styles/css/telemetry.css"/>
+        <link rel="stylesheet" href="styles/css/weather.css"/>
         <link rel="stylesheet" href="styles/css/common.css"/>
 
         <script src="styles/js/utils/websocket.js"></script>
@@ -20,6 +22,7 @@
 
         <script src="styles/js/panels/PitStopEstimation.js"></script>
         <script src="styles/js/panels/TelemetryChart.js"></script>
+        ç<script src="styles/js/panels/Weather.js"></script>
 
         <script src="styles/js/main.js"></script>
     </head>
@@ -37,6 +40,27 @@
 
                 <tr><th colspan="2"><hr/></th></tr>
                 <tr><th>Total</th><td class="telemetry-pit-stop-estimation-total">0.0s</td></tr>
+            </table>
+        </div>
+
+        <div id="weather-panel">
+            <table class="weather-panel-forecast">
+                <tr class="weather-panel-forecast-header">
+                </tr>
+                <tr class="weather-panel-forecast-body">
+                </tr>
+            </table>
+            <table class="weather-panel-conditions">
+                <tr>
+                    <th class="weather-panel-track-header">TRACK</th>
+                    <th class="weather-panel-temp-header">TEMPERATURE</th>
+                    <th class="weather-panel-wind-header">WIND</th>
+                </tr>
+                <tr>
+                    <td class="weather-panel-track-body"></td>
+                    <td class="weather-panel-temp-body"></td>
+                    <td class="weather-panel-wind-body"></td>
+                </tr>
             </table>
         </div>
     </body>
