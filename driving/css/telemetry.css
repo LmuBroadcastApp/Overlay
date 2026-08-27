@@ -1,0 +1,72 @@
+#telemetry-input-chart
+{
+    height: var(--telemetry-input-chart-height);
+    width: var(--telemetry-input-chart-width);
+
+    left: var(--telemetry-input-chart-left);
+    top: var(--telemetry-input-chart-top);
+}
+
+#pit-stop-estimation
+{
+    padding: var(--panel-padding);
+    min-width: 200px;
+
+    left: var(--pit-stop-estimation-left);
+    top: var(--pit-stop-estimation-top);
+}
+
+.pit-stop-header
+{
+    font-size: 0.6em;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+}
+
+.pit-stop-row
+{
+    justify-content: space-between;
+    display: flex;
+
+    transition: color 0.2s ease;
+    align-items: center;
+    padding: 2px 0;
+
+}
+
+.pit-stop-label
+{
+    color: var(--text-muted);
+
+    font-size: 0.8em;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pit-stop-value
+{
+    color: var(--text-primary);
+
+    font-size: 0.9em;
+    font-weight: 700;
+
+    font-variant-numeric: tabular-nums;
+}
+
+.pit-stop-divider
+{
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin: 4px 0;
+}
+
+.pit-stop-total-value
+{
+    color: var(--accent);
+    font-size: 1.1em;
+    text-shadow: 0 0 10px var(--accent-glow);
+}

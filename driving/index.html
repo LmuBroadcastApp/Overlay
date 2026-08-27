@@ -1,44 +1,47 @@
 <!DOCTYPE html>
-<html lang="es" xmlns="http://www.w3.org/1999/html">
+<html lang="en">
     <head>
         <meta charset="UTF-8"/>
         <title>LMU Driver Overlay</title>
 
-        <meta name="viewport" content="width=100%, height=100%, initial-scale=1.0"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
 
-        <link rel="stylesheet" href="styles/css/telemetry.css"/>
-        <link rel="stylesheet" href="styles/css/weather.css"/>
-        <link rel="stylesheet" href="styles/css/common.css"/>
-        <link rel="stylesheet" href="styles/css/damage.css"/>
+        <link rel="stylesheet" href="css/common.css"/>
+        <link rel="stylesheet" href="css/telemetry.css"/>
+        <link rel="stylesheet" href="css/weather.css"/>
+        <link rel="stylesheet" href="css/damage.css"/>
+        <link rel="stylesheet" href="css/laptime.css"/>
 
-        <script src="styles/js/utils/websocket.js"></script>
-        <script src="styles/js/utils/network.js"></script>
-        <script src="styles/js/utils/jquery.js"></script>
-        <script src="styles/js/utils/chart.js"></script>
+        <script src="../shared/js/websocket.js"></script>
 
-        <script src="styles/js/utils/registry.js"></script>
-        <script src="styles/js/utils/state.js"></script>
+        <script src="../shared/js/registry.js"></script>
+        <script src="../shared/js/state.js"></script>
+        <script src="js/utils/standings.js"></script>
+        <script src="js/utils/draggable.js"></script>
 
-        <script src="styles/js/panels/PitStopEstimation.js"></script>
-        <script src="styles/js/panels/TelemetryChart.js"></script>
-        <script src="styles/js/panels/Weather.js"></script>
-        <script src="styles/js/panels/Damange.js"></script>
+        <script src="js/panels/pit_stop_estimation.js"></script>
+        <script src="js/panels/telemetry.js"></script>
+        <script src="js/panels/weather.js"></script>
+        <script src="js/panels/damage.js"></script>
+        <script src="js/panels/laptime_log.js"></script>
 
-        <script src="styles/js/main.js"></script>
+        <script src="js/main.js"></script>
+        <!-- mock.js must load after main.js so panels are created before mock state is pushed -->
+        <script src="js/utils/mock.js"></script>
     </head>
     <body>
-        <canvas id="telemetry-input-chart"></canvas>
+        <canvas id="telemetry-input-chart" class="overlay-panel"></canvas>
 
-        <div id="damage-panel">
+        <div id="damage-panel" class="overlay-panel">
             <div class="pit-stop-header">DAMAGE</div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Aero</span><span class="pit-stop-value damage-panel-aero">10%</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Body</span><span class="pit-stop-value damage-panel-body">10%</span></div>
-            <div class="pit-stop-row"><span class="pit-stop-label">Susp</span><span class="pit-stop-value damage-panel-susp">10%</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Aero</span><span class="pit-stop-value damage-ok damage-panel-aero">0.0%</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Body</span><span class="pit-stop-value damage-ok damage-panel-body">0.0%</span></div>
+            <div class="pit-stop-row"><span class="pit-stop-label">Susp</span><span class="pit-stop-value damage-ok damage-panel-susp">0.0%</span></div>
         </div>
 
-        <div id="pit-stop-estimation">
+        <div id="pit-stop-estimation" class="overlay-panel">
             <div class="pit-stop-header">PIT STOP ESTIMATION</div>
             <div class="pit-stop-row"><span class="pit-stop-label">Driver swap</span><span class="pit-stop-value pit-stop-estimation-driver-swap">0.0s</span></div>
             <div class="pit-stop-row"><span class="pit-stop-label">Penalties</span><span class="pit-stop-value pit-stop-estimation-penalties">0.0s</span></div>
@@ -50,7 +53,18 @@
             <div class="pit-stop-row"><span class="pit-stop-label">Total</span><span class="pit-stop-value pit-stop-total-value pit-stop-estimation-total">0.0s</span></div>
         </div>
 
-        <div id="weather-panel">
+        <div id="laptime-log" class="overlay-panel">
+            <div class="pit-stop-header">LAPTIME LOG</div>
+            <canvas class="laptime-log-chart" width="272" height="150"></canvas>
+            <div class="laptime-log-header">
+                <span class="laptime-log-lap">Lap</span>
+                <span class="laptime-log-time">Time</span>
+                <span class="laptime-log-delta">Delta</span>
+            </div>
+            <div class="laptime-log-rows"></div>
+        </div>
+
+        <div id="weather-panel" class="overlay-panel">
             <table class="weather-panel-forecast">
                 <tr class="weather-panel-forecast-header">
                 </tr>

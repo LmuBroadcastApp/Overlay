@@ -1,0 +1,76 @@
+
+:root
+{
+    --pit-stop-estimation-left: 1%;    /** Position from the left of the screen */
+    --pit-stop-estimation-top: 1%;     /** Position from the top of the screen */
+
+    --telemetry-input-chart-left: 1%;            /** Position from the left of the screen */
+    --telemetry-input-chart-top: 1%;             /** Position from the top of the screen */
+
+    --weather-forecast-left: 1%;                /** Position from the left of the screen */
+    --weather-forecast-top: 1%;                 /** Position from the top of the screen */
+
+    --damage-left: 1%;                          /** Position from the left of the screen */
+    --damage-top: 1%;                           /** Position from the top of the screen */
+
+    --laptime-log-left: 1%;                     /** Position from the left of the screen */
+    --laptime-log-top: 1%;                      /** Position from the top of the screen */
+
+    --telemetry-input-chart-height: 100px;
+    --telemetry-input-chart-width: 530px;
+
+    /** Design tokens shared by all panels */
+    --panel-bg: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
+    --panel-border: 1px solid rgba(255, 255, 255, 0.08);
+    --panel-radius: 0;
+    --panel-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    --panel-blur: blur(12px);
+    --panel-padding: 10px 14px;
+
+    --text-primary: #ffffff;
+    --text-secondary: #e0e0e0;
+    --text-muted: #8899aa;
+
+    --accent: #6ee7ff;
+    --accent-glow: rgba(110, 231, 255, 0.3);
+
+    --status-ok: #51cf66;
+    --status-warn: #ffd43b;
+    --status-crit: #ff6b6b;
+}
+
+/**********************************************************************************************************************/
+
+/** Shared glass look for every overlay panel */
+.overlay-panel
+{
+    background: var(--panel-bg);
+    border: var(--panel-border);
+    border-radius: var(--panel-radius);
+
+    box-shadow: var(--panel-shadow);
+    backdrop-filter: var(--panel-blur);
+
+    position: absolute;
+    color: var(--text-secondary);
+}
+
+/**********************************************************************************************************************/
+
+body
+{
+    font-family: 'Titillium Web', 'FiraCode Nerd Font', 'sans-serif';
+    margin: 0; padding: 0;
+}
+
+/** Apply to all elements (padding is taken from the inner bounds) */
+* { box-sizing: border-box; }
+
+/**********************************************************************************************************************/
+
+.center
+{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

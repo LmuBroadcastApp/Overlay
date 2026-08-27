@@ -1,0 +1,96 @@
+#weather-panel
+{
+    left: var(--weather-forecast-left);
+    top: var(--weather-forecast-top);
+
+    display: flex;
+    gap: 8px;
+
+    padding: var(--panel-padding);
+    overflow: hidden;
+}
+
+#weather-panel table
+{
+    color: var(--text-secondary);
+    border-spacing: 0;
+    text-align: center;
+    border-collapse: separate;
+}
+
+#weather-panel .weather-panel-forecast
+{
+    border-collapse: separate;
+    border-spacing: 0 0;
+}
+
+#weather-panel .weather-panel-conditions
+{
+    border-collapse: separate;
+    border-spacing: 2px 0;
+}
+
+/******************************************************************************/
+
+#weather-panel table th
+{
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: transparent;
+
+    padding: 0 10px 2px 10px;
+    color: var(--text-muted);
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+#weather-panel table td
+{
+    background: transparent;
+    color: var(--text-primary);
+
+    padding: 2px 5px 0 5px;
+    position: relative;
+    white-space: nowrap;
+
+    font-variant-numeric: tabular-nums;
+    transition: color 0.2s ease;
+}
+
+#weather-panel .weather-temp
+{
+    display: inline-block;
+    padding: 0 8px;
+}
+
+/******************************************************************************/
+
+#weather-panel .weather-panel-forecast-header
+{
+    font-size: 1.2rem;
+}
+
+#weather-panel .weather-panel-forecast-body
+{
+    font-size: 1.2rem;
+}
+
+#weather-panel .weather-panel-forecast-body .progress-cell::after
+{
+    width: var(--progress, 0%);
+    height: 3px;
+
+    bottom: 0;
+    left: 0;
+
+    position: absolute;
+    content: "";
+
+    background: linear-gradient(90deg, var(--accent), #2b7cff);
+    box-shadow: 0 0 6px rgba(110, 231, 255, 0.4);
+
+    transition: width 0.3s ease;
+    border-radius: 0 2px 2px 0;
+}

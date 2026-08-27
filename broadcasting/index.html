@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es" xmlns="http://www.w3.org/1999/html">
+    <head>
+        <meta charset="UTF-8"/>
+        <title>LMU TV Overlay</title>
+
+        <meta name="viewport" content="width=100%, height=100%, initial-scale=1.0"/>
+        <link href="https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&display=swap"  rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/gh/mshaugh/nerdfont-webfonts@v3.3.0/build/firacode-nerd-font.css" rel="stylesheet">
+
+        <link rel="stylesheet" href="css/telemetry.css"/>
+        <link rel="stylesheet" href="css/notifications.css"/>
+        <link rel="stylesheet" href="css/session.css"/>
+        <link rel="stylesheet" href="css/weather.css"/>
+        <link rel="stylesheet" href="css/driver.css"/>
+        <link rel="stylesheet" href="css/battle.css"/>
+        <link rel="stylesheet" href="css/tower.css"/>
+        <link rel="stylesheet" href="css/map.css"/>
+        <link rel="stylesheet" href="css/common.css"/>
+
+
+        <script src="../shared/js/websocket.js"></script>
+        <script src="../shared/libs/jquery.js"></script>
+        <script src="../shared/libs/chart.js"></script>
+
+        <script src="js/notifications/controller.js"></script>
+        <script src="js/notifications/display.js"></script>
+
+        <script src="js/utils/standings.js"></script>
+        <script src="js/utils/draggable.js"></script>
+        <script src="../shared/js/registry.js"></script>
+        <script src="js/utils/sectors.js"></script>
+        <script src="../shared/js/state.js"></script>
+        <script src="js/utils/vdom.js"></script>
+
+        <script src="js/panels/telemetry.js"></script>
+        <script src="js/panels/session.js"></script>
+        <script src="js/panels/weather.js"></script>
+        <script src="js/panels/battle.js"></script>
+        <script src="js/panels/driver.js"></script>
+        <script src="js/panels/tower.js"></script>
+        <script src="js/panels/map.js"></script>
+
+        <script src="js/main.js"></script>
+        <script src="js/utils/mock.js"></script>
+    </head>
+    <body>
+        <main aria-label="LMU TV Overlay panels">
+            <section id="gradient-background"></section>
+            <section id="notification-container"></section>
+
+            <section id="replay-banner" aria-hidden="true">
+                <img src="../shared/img/misc/replay.webp" alt="replay">
+            </section>
+
+            <section id="session-panel" aria-label="Current session info">
+                <div class="session-container">
+                    <div class="session-time"></div>
+                    <div class="session-flag"></div>
+                    <div class="in-game-time"></div>
+                </div>
+                <hr />
+                <div class="session-container">
+                    <div class="session-track"></div>
+                    <div class="session-name"></div>
+                </div>
+            </section>
+
+            <canvas id="track-map-panel" aria-label="Track map"></canvas>
+            <section id="tower-panel" aria-label="Standings"></section>
+            <section id="battle-panel" aria-label="Battle"></section>
+
+            <section id="weather-panel" aria-label="Weather forecast">
+                <table class="weather-panel-forecast">
+                    <tr class="weather-panel-forecast-header">
+                    </tr>
+                    <tr class="weather-panel-forecast-body">
+                    </tr>
+                </table>
+                <table class="weather-panel-conditions">
+                    <tr>
+                        <th class="weather-panel-track-header">TRACK</th>
+                        <th class="weather-panel-temp-header">TEMPERATURE</th>
+                        <th class="weather-panel-wind-header">WIND</th>
+                    </tr>
+                    <tr>
+                        <td class="weather-panel-track-body"></td>
+                        <td class="weather-panel-temp-body"></td>
+                        <td class="weather-panel-wind-body"></td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="driver-panel" aria-label="Focused driver">
+                <div id="telemetry-panel">
+                    <div id="gauges-panel">
+                        <div id="gauges">
+                            <div class="gauge">
+                                <canvas id="speedChart"></canvas>
+                                <div class="speed-label">
+                                    <div id="speedValue">0</div>
+                                    <div id="speedUnit">km/h</div>
+                                </div>
+                            </div>
+                            <div class="gauge">
+                                <canvas id="rpmChart"></canvas>
+                                <div class="rpm-label" id="gearLabel">N</div>
+                                <div class="rpm-bottom" id="rpmNumber">0</div>
+                            </div>
+                        </div>
+                        <div id="inputs">
+                            <div class="bar"><div id="throttleFill" class="fill"></div></div>
+                            <div class="bar"><div id="brakeFill" class="fill"></div></div>
+                        </div>
+                    </div>
+                    <div id="timing-tower">
+                        <div class="times-section">
+                            <div class="time-row">
+                                <div class="time-block">
+                                    <span class="time-label">LAST</span>
+                                    <span class="time-val last-lap-time"></span>
+                                </div>
+                                <div class="time-block">
+                                    <span class="time-label">INT</span>
+                                    <span class="time-val gap-to-next"></span>
+                                </div>
+                            </div>
+                            <div class="time-row">
+                                <div class="time-block">
+                                    <span class="time-label">BEST</span>
+                                    <span class="time-val best-lap-time"></span>
+                                </div>
+                                <div class="time-block">
+                                    <span class="time-label">LDR</span>
+                                    <span class="time-val gap-to-ldr"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sectors-section">
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-1-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-1-time"></div>
+                            </div>
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-2-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-2-time"></div>
+                            </div>
+                            <div class="sector-column">
+                                <div class="sector-time current-sector-3-time"></div>
+                                <div class="mini-sectors">
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                    <div class="mini-block inactive"></div>
+                                </div>
+                                <div class="best-time best-sector-3-time"></div>
+                            </div>
+                        </div>
+                        <div class="tyre-box">
+                            <div class="tyre-icon"></div>
+                            <div class="tyre-age"></div>
+                        </div>
+                    </div>
+                </div>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td class="driver-vehicle-position" rowspan="2"></td>
+                            <td class="driver-panel-pos-diff"></td>
+                            <td class="driver-panel-name" colspan="2"></td>
+                            <td class="driver-vehicle-number" rowspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td class="driver-panel-team" colspan="3"></td>
+                        </tr>
+                        <tr>
+                            <td class="driver-vehicle-class">
+                                <span class="vehicle-class-name"></span>
+                                <span class="vehicle-class-ve" id="veCell"></span>
+                            </td>
+                            <td class="driver-panel-lap" colspan="2">
+                                <span class="lap-label">L</span>
+                                <span class="driver-panel-last-lap"></span>
+                            </td>
+                            <td class="driver-panel-lap" colspan="2">
+                                <span class="lap-label">B</span>
+                                <span class="driver-panel-best-lap"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,196 @@
+
+#tower-panel
+{
+    margin-left: var(--standings-panel-position-left);
+    margin-top: var(--standings-panel-position-top);
+
+    font-weight: var(--standings-panel-font-weight);
+    font-size: var(--standings-panel-font-size);
+
+    color: white;
+}
+
+#tower-panel table
+{
+    border-collapse: separate;
+    margin-bottom: 0.5em;
+    border-spacing: 0;
+}
+
+#tower-panel .standings-primary-color
+{
+    background-color: var(--standings-panel-primary-color);
+}
+
+#tower-panel .standings-secondary-color
+{
+    background-color: var(--standings-panel-secondary-color);
+}
+
+#tower-panel .gap-less-1
+{
+    color: var(--standings-panel-gap-less-1-color);
+}
+
+#tower-panel .gap-less-2
+{
+    color: var(--standings-panel-gap-less-2-color);
+}
+
+#tower-panel .color-selected
+{
+    background-image: linear-gradient(to right, rgba(200, 200, 200, 1.0), rgba(0, 0, 0, 0.0));
+}
+
+#tower-panel .gain-position
+{
+    color: rgb(27, 153, 139);
+}
+
+#tower-panel .lost-position
+{
+    color: rgb(244, 96, 54);
+}
+
+#tower-panel .penalty-style
+{
+    background-color: rgb(246, 26, 54);
+    color: whitesmoke;
+
+    font-size: calc(var(--standings-panel-font-size) * 0.90);
+    font-weight: 550;
+
+    text-align: center;
+    min-width: 30px;
+}
+
+#tower-panel .vehicle-in-pits
+{
+    background-color: rgb(249, 199, 79);
+    color: black;
+
+    font-size: calc(var(--standings-panel-font-size) * 0.90);
+    font-weight: 550;
+
+    text-align: center;
+    min-width: 30px;
+}
+
+/**********************************************************************************************************************/
+
+#tower-panel .vehicle-icons
+{
+    width: var(--standings-panel-col-01-width);
+    text-align: center;
+}
+
+#tower-panel .vehicle-position
+{
+    width: var(--standings-panel-col-02-width);
+    text-align: center;
+}
+
+#tower-panel .vehicle-driver
+{
+    width: var(--standings-panel-col-03-width);
+    padding-right: 5px;
+    padding-left: 5px;
+}
+
+#tower-panel .vehicle-driver-truncate-text
+{
+    width: var(--standings-panel-col-03-width);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+}
+
+#tower-panel .vehicle-driver-row
+{
+    align-items: center;
+    position: relative;
+    display: flex;
+}
+
+#tower-panel .pit-stop-lap
+{
+    width: calc(var(--standings-panel-col-03-width) * 0.25);
+    position: absolute;
+    right: 0;
+
+    box-shadow: -12px 0 12px -8px rgba(0, 0, 0, 0.2);
+    background-color: rgb(249, 199, 79);
+    color: black;
+
+    font-size: calc(var(--standings-panel-font-size) * 0.90);
+    text-align: center;
+    font-weight: bold;
+}
+
+#tower-panel .vehicle-logo
+{
+    text-align: center;
+    width: var(--standings-panel-col-04-width);
+}
+
+#tower-panel .vehicle-number
+{
+    text-align: center;
+    width: var(--standings-panel-col-05-width);
+}
+
+#tower-panel .vehicle-gap
+{
+    text-align: center;
+    width: var(--standings-panel-col-06-width);
+}
+
+#tower-panel .vehicle-extra-column
+{
+    min-width: var(--standings-panel-col-07-width);
+    text-align: center;
+
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+/** Laptime cells keep a constant width whether the lap is valid ("01:32:456") or not ("--:--:---") */
+#tower-panel .vehicle-laptime
+{
+    width: 9ch;
+    min-width: 9ch;
+    max-width: 9ch;
+    box-sizing: content-box;
+}
+
+#tower-panel .sector-bars
+{
+    overflow: visible;
+    display: flex;
+    height: 0;
+    gap: 2px;
+}
+
+#tower-panel .sector-bar
+{
+    background-color: var(--standings-panel-sector-inactive-color);
+    border-radius: 2px;
+    overflow: hidden;
+    height: 2px;
+    flex: 1;
+}
+
+#tower-panel .sector-bar-fill
+{
+    transition: width 0.3s ease;
+    border-radius: 2px;
+    height: 100%;
+}
+
+#tower-panel .sector-bar-inactive { background-color: var(--standings-panel-sector-inactive-color); }
+#tower-panel .sector-bar-fill-1   { background-color: var(--standings-panel-sector-1-color); }
+#tower-panel .sector-bar-fill-2   { background-color: var(--standings-panel-sector-2-color); }
+#tower-panel .sector-bar-fill-3   { background-color: var(--standings-panel-sector-3-color); }
+
+/**********************************************************************************************************************/

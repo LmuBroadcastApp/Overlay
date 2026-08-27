@@ -1,0 +1,81 @@
+#laptime-log
+{
+    left: var(--laptime-log-left);
+    top: var(--laptime-log-top);
+
+    padding: var(--panel-padding);
+    width: 300px;
+}
+
+#laptime-log .laptime-log-chart
+{
+    display: block;
+    width: 100%;
+}
+
+/******************************************************************************/
+
+#laptime-log .laptime-log-header,
+#laptime-log .laptime-log-row
+{
+    display: flex;
+    align-items: center;
+    padding: 2px 0;
+}
+
+#laptime-log .laptime-log-lap
+{
+    width: 15%;
+}
+
+#laptime-log .laptime-log-time
+{
+    width: 50%;
+}
+
+#laptime-log .laptime-log-delta
+{
+    width: 35%;
+    text-align: right;
+}
+
+/******************************************************************************/
+
+#laptime-log .laptime-log-header
+{
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 4px;
+
+    color: var(--text-muted);
+    font-size: 0.8em;
+    font-weight: 600;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#laptime-log .laptime-log-row
+{
+    color: var(--text-primary);
+
+    font-size: 0.9em;
+    font-weight: 700;
+
+    font-variant-numeric: tabular-nums;
+}
+
+#laptime-log .laptime-log-row-latest
+{
+    color: var(--accent);
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+#laptime-log .laptime-log-delta-ok
+{
+    color: var(--status-ok);
+}
+
+#laptime-log .laptime-log-delta-bad
+{
+    color: var(--status-crit);
+}
