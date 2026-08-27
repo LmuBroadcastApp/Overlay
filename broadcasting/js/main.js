@@ -17,7 +17,7 @@ let g_PanelEnabled =
 
 function ApplyPanelVisibility(replayActive)
 {
-    let speed = stateManager.getState("controls")?.overlay_animation_speed;
+    let speed = stateManager.getState('overlay_controls')?.overlay_animation_speed;
     speed = isNaN(speed) ? 0 : speed * 1000;
 
     let show = !replayActive;
@@ -153,14 +153,14 @@ const callBacks =
     {
         stateManager.setState('map', data);
     },
-    onOverlayUpdate: (data) =>
+    onOverlayControlsUpdate: (data) =>
     {
-        stateManager.setState('controls', data);
+        stateManager.setState('overlay_controls', data);
     },
     onOverlaySettingsUpdate: (data) =>
     {
         UpdateOverlaySettings(data);
-        stateManager.setState('overlay', data);
+        stateManager.setState('overlay_settings', data);
     }
 };
 

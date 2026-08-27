@@ -38,7 +38,7 @@ class BattlePanel
         {
             this.session = value;
         }
-        else if (key === 'overlay')
+        else if (key === 'overlay_settings')
         {
             this.overlay = value;
         }

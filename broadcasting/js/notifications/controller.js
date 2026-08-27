@@ -43,7 +43,7 @@ class NotificationController
             }
         }
 
-        if (key === 'overlay')
+        if (key === 'overlay_settings')
         {
             this.notifications = value.notifications;
         }

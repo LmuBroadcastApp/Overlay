@@ -10,7 +10,7 @@ class WebSocketWrapper
         'session'           : 'onSessionUpdate',
         'pitStopEstimation' : 'onPitStopEstimation',
         'trackmap'          : 'onTrackMapUpdate',
-        'overlay'           : 'onOverlayUpdate',
+        'overlay_controls'  : 'onOverlayControlsUpdate',
         'overlay_settings'  : 'onOverlaySettingsUpdate',
     };
 

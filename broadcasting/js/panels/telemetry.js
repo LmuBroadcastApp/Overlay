@@ -90,7 +90,7 @@ class TelemetryPanel
             this.vehicle = value ? StandingsGetFocus(value) : null;
             this.classBestMiniSectors = this._getClassBestMiniSectors();
         }
-        else if (key === 'controls')
+        else if (key === 'overlay_controls')
         {
             this.element.style.visibility = value.show_telemetry ? 'visible' : 'hidden';
         }

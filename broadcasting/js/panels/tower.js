@@ -140,7 +140,8 @@ class TowerPanel
             driver_name: "short",
             right_column: "energy",
             vehicle_class: "multiclass",
-            sector_bars: false
+            sector_bars: false,
+            extras: []
         };
     }
 
@@ -158,7 +159,7 @@ class TowerPanel
             this.counter_standings_curr++;
             this.standings = value;
         }
-        else if (key === 'controls')
+        else if (key === 'overlay_controls')
         {
             this.controls = value;
             this.vehicle_control.clear();

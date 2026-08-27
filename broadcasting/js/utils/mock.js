@@ -270,8 +270,8 @@
         let t = 0;
 
         UpdateOverlaySettings(mockOverlaySettings());
-        stateManager.setState('overlay', mockOverlaySettings());
-        stateManager.setState('controls', mockControls());
+        stateManager.setState('overlay_controls', mockControls());
+        stateManager.setState('overlay_settings', mockOverlaySettings());
         stateManager.setState('session', mockSession(eventTime));
         stateManager.setState('map', map);
 

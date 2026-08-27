@@ -92,13 +92,13 @@ let callBacks =
 
         document.getElementById("weather-value").innerHTML = SessionTemperatureString(data);
     },
+    onOverlayControlsUpdate : function(data)
+    {
+    },
     onControlsUpdate : function(data)
     {
     },
     onTrackMapUpdate : function(data)
-    {
-    },
-    onOverlayUpdate : function(data)
     {
     }
 };
