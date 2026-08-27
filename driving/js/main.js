@@ -32,6 +32,11 @@ function OnPanelMoved(panelId, left, top)
     console.log(`Panel ${panelId} moved to left=${left}px, top=${top}px`);
 }
 
+function HideOrShowOverlay(inRealTime)
+{
+    document.body.style.display = inRealTime ? 'block' : 'none';
+}
+
 const callBacks =
 {
     onOverlaySettingsUpdate: (data) =>
@@ -47,6 +52,7 @@ const callBacks =
     onSessionUpdate: (data) =>
     {
         stateManager.setState('session', data);
+        HideOrShowOverlay(data.inRealTime);
     },
 
     onStandingsUpdate: (data) =>
