@@ -95,6 +95,7 @@ class LaptimeLog
         }
 
         this.history.push({ lap: lap, time: time, delta: delta, state: state });
+        this.history = this.history.slice(-this.maxChartLaps);
         this.dirty = true;
     }
 

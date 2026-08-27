@@ -195,14 +195,13 @@ class TelemetryChart
     _drawRpmGauge(x, y, radius)
     {
         if (this.vehicle.telemetry.max_rpm <= 0) return;
+        this.ctx.save();
 
         const rpmRatio = Math.min(this.vehicle.telemetry.rpm / this.vehicle.telemetry.max_rpm, 1);
         const startAngle = Math.PI * 0.75;
         const endAngle = Math.PI * 0.25;
         const totalSweep = (2 * Math.PI) - (startAngle - endAngle);
         const segments = 60;
-
-        this.ctx.save();
 
         // background arc
         this.ctx.beginPath();
@@ -222,7 +221,10 @@ class TelemetryChart
             const segStart = startAngle + i * segmentSweep;
             const segEnd = segStart + segmentSweep + 0.005;
 
-            let r, g, b;
+            let r = 255;
+            let g = 255;
+            let b = 0;
+
             if (t < 0.6)
             {
                 // green to yellow
@@ -235,7 +237,6 @@ class TelemetryChart
             {
                 // yellow to red
                 const lt = (t - 0.6) / 0.4;
-                r = 255;
                 g = Math.round(212 - 105 * lt);
                 b = Math.round(59 - 59 * lt);
             }
@@ -243,8 +244,8 @@ class TelemetryChart
             this.ctx.beginPath();
             this.ctx.arc(x, y, radius, segStart, segEnd);
             this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-            this.ctx.lineWidth = 5;
             this.ctx.lineCap = 'round';
+            this.ctx.lineWidth = 5;
             this.ctx.stroke();
         }
 
@@ -252,7 +253,8 @@ class TelemetryChart
         if (filledSegments > 0)
         {
             const glowT = filledSegments / segments;
-            let gr, gg, gb;
+            let gr = 255, gg = 255, gb = 0;
+
             if (glowT < 0.6)
             {
                 const lt = glowT / 0.6;
@@ -262,7 +264,6 @@ class TelemetryChart
             }
             else
             {
-                gr = 255;
                 gg = Math.round(212 - 105 * ((glowT - 0.6) / 0.4));
                 gb = Math.round(59 - 59 * ((glowT - 0.6) / 0.4));
             }
@@ -302,21 +303,10 @@ class TelemetryChart
         this.ctx.arc(x, y, radius, 0, Math.PI * 2);
         this.ctx.stroke();
 
-        // center crosshair
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-        this.ctx.beginPath();
-        this.ctx.moveTo(x - radius * 0.3, y);
-        this.ctx.lineTo(x + radius * 0.3, y);
-        this.ctx.stroke();
-        this.ctx.beginPath();
-        this.ctx.moveTo(x, y - radius * 0.3);
-        this.ctx.lineTo(x, y + radius * 0.3);
-        this.ctx.stroke();
-
         // steering indicator arc
         const angle = value * Math.PI * 1.5;
-        const indicatorX = x + Math.sin(angle) * radius * 0.8;
-        const indicatorY = y - Math.cos(angle) * radius * 0.8;
+        const indicatorX = x + Math.sin(angle) * radius;
+        const indicatorY = y - Math.cos(angle) * radius;
 
         // glow
         this.ctx.beginPath();
@@ -336,18 +326,18 @@ class TelemetryChart
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(kmh, x, y - 4);
+        this.ctx.fillText(kmh, x, y - 10);
 
         // "km/h" label
         this.ctx.font = '9px Titillium Web, sans-serif';
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        this.ctx.fillText('km/h', x, y + 12);
+        this.ctx.fillText('km/h', x, y + 4);
 
         // gear
         const gear = this.vehicle.telemetry.gear;
         this.ctx.font = 'bold 14px Titillium Web, sans-serif';
         this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#6ee7ff';
-        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 26);
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 20);
 
         this.ctx.restore();
     }
@@ -355,7 +345,6 @@ class TelemetryChart
     _drawBar(x, y, w, h, value, color, glowColor)
     {
         const radius = 3;
-
         this.ctx.save();
 
         // background track
