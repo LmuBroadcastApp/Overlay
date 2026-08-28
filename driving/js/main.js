@@ -49,7 +49,7 @@ function OnPanelMoved(panelId, left, top)
  * Shows the overlay only while the player is in real time.
  * @param {boolean} inRealTime Whether the game is currently in real-time mode.
  */
-function HideOrShowOverlay(inRealTime)
+function HideOverlayIfNotInRealTIme(inRealTime)
 {
     document.body.style.display = inRealTime ? 'block' : 'none';
 }
@@ -65,6 +65,7 @@ const callBacks =
     },
     onSessionUpdate: (data) =>
     {
+        HideOverlayIfNotInRealTIme(data.inRealTime);
         stateManager.setState('session', data);
     },
     onTrackMapUpdate: (data) =>
