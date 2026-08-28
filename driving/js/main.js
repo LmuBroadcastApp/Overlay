@@ -26,12 +26,11 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--damage-left', settings.driving_damage.position_left);
     root.style.setProperty('--damage-top', settings.driving_damage.position_top);
 
-    // lap time log panel (optional in older backends)
-    if (settings.driving_laptime_log)
-    {
-        root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
-        root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
-    }
+    //root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
+    //root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
+
+    root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
+    root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
 }
 
 /**
@@ -60,25 +59,26 @@ function HideOrShowOverlay(inRealTime)
  */
 const callBacks =
 {
-    onOverlaySettingsUpdate: (data) =>
-    {
-        UpdateOverlaySettings(data);
-    },
-
-    onPitStopEstimation: (data) =>
-    {
-        stateManager.setState('onPitStopEstimation', data);
-    },
-
-    onSessionUpdate: (data) =>
-    {
-        stateManager.setState('session', data);
-        HideOrShowOverlay(data.inRealTime);
-    },
-
     onStandingsUpdate: (data) =>
     {
         stateManager.setState('standings', data);
+    },
+    onSessionUpdate: (data) =>
+    {
+        stateManager.setState('session', data);
+    },
+    onTrackMapUpdate: (data) =>
+    {
+        stateManager.setState('map', data);
+    },
+    onOverlayControlsUpdate: (data) =>
+    {
+        stateManager.setState('overlay_controls', data);
+    },
+    onOverlaySettingsUpdate: (data) =>
+    {
+        UpdateOverlaySettings(data);
+        stateManager.setState('overlay_settings', data);
     }
 };
 
@@ -90,6 +90,7 @@ webSocketWrapper.setCallback(callBacks);
 // Register panels
 panelRegistry.register('PitStopEstimation', PitStopEstimation, '#pit-stop-estimation');
 panelRegistry.register('TelemetryChart', TelemetryChart, '#telemetry-input-chart');
+panelRegistry.register('WorldMap', WorldMapPanel, '#track-map-panel');
 panelRegistry.register('Weather', WeatherPanel, '#weather-panel');
 panelRegistry.register('LaptimeLog', LaptimeLog, '#laptime-log');
 panelRegistry.register('Damage', DamagePanel, '#damage-panel');

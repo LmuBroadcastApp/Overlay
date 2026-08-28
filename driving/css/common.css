@@ -43,8 +43,9 @@
 .overlay-panel
 {
     background: var(--panel-bg);
-    border: var(--panel-border);
+
     border-radius: var(--panel-radius);
+    border: var(--panel-border);
 
     box-shadow: var(--panel-shadow);
     backdrop-filter: var(--panel-blur);

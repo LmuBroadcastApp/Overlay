@@ -464,29 +464,24 @@ class TelemetryChart
      */
     _drawLine(data, color, fillColor, chartX, chartY, chartW, chartH)
     {
-        if (data.length < 2) return;
+        if (data.length < 2)
+        {
+            return;
+        }
 
         const stepX = chartW / (this.queueCapacity - 1);
-
         this.ctx.save();
 
         // fill area under curve
         this.ctx.beginPath();
-        this.ctx.moveTo(chartX + 5, chartY + chartH);
+        this.ctx.moveTo(chartX, chartY + chartH);
 
         for (let i = 0; i < data.length; i++)
         {
             let cy = chartH - (data[i] * chartH);
             cy = Math.max(this.lineWidth, Math.min(chartH - this.lineWidth, cy));
 
-            if (i === 0)
-            {
-                this.ctx.lineTo(chartX + 5, chartY + cy);
-            }
-            else
-            {
-                this.ctx.lineTo(chartX + i * stepX, chartY + cy);
-            }
+            this.ctx.lineTo(chartX + i * stepX, chartY + cy);
         }
 
         this.ctx.lineTo(chartX + (data.length - 1) * stepX, chartY + chartH);
@@ -506,7 +501,7 @@ class TelemetryChart
 
             if (i === 0)
             {
-                this.ctx.moveTo(chartX + 5, chartY + cy);
+                this.ctx.moveTo(chartX + i * stepX, chartY + cy);
             }
             else
             {

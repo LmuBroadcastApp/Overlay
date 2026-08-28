@@ -10,9 +10,10 @@
 
         <link rel="stylesheet" href="css/common.css"/>
         <link rel="stylesheet" href="css/telemetry.css"/>
+        <link rel="stylesheet" href="css/laptime.css"/>
         <link rel="stylesheet" href="css/weather.css"/>
         <link rel="stylesheet" href="css/damage.css"/>
-        <link rel="stylesheet" href="css/laptime.css"/>
+        <link rel="stylesheet" href="css/map.css"/>
 
         <script src="../shared/js/websocket.js"></script>
 
@@ -22,10 +23,11 @@
         <script src="js/utils/draggable.js"></script>
 
         <script src="js/panels/pit_stop_estimation.js"></script>
+        <script src="js/panels/laptime_log.js"></script>
         <script src="js/panels/telemetry.js"></script>
         <script src="js/panels/weather.js"></script>
         <script src="js/panels/damage.js"></script>
-        <script src="js/panels/laptime_log.js"></script>
+        <script src="js/panels/map.js"></script>
 
         <script src="js/main.js"></script>
         <!-- mock.js must load after main.js so panels are created before mock state is pushed -->
@@ -33,6 +35,7 @@
     </head>
     <body>
         <canvas id="telemetry-input-chart" class="overlay-panel"></canvas>
+        <canvas id="track-map-panel"></canvas>
 
         <div id="damage-panel" class="overlay-panel">
             <div class="pit-stop-header">DAMAGE</div>
