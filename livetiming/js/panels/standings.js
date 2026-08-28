@@ -261,12 +261,12 @@ class StandingsPanel
             manufacturer = "Default";
         }
 
-        let speed_under_50kmh = "";
+        let show_warning_icon = "";
         let in_pits_background = "";
 
-        if (value.telemetry.speed < 50.0 && !value.in_pits)
+        if (value.show_warning_icon && !value.in_pits)
         {
-            speed_under_50kmh = "class='speed-under-50-kmh'";
+            show_warning_icon = "class='show-warning-icon'";
         }
 
         if (value.in_pits)
@@ -287,7 +287,7 @@ class StandingsPanel
             <td>${value.vehicle_number}</td>
             <td style="color: ${getColorDefault(value.vehicle_class, "rgb(224, 224, 224)")}">${value.vehicle_class}</td>
             <td><img alt="" width="24" src="../shared/img/brandlogo/${manufacturer}.png"</td>
-            <td ${speed_under_50kmh}>${warningIcon}${value.driver}</td>
+            <td ${show_warning_icon}>${warningIcon}${value.driver}</td>
             <td>${value.vehicle_name}</td>
             <td ${in_pits_background}>${value.status}</td>
             <td>${value.laps ?? ''}</td>

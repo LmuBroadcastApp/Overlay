@@ -398,7 +398,7 @@ body.theme-light
     border-radius: 4px;
 }
 
-.speed-under-50-kmh
+.show-warning-icon
 {
     color: var(--yellow);
 }
