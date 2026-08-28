@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the focused vehicle's damage readout.
+ */
+
+/**
+ * Displays suspension, aero, and body damage with severity-based styling.
+ */
 class DamagePanel
 {
+    /**
+     * Creates a damage panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -15,6 +27,11 @@ class DamagePanel
         this.vehicle = null;
     }
 
+    /**
+     * Stores the focused vehicle whenever standings change.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -23,6 +40,9 @@ class DamagePanel
         }
     }
 
+    /**
+     * Refreshes all damage values for the current focused car.
+     */
     update()
     {
         if (this.vehicle === null)
@@ -35,6 +55,11 @@ class DamagePanel
         this._setValue('.damage-panel-body', this.vehicle.damage);
     }
 
+    /**
+     * Updates one damage field and applies the matching severity class.
+     * @param {string} selector CSS selector for the target field.
+     * @param {number} value Damage percentage.
+     */
     _setValue(selector, value)
     {
         const el = this.element.querySelector(selector);

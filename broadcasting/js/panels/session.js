@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the broadcasting session header with timing and flag state.
+ */
+
+/**
+ * Displays track, session, countdown, in-game time, and flagged sectors.
+ */
 class SessionPanel
 {
+    /**
+     * Creates a session panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -15,6 +27,11 @@ class SessionPanel
         this.session = null;
     }
 
+    /**
+     * Stores the latest session payload.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'session')
@@ -23,6 +40,9 @@ class SessionPanel
         }
     }
 
+    /**
+     * Refreshes the visible session header values.
+     */
     update()
     {
         if (this.session === null) return;
@@ -44,6 +64,11 @@ class SessionPanel
         this.element.querySelector('.session-flag').innerHTML = sector || "";
     }
 
+    /**
+     * Formats the current in-game clock for display.
+     * @param {Object} session Session payload.
+     * @returns {string} Formatted in-game time string.
+     */
     getInGameTImeString(session)
     {
         let time = session.inGameTime;
@@ -57,6 +82,11 @@ class SessionPanel
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     }
 
+    /**
+     * Formats the remaining session time as HH:MM:SS.
+     * @param {Object} session Session payload.
+     * @returns {string} Formatted remaining time string.
+     */
     getSessionTimeString(session)
     {
         let remaining = Math.floor(session.endEventTime - session.currentEventTime);

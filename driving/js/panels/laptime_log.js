@@ -1,4 +1,8 @@
 /**
+ * @fileoverview Renders the player's recent lap history chart and table.
+ */
+
+/**
  * Lap time log panel: a chart of recent lap times plus a table with the
  * last laps (lap number, time, delta to the previous lap).
  *
@@ -7,6 +11,11 @@
  */
 class LaptimeLog
 {
+    /**
+     * Creates a lap-time log panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -41,6 +50,11 @@ class LaptimeLog
         this.dirty = true;
     }
 
+    /**
+     * Records newly completed player laps from standings updates.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key !== 'standings') return;
@@ -65,6 +79,11 @@ class LaptimeLog
         }
     }
 
+    /**
+     * Appends a lap entry to the in-memory history buffer.
+     * @param {number} lap Lap number.
+     * @param {number} time Lap time in seconds.
+     */
     _logLap(lap, time)
     {
         const valid = time > 0;
@@ -99,6 +118,9 @@ class LaptimeLog
         this.dirty = true;
     }
 
+    /**
+     * Redraws the chart and table when new lap data is available.
+     */
     update()
     {
         if (!this.dirty)
@@ -113,6 +135,9 @@ class LaptimeLog
 
     /******************************************************************************/
 
+    /**
+     * Draws the recent-lap trend chart.
+     */
     _drawChart()
     {
         const { width, height } = this.canvas;
@@ -245,6 +270,9 @@ class LaptimeLog
         }
     }
 
+    /**
+     * Renders the latest laps table.
+     */
     _renderTable()
     {
         const body = this.element.querySelector('.laptime-log-rows');
@@ -271,7 +299,11 @@ class LaptimeLog
         body.innerHTML = html;
     }
 
-    /** Format seconds as m:ss.mmm */
+    /**
+     * Formats a lap time value as m:ss.mmm.
+     * @param {number} time Lap time in seconds.
+     * @returns {string} Formatted lap time.
+     */
     static formatTime(time)
     {
         if (time == null || time <= 0)

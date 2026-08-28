@@ -1,3 +1,7 @@
+/**
+ * @file Entry point for the broadcasting overlay page.
+ */
+
 /** @brief Usee to disable panels when replay is active. */
 let g_ReplayActive = false;
 
@@ -15,6 +19,11 @@ let g_PanelEnabled =
     notifications: true
 };
 
+/**
+ * Applies the current enabled/disabled panel visibility state, also honoring replay mode.
+ *
+ * @param {boolean} replayActive Whether replay mode is currently active.
+ */
 function ApplyPanelVisibility(replayActive)
 {
     let speed = stateManager.getState('overlay_controls')?.overlay_animation_speed;
@@ -33,6 +42,11 @@ function ApplyPanelVisibility(replayActive)
     $("#replay-banner").showIf(!show && g_PanelEnabled.replay);
 }
 
+/**
+ * Keeps the overlay visibility in sync with replay state changes.
+ *
+ * @param {StateManager} stateManager Shared page state manager.
+ */
 function ToggleOverlayByReplay(stateManager)
 {
     let active = stateManager.getState("session")?.replayActive;
@@ -44,6 +58,11 @@ function ToggleOverlayByReplay(stateManager)
     ApplyPanelVisibility(active);
 }
 
+/**
+ * Applies overlay settings from the backend to CSS variables and panel enable flags.
+ *
+ * @param {Object} settings Overlay settings payload.
+ */
 function UpdateOverlaySettings(settings)
 {
     const root = document.documentElement;
@@ -137,6 +156,9 @@ function UpdateOverlaySettings(settings)
     ApplyPanelVisibility(g_ReplayActive);
 }
 
+/**
+ * Websocket callbacks that translate live feed payloads into shared state updates.
+ */
 const callBacks =
 {
     onStandingsUpdate: (data) =>
@@ -164,11 +186,15 @@ const callBacks =
     }
 };
 
-// Create websocket instance
+/**
+ * Shared websocket connection for the broadcasting overlay.
+ */
 const webSocketWrapper = new WebSocketWrapper(`ws://${window.location.hostname}:6433`);
 webSocketWrapper.setCallback(callBacks);
 
-// Register panels
+/**
+ * Registers all panels used by the broadcasting overlay.
+ */
 panelRegistry.register('tower', TowerPanel, '#tower-panel');
 panelRegistry.register('battle', BattlePanel, '#battle-panel');
 panelRegistry.register('driver', DriverPanel, '#driver-panel');
@@ -185,6 +211,11 @@ const frameDuration = 1000 / fps;
 let lastTime = 0;
 let animationId = null;
 
+/**
+ * Main animation loop that updates all registered panels at a fixed maximum rate.
+ *
+ * @param {DOMHighResTimeStamp} timestamp requestAnimationFrame timestamp.
+ */
 function fnc_main_loop(timestamp)
 {
     const deltaTime = timestamp - lastTime;
@@ -206,10 +237,10 @@ window.addEventListener('beforeunload', () =>
 });
 
 /**
- * @brief Called when the user finishes dragging a panel (Ctrl + mouse).
- * @param panelId  DOM id of the moved panel.
- * @param position CSS variable -> pixel value map, e.g.
- *                 { "--map-panel-position-right": "24px", "--map-panel-position-top": "480px" }
+ * Called when the user finishes dragging a panel.
+ *
+ * @param {string} panelId DOM id of the moved panel.
+ * @param {Object<string, string>} position CSS variable -> pixel value map.
  */
 function OnPanelMoved(panelId, position)
 {
@@ -217,6 +248,9 @@ function OnPanelMoved(panelId, position)
     // TODO: persist the new position (e.g. send to the overlay settings backend)
 }
 
+/**
+ * Registers all draggable overlay panels using Ctrl + drag behavior.
+ */
 function RegisterDraggablePanels()
 {
     const draggable = new DraggablePanels(OnPanelMoved);

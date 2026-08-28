@@ -155,7 +155,6 @@
     padding-left: 10px;
 }
 
-/** Laptime cells keep a constant width whether the lap is valid ("01:32:456") or not ("--:--:---") */
 #tower-panel .vehicle-laptime
 {
     width: 9ch;

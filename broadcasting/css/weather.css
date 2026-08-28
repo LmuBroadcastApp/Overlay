@@ -44,12 +44,15 @@
 
 #weather-panel .progress-cell::after
 {
-    content: "";
-    position: absolute;
     left: 0;
     bottom: 0;
+
+    content: "";
+    position: absolute;
+
     width: var(--progress, 0%);
     height: 3px;
+
     background: #2b7cff;
     transition: width 0.3s ease;
 }

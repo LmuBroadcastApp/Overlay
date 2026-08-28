@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the focused-driver identity and headline lap information.
+ */
+
+/**
+ * Displays the selected driver's profile, lap times, and energy or fuel remaining.
+ */
 class DriverPanel
 {
+    /**
+     * Creates a driver panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -21,6 +33,11 @@ class DriverPanel
         const brakeFill = document.getElementById('brakeFill');
     }
 
+    /**
+     * Updates the focused vehicle when standings change.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -30,6 +47,9 @@ class DriverPanel
         }
     }
 
+    /**
+     * Refreshes the driver panel from the current focused vehicle.
+     */
     update()
     {
         if (this.vehicle == null)
@@ -65,6 +85,9 @@ class DriverPanel
         this.updateVeCell();
     }
 
+    /**
+     * Updates the energy or fuel cell styling and value.
+     */
     updateVeCell()
     {
         let cell = document.getElementById('veCell');
@@ -102,6 +125,10 @@ class DriverPanel
         cell.style.color = color || "";
     }
 
+    /**
+     * Checks whether the focused driver owns the class best lap.
+     * @returns {boolean} True when the focused driver's best lap leads the class.
+     */
     isClassBestLap()
     {
         if (this.standings == null || this.vehicle.best_lap <= 0)

@@ -1,4 +1,8 @@
 /**
+ * @fileoverview Generates animated mock data for the driving overlay preview mode.
+ */
+
+/**
  * Mock data provider for local styling / preview.
  * Activate by opening the page with "?mock" in the URL, e.g. index.html?mock
  */

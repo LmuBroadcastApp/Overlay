@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the broadcasting weather panel and short-term forecast.
+ */
+
+/**
+ * Displays grip, temperatures, wind, and forecast snapshots for the current session.
+ */
 class WeatherPanel
 {
+    /**
+     * Creates a weather panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -15,6 +27,11 @@ class WeatherPanel
         this.session = null;
     }
 
+    /**
+     * Stores the latest session payload.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'session')
@@ -23,6 +40,9 @@ class WeatherPanel
         }
     }
 
+    /**
+     * Refreshes the weather summary and forecast cells.
+     */
     update()
     {
         if (this.session === null)
@@ -87,6 +107,11 @@ class WeatherPanel
         this.element.querySelector('.weather-panel-forecast-body').innerHTML = body;
     }
 
+    /**
+     * Maps a sky-state code to a weather icon glyph.
+     * @param {number} sky Sky-state identifier.
+     * @returns {string} Icon glyph.
+     */
     _weatherIcon(sky)
     {
         switch (sky)
@@ -106,6 +131,12 @@ class WeatherPanel
         }
     }
 
+    /**
+     * Converts grip level and wetness into the display label used by the panel.
+     * @param {number} gripLevel Grip-level identifier.
+     * @param {number} pathWetness Average racing-line wetness.
+     * @returns {string} Grip condition label.
+     */
     _gripLevel2String(gripLevel, pathWetness)
     {
         if (pathWetness >= 0.9)

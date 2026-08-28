@@ -1,5 +1,19 @@
+/**
+ * @file Notification decision engine for the broadcasting overlay.
+ */
+
+/**
+ * Watches session/standings changes and emits high-level notifications.
+ */
 class NotificationController
 {
+    /**
+     * Creates the notification controller.
+     *
+     * @param {string} selector Unused panel selector placeholder for registry compatibility.
+     * @param {StateManager} stateManager Shared page state manager.
+     * @param {NotificationSystem} notifier Visual notification renderer.
+     */
     constructor(selector, stateManager, notifier)
     {
         this.notifier = notifier;
@@ -16,6 +30,12 @@ class NotificationController
         this.standings_curr = null;
     }
 
+    /**
+     * Reacts to state changes and triggers relevant notification checks.
+     *
+     * @param {string} key Changed state key.
+     * @param {*} value New state value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -59,6 +79,9 @@ class NotificationController
         }
     }
 
+    /**
+     * Emits qualifying notifications for laps projected to beat the class best.
+     */
     _notifyPossibleFastLap()
     {
         let fast_lap = this.notifications?.possible_fast_lap ?? false;
@@ -75,6 +98,9 @@ class NotificationController
         });
     }
 
+    /**
+     * Evaluates all enabled notification types for the latest state snapshot.
+     */
     _update()
     {
         let fast_lap = this.notifications?.fast_lap ?? true;
@@ -119,6 +145,11 @@ class NotificationController
         }
     }
 
+    /**
+     * Shows a race winner notification for a class once the leader finishes.
+     *
+     * @param {Array<Object>} vehicles Standings entries for one class.
+     */
     _raceWinner(vehicles)
     {
         if (vehicles[0].status != 'Finished' || this.session.name != 'RACE') return;
@@ -137,6 +168,11 @@ class NotificationController
         this.notifier.show({ type: 'winner', subtype: vehicles[0].vehicle_class, message: msg, duration: duration * 5 });
     }
 
+    /**
+     * Tracks and notifies new class best laps.
+     *
+     * @param {Object} vehicle Vehicle that may have set the best lap.
+     */
     _bestLap(vehicle)
     {
         if (vehicle.best_lap <= 0) return;
@@ -161,6 +197,11 @@ class NotificationController
         }
     }
 
+    /**
+     * Notifies a potential qualifying best lap candidate.
+     *
+     * @param {?Object} vehicle Projected best-lap candidate.
+     */
     _possibleBestLap(vehicle)
     {
         if (!vehicle) return;
@@ -174,6 +215,12 @@ class NotificationController
         this.notifier.show({ type: 'possible-best-lap', subtype: vehicle.vehicle_class, message: vehicle, duration: duration });
     }
 
+    /**
+     * Computes the best projected lap currently underway in a class.
+     *
+     * @param {Array<Object>} standings Standings entries for one class.
+     * @returns {?Object} Best projected lap candidate, if any.
+     */
     _computePossbibleBestLap(standings)
     {
         let classBest = Infinity;
@@ -212,6 +259,12 @@ class NotificationController
         return result.length > 0 ? result[0] : null;
     }
 
+    /**
+     * Detects and reports newly issued penalties.
+     *
+     * @param {Object} curr Current vehicle state.
+     * @param {Object} prev Previous vehicle state.
+     */
     _penalty(curr, prev)
     {
         if (curr.penalties.drive_through > prev.penalties.drive_through)
@@ -260,6 +313,12 @@ class NotificationController
         }
     }
 
+    /**
+     * Detects and reports incident impacts over the configured threshold.
+     *
+     * @param {Object} curr Current vehicle state.
+     * @param {Object} prev Previous vehicle state.
+     */
     _incidents(curr, prev)
     {
         let impact_threshold = this.notifications?.impact_threshold ?? 500;
@@ -280,6 +339,12 @@ class NotificationController
         }
     }
 
+    /**
+     * Detects and reports new track limits warnings.
+     *
+     * @param {Object} curr Current vehicle state.
+     * @param {Object} prev Previous vehicle state.
+     */
     _trackLmits(curr, prev)
     {
         if (curr.cut_points > prev.cut_points)

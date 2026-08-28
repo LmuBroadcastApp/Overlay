@@ -11,51 +11,52 @@
 
         <script src="../shared/libs/jquery.js"></script>
         <script src="../shared/js/websocket.js"></script>
+        <script src="../shared/js/state.js"></script>
+        <script src="../shared/js/registry.js"></script>
+        <script src="../shared/js/draggable.js"></script>
 
-        <script src="js/map.js"></script>
-        <script src="js/session.js"></script>
-        <script src="js/standings.js"></script>
+        <script src="js/utils/colors.js"></script>
+        <script src="js/utils/standings.js"></script>
+
+        <script src="js/panels/trackmap.js"></script>
+        <script src="js/panels/session.js"></script>
+        <script src="js/panels/standings.js"></script>
+
+        <script src="js/main.js"></script>
+        <script src="js/utils/mock.js"></script>
     </head>
     <body>
-        <script src="js/main.js"></script>
-        <table id="session-info">
-            <thead>
-                <tr>
-                    <th id="track-name"></th>
-                    <th id="session-name"></th>
-                    <th id="">Weather</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><pre id="track-status"></pre></td>
-                    <td><pre id="session-time"></pre></td>
-                    <td><pre id="weather-value"></pre></td>
-                </tr>
-            </tbody>
-        </table>
-        <canvas id="live-timing-map">
-        </canvas>
-        <table id="live-timing-standings">
-            <thead>
-                <tr class="standings-row-color-2">
-                    <th>#P</th>
-                    <th>#P class</th>
-                    <th>#Vehicle</th>
-                    <th>Class</th>
-                    <th>Logo</th>
-                    <th>Driver</th>
-                    <th>Team</th>
-                    <th>Status</th>
-                    <th>Current Time</th>
-                    <th>Last Time</th>
-                    <th>Best Time</th>
-                    <th>INT</th>
-                    <th>GAP</th>
-                    <th>VE/FUEL</th>
-                </tr>
-            </thead>
-            <tbody id="live-timing-table">
-        </table>
+        <header id="session-info">
+            <div class="info-block">
+                <span class="info-label">Track</span>
+                <span class="info-value" id="track-name"></span>
+            </div>
+            <div class="info-block info-center">
+                <span class="info-label">Flags</span>
+                <div id="track-status"></div>
+            </div>
+            <div class="info-block info-center">
+                <span class="info-label" id="session-name"></span>
+                <span class="info-value info-time" id="session-time"></span>
+            </div>
+            <div class="info-block info-center">
+                <span class="info-label">Forecast</span>
+                <div class="weather-forecast" id="weather-forecast"></div>
+            </div>
+            <div class="info-block info-right">
+                <span class="info-label">Weather</span>
+                <span class="info-sub" id="weather-value"></span>
+            </div>
+        </header>
+        <div id="standings-options">
+            <label><input type="checkbox" id="show-track-map" checked/> Track map</label>
+            <label><input type="checkbox" id="split-by-class" checked/> Split by vehicle class</label>
+            <label><input type="checkbox" id="light-theme"/> Light theme</label>
+        </div>
+        <div id="content-grid">
+            <div id="live-timing-standings">
+            </div>
+            <canvas id="track-map-panel" aria-label="Track map" title="Ctrl + drag to move"></canvas>
+        </div>
     </body>
 </html>

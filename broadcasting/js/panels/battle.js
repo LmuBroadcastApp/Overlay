@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the compact relative/battle panel around the focused car.
+ */
+
+/**
+ * Displays nearby on-track battles when the focused car is within configured gap thresholds.
+ */
 class BattlePanel
 {
+    /**
+     * Creates a battle panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -28,6 +40,11 @@ class BattlePanel
         this.stateManager.subscribe(this.handleStateChange.bind(this));
     }
 
+    /**
+     * Consumes standings, session, and overlay settings updates.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -44,6 +61,9 @@ class BattlePanel
         }
     }
 
+    /**
+     * Shows or hides the panel based on whether the focused car is in battle.
+     */
     update()
     {
         if (this.standings == null)
@@ -90,6 +110,11 @@ class BattlePanel
         this.renderBattles(battles);
     }
 
+    /**
+     * Finds nearby cars that should be shown in the battle panel.
+     * @param {Array<Object>} standings Current standings snapshot.
+     * @returns {Array<Object>} Vehicles participating in the current battle view.
+     */
     findBattles(standings)
     {
         let sorted = [...standings].sort((a, b) => b.spline - a.spline);
@@ -129,6 +154,11 @@ class BattlePanel
         return battles;
     }
 
+    /**
+     * Builds the tire cell HTML for a vehicle.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {string} HTML string for the tire display.
+     */
     getBattleTires(vehicle)
     {
         if (!vehicle.tire_compound)
@@ -151,6 +181,11 @@ class BattlePanel
         </div>`;
     }
 
+    /**
+     * Determines the first-column badge for pits, warnings, or penalties.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {{content: string, style: string, cls: string}} Badge descriptor.
+     */
     getBattleFirstCol(vehicle)
     {
         if (vehicle.in_pits)
@@ -181,6 +216,10 @@ class BattlePanel
         return { content: '', style: '', cls: '' };
     }
 
+    /**
+     * Renders the current battle rows into the panel.
+     * @param {Array<Object>} battles Vehicles to render.
+     */
     renderBattles(battles)
     {
         let html = ''; let idx = -1;

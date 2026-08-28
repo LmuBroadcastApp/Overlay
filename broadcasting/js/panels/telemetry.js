@@ -1,9 +1,21 @@
+/**
+ * @fileoverview Renders the focused-car telemetry overlay with gauges and sector state.
+ */
+
+/**
+ * Displays live telemetry, lap deltas, sector colors, mini sectors, and tire age.
+ */
 const TIRE_ICON_STATES = ['wet', 'soft', 'medium', 'hard'];
 const SECTOR_STATES = ['inactive', 'green', 'yellow', 'purple'];
 const LAP_STATES = ['bg-green', 'bg-yellow', 'bg-purple'];
 
 class TelemetryPanel
 {
+    /**
+     * Creates a telemetry panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -54,6 +66,13 @@ class TelemetryPanel
         this.stateManager.subscribe(this.handleStateChange.bind(this));
     }
 
+    /**
+     * Creates a doughnut gauge used for speed and RPM.
+     * @param {string} canvasId Canvas element ID.
+     * @param {string} color Active arc color.
+     * @param {number} max Maximum gauge value.
+     * @returns {Chart} Configured chart instance.
+     */
     _createGaugeChart(canvasId, color, max)
     {
         return new Chart(
@@ -82,6 +101,11 @@ class TelemetryPanel
         );
     }
 
+    /**
+     * Stores standings updates and telemetry visibility controls.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -96,6 +120,12 @@ class TelemetryPanel
         }
     }
 
+    /**
+     * Toggles a single active state class on an element.
+     * @param {Element|null} el Target element.
+     * @param {Array<string>} states All mutually exclusive state classes.
+     * @param {string} active Active class name.
+     */
     _setStateClass(el, states, active)
     {
         if (!el)
@@ -109,6 +139,12 @@ class TelemetryPanel
         }
     }
 
+    /**
+     * Computes the RPM gauge color based on proximity to the rev limit.
+     * @param {number} rpm Current RPM.
+     * @param {number} maxRpm Gauge maximum RPM.
+     * @returns {string} CSS color string.
+     */
     _getRPMColor(rpm, maxRpm)
     {
         const RED = 'rgb(255, 59, 59)';
@@ -123,6 +159,9 @@ class TelemetryPanel
         return GREEN;
     }
 
+    /**
+     * Updates speed, RPM, gear, throttle, and brake widgets.
+     */
     _updateGauges()
     {
         const telemetry = this.vehicle.telemetry;
@@ -150,6 +189,12 @@ class TelemetryPanel
         this.rpmChart.update();
     }
 
+    /**
+     * Applies the current-sector state color.
+     * @param {Element} el Sector element.
+     * @param {number} current Current sector time.
+     * @param {number} best Personal best sector time.
+     */
     _updateCurrentSector(el, current, best)
     {
         let state = 'inactive';
@@ -160,6 +205,12 @@ class TelemetryPanel
         this._setStateClass(el, SECTOR_STATES, state);
     }
 
+    /**
+     * Applies the best-sector state color.
+     * @param {Element} el Sector element.
+     * @param {number} sector Vehicle best sector time.
+     * @param {number} best Class-best sector time.
+     */
     _updateBestSector(el, sector, best)
     {
         let state = 'inactive';
@@ -170,7 +221,11 @@ class TelemetryPanel
         this._setStateClass(el, SECTOR_STATES, state);
     }
 
-    /** The feed may deliver mini sector groups either as a plain array or as { time: [...] }. */
+    /**
+     * Normalizes mini-sector payloads that may be arrays or wrapped objects.
+     * @param {Array<number>|{time: Array<number>}|null} group Mini-sector payload.
+     * @returns {Array<number>|null} Mini-sector times.
+     */
     _miniSectorTimes(group)
     {
         if (!group)
@@ -181,6 +236,10 @@ class TelemetryPanel
         return Array.isArray(group) ? group : group.time;
     }
 
+    /**
+     * Computes class-best mini-sector times for the focused vehicle's class.
+     * @returns {Array<Array<number>>} Best mini-sector times for each sector split.
+     */
     _getClassBestMiniSectors()
     {
         const best =
@@ -223,6 +282,9 @@ class TelemetryPanel
         return best;
     }
 
+    /**
+     * Updates the mini-sector strip colors for the focused car.
+     */
     _updateMiniSectors()
     {
         for (let s = 0; s < 3; s++)
@@ -264,18 +326,28 @@ class TelemetryPanel
         }
     }
 
+    /**
+     * Updates best-lap styling based on class-best ownership.
+     * @param {{lap: number|null}} bestLap Best lap descriptor for the class.
+     */
     _updateBestLap(bestLap)
     {
         const isClassBest = bestLap.lap != null && Math.abs(bestLap.lap - this.vehicle.best_lap) < 0.001;
         this._setStateClass(this.bestLapTime, LAP_STATES, isClassBest ? 'bg-purple' : 'bg-green');
     }
 
+    /**
+     * Updates last-lap styling based on whether it beats the driver's best lap.
+     */
     _updateLastLap()
     {
         const isNewBest = this.vehicle.last_lap <= this.vehicle.best_lap;
         this._setStateClass(this.lastLapTime, LAP_STATES, isNewBest ? 'bg-purple' : 'bg-yellow');
     }
 
+    /**
+     * Updates tire compound and tire-age widgets.
+     */
     _updateTires()
     {
         let sameTireCompound = HasOneTireCompound(this.vehicle);
@@ -302,6 +374,9 @@ class TelemetryPanel
         }
     }
 
+    /**
+     * Updates timing, sector, mini-sector, and tire information.
+     */
     _updateTelemetry()
     {
         const bestSectors = GetBestSectors(this.standings, this.vehicle.vehicle_class);
@@ -332,6 +407,9 @@ class TelemetryPanel
         this._updateTires();
     }
 
+    /**
+     * Refreshes the telemetry panel for the current focused vehicle.
+     */
     update()
     {
         if (this.standings == null || this.vehicle == null)

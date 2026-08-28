@@ -1,5 +1,7 @@
 /**
  * Returns the vehicle currently in focus, or null if none.
+ * @param {Array<Object>} standings Current standings snapshot.
+ * @returns {Object|null} Focused vehicle or null.
  */
 function StandingsGetFocus(standings)
 {
@@ -16,6 +18,8 @@ function StandingsGetFocus(standings)
 
 /**
  * Returns the vehicle of the player, or null if none.
+ * @param {Array<Object>} standings Current standings snapshot.
+ * @returns {Object|null} Player vehicle or null.
  */
 function StandingsGetPlayer(standings)
 {

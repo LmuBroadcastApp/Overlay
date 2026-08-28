@@ -1,8 +1,24 @@
+/**
+ * @file Standings, class, tire, and timing helpers for the broadcasting overlay.
+ */
+
+/**
+ * Fast integer truncation helper for laptime formatting.
+ *
+ * @param {number} value Value to truncate.
+ * @returns {number} Integer-truncated value.
+ */
 function float2int (value)
 {
     return value | 0;
 }
 
+/**
+ * Formats a laptime in seconds as mm:ss:ms.
+ *
+ * @param {?number} laptime Laptime in seconds.
+ * @returns {string} Formatted laptime or placeholder.
+ */
 function LaptimeToString(laptime)
 {
     if (laptime == null || laptime <= 0.1)
@@ -33,6 +49,13 @@ function LaptimeToString(laptime)
     return `${formattedM}:${formattedS}:${formattedMs}`;
 }
 
+/**
+ * Chooses the display name for a vehicle using the overlay control settings.
+ *
+ * @param {Object} vehicle Vehicle standings row.
+ * @param {Object} controls Overlay controls payload.
+ * @returns {string} Driver or team name in the requested format.
+ */
 function VehicleGetName(vehicle, controls)
 {
     if (controls.name_source.toLowerCase() == "team")
@@ -51,6 +74,14 @@ function VehicleGetName(vehicle, controls)
     return vehicle.driver;
 }
 
+/**
+ * Computes the displayed gap text for a vehicle.
+ *
+ * @param {Object} vehicle Vehicle standings row.
+ * @param {Object} controls Overlay controls payload.
+ * @param {boolean} isRace Whether the current session is a race.
+ * @returns {(string|number)} Gap string/value for display.
+ */
 function VehicleGetGap(vehicle, controls, isRace)
 {
     let gap = -1;
@@ -92,6 +123,12 @@ function VehicleGetGap(vehicle, controls, isRace)
     return gap;
 }
 
+/**
+ * Formats the energy/fuel cell text and low-level warning style.
+ *
+ * @param {Object} vehicle Vehicle standings row.
+ * @returns {{style:string,text:string}} Cell text plus inline style fragment.
+ */
 function GetVehicleFuelVe(vehicle)
 {
     let result = { style: "", text: "" };
@@ -120,6 +157,13 @@ function GetVehicleFuelVe(vehicle)
     return result;
 }
 
+/**
+ * Finds the best lap in the whole field or within one class.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @param {string=} vehicle_class Optional class filter.
+ * @returns {{lap:?number,id:?number}} Best lap metadata.
+ */
 function GetBestLapTime(standings, vehicle_class)
 {
     let bestLap =
@@ -148,6 +192,12 @@ function GetBestLapTime(standings, vehicle_class)
     return bestLap;
 }
 
+/**
+ * Returns a representative lap time used for race-lap projections.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @returns {number} Representative lap time in seconds, or -1.
+ */
 function GetLapTimeForTotalRaceLaps(standings)
 {
     for (const vehicle of standings)
@@ -171,12 +221,26 @@ function GetLapTimeForTotalRaceLaps(standings)
     return -1;
 }
 
+/**
+ * Estimates total race laps from race duration and representative pace.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @param {number} raceTime Race duration in seconds.
+ * @returns {(string|number)} Estimated total laps or placeholder.
+ */
 function GetTotalRaceLaps(standings, raceTime)
 {
     let laps = raceTime / GetLapTimeForTotalRaceLaps(standings);
     return laps <= 0 ? "-" : (laps + standings[0].laps + 1).toFixed(1);
 }
 
+/**
+ * Filters standings rows by vehicle class.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @param {string} className Vehicle class name.
+ * @returns {Array<Object>} Vehicles belonging to the class.
+ */
 function GetVehicleOfClass(standings, className)
 {
     let vehicles = [];
@@ -192,6 +256,12 @@ function GetVehicleOfClass(standings, className)
     return vehicles;
 }
 
+/**
+ * Groups standings rows by vehicle class while preserving their current order.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @returns {Map<string, Array<Object>>} Vehicles grouped by class.
+ */
 function GetByClasses(standings)
 {
     const perCategory = new Map();
@@ -208,6 +278,12 @@ function GetByClasses(standings)
     return perCategory;
 }
 
+/**
+ * Returns whether a CSS class exists in any accessible stylesheet.
+ *
+ * @param {string} className CSS class name to test.
+ * @returns {boolean} True when the class selector exists.
+ */
 function ClassExists(className)
 {
     if (className.trim() === '') return false;
@@ -236,6 +312,12 @@ function ClassExists(className)
     return false;
 }
 
+/**
+ * Maps a vehicle class to the overlay color used across broadcasting panels.
+ *
+ * @param {string} className Vehicle class name.
+ * @returns {string} CSS color string.
+ */
 function ColorFromVehicleClass(className)
 {
     switch (className.toLowerCase())
@@ -271,12 +353,24 @@ function ColorFromVehicleClass(className)
     }
 }
 
+/**
+ * Produces a safe CSS class name for a vehicle class, falling back when absent.
+ *
+ * @param {string} className Vehicle class name.
+ * @returns {string} CSS class name present in the stylesheets.
+ */
 function CSSClassFromVehicleClass(className)
 {
     let cls = (className || '').replace(/[^a-zA-Z0-9]/g, '_');
     return ClassExists(cls) ? cls : 'generic-class';
 }
 
+/**
+ * Finds the currently focused vehicle in the standings.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @returns {?Object} Focused vehicle or null.
+ */
 function StandingsGetFocus(standings)
 {
     for (const vehicle of standings)
@@ -290,6 +384,12 @@ function StandingsGetFocus(standings)
     return null;
 }
 
+/**
+ * Finds the index of the focused vehicle in the standings.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @returns {number} Focused vehicle index or -1.
+ */
 function StandingsGetFocusIdx(standings)
 {
     for (const [i, vehicle] of standings.entries())
@@ -303,6 +403,12 @@ function StandingsGetFocusIdx(standings)
     return -1;
 }
 
+/**
+ * Returns whether all four tires are on the same compound.
+ *
+ * @param {Object} vehicle Vehicle standings row.
+ * @returns {boolean} True when all four tires share one compound.
+ */
 function HasOneTireCompound(vehicle)
 {
     if (vehicle.tire_compound == null)
@@ -317,6 +423,12 @@ function HasOneTireCompound(vehicle)
     return result;
 }
 
+/**
+ * Maps a tire compound name to its display color.
+ *
+ * @param {string} compound Tire compound name.
+ * @returns {string} CSS color string.
+ */
 function TireCompoundColor(compound)
 {
     switch (compound.toLowerCase())
@@ -348,6 +460,13 @@ function TireCompoundColor(compound)
     }
 }
 
+/**
+ * Finds the best sector times for one vehicle class across the full field.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @param {string} vehicle_class Vehicle class name.
+ * @returns {{S1:number,S2:number,S3:number}} Best sector times for the class.
+ */
 function GetBestSectors(standings, vehicle_class)
 {
     let result = { S1: -1, S2: -1, S3: -1 };
@@ -391,6 +510,12 @@ function GetBestSectors(standings, vehicle_class)
     return result;
 }
 
+/**
+ * Formats a sector time with millisecond precision.
+ *
+ * @param {number} sector Sector time in seconds.
+ * @returns {string} Formatted sector time or placeholder.
+ */
 function Sector2String(sector)
 {
     if (sector <= 0.01)
@@ -401,6 +526,12 @@ function Sector2String(sector)
     return sector.toFixed(3);
 }
 
+/**
+ * Returns whether a sector or mini-sector time is valid.
+ *
+ * @param {number} time Time value in seconds.
+ * @returns {boolean} True when the time is valid.
+ */
 function IsValidTime(time)
 {
     return time > 0;

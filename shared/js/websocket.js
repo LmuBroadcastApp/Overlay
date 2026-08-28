@@ -1,7 +1,10 @@
-// Shared WebSocket wrapper used by all pages.
-// Dispatches incoming messages to the callback object by message type;
-// a page only needs to implement handlers for the messages it cares about.
+/**
+ * @file Shared WebSocket wrapper used by overlay pages.
+ */
 
+/**
+ * Dispatches websocket messages to named callback handlers based on message type.
+ */
 class WebSocketWrapper
 {
     static MESSAGE_HANDLERS =
@@ -14,6 +17,11 @@ class WebSocketWrapper
         'overlay_settings'  : 'onOverlaySettingsUpdate',
     };
 
+    /**
+     * Creates the wrapper for one websocket endpoint.
+     *
+     * @param {string} url Websocket URL to connect to.
+     */
     constructor(url)
     {
         this.url = url;
@@ -25,12 +33,21 @@ class WebSocketWrapper
         this.reconnectTimer = null;
     }
 
+    /**
+     * Registers the callback object that receives typed websocket payloads.
+     *
+     * @param {Object} callback Object implementing the message handlers it needs.
+     * @returns {boolean} Always true.
+     */
     setCallback(callback)
     {
         this.callback = callback;
         return true;
     }
 
+    /**
+     * Opens the websocket connection and wires reconnection behavior.
+     */
     connect()
     {
         let ws = new WebSocket(this.url);
@@ -93,6 +110,9 @@ class WebSocketWrapper
         this.ws = ws;
     }
 
+    /**
+     * Closes the websocket and disables automatic reconnects.
+     */
     disconnect()
     {
         this.shouldReconnect = false;

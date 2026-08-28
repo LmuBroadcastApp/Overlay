@@ -1,5 +1,17 @@
+/**
+ * @file Notification rendering and queue management for the broadcasting overlay.
+ */
+
+/**
+ * Displays animated notification cards and serializes them per notification stream.
+ */
 class NotificationSystem
 {
+    /**
+     * Creates the notification renderer.
+     *
+     * @param {string} containerId DOM id of the notification container.
+     */
     constructor(containerId)
     {
         this.container = document.getElementById(containerId);
@@ -7,6 +19,11 @@ class NotificationSystem
         this.queue = {};
     }
 
+    /**
+     * Queues or immediately shows a notification payload.
+     *
+     * @param {Object} param0 Notification definition.
+     */
     show({ type = undefined, subtype = undefined, message = undefined, duration = 3000 })
     {
         if (type == undefined)
@@ -40,6 +57,12 @@ class NotificationSystem
         }
     }
 
+    /**
+     * Builds a fastest-lap notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _fastLap(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -67,6 +90,12 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds a penalty notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _penalty(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -95,6 +124,12 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds a track-limits notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _trackLimits(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -123,6 +158,12 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds an incident notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _impact(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -151,6 +192,12 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds a class winner notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _raceWinner(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -179,6 +226,12 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds a projected best-lap notification card.
+     *
+     * @param {Object} message Notification message payload.
+     * @returns {string} Notification HTML.
+     */
     _possibleBestLap(message)
     {
         let VEHICLE_NUMBER = message.vehicle_number;
@@ -206,11 +259,22 @@ class NotificationSystem
         </div>`;
     }
 
+    /**
+     * Builds a generic text notification.
+     *
+     * @param {string} message Text to show.
+     * @returns {string} Notification HTML.
+     */
     _message(message)
     {
         return `<div class='message'>${message}</div>`;
     }
 
+    /**
+     * Dequeues and shows the next pending notification for one stream id.
+     *
+     * @param {string} id Notification stream id.
+     */
     _showNext(id)
     {
         const splits = id.split("|");
@@ -270,6 +334,11 @@ class NotificationSystem
         }, next.duration);
     }
 
+    /**
+     * Starts the removal animation for the active notification in one stream.
+     *
+     * @param {string} id Notification stream id.
+     */
     _remove(id)
     {
         const notification = this.active[id];

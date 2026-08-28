@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the world-position track map, cars, and warning zones.
+ */
+
+/**
+ * Draws the circuit map together with vehicle markers and highlighted warning areas.
+ */
 class TrackMapPanel
 {
+    /**
+     * Creates a track map panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the target canvas.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -13,9 +25,16 @@ class TrackMapPanel
 
         this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.standings = null;
+
+        this.splineOffset = null;
         this.map = null;
     }
 
+    /**
+     * Stores standings and map updates required by the renderer.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -25,9 +44,13 @@ class TrackMapPanel
         else if (key === 'map')
         {
             this.map = value;
+            this.splineOffset = null; // track changed, offset must be recomputed
         }
     }
 
+    /**
+     * Repaints the map, warning zones, and vehicle markers.
+     */
     update()
     {
         let canvas = this.element;
@@ -36,7 +59,7 @@ class TrackMapPanel
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         const dpr = window.devicePixelRatio || 1;
 
-        if (this.map == null || this.map.track_map.length == 0 || this.standings == null)
+        if (this.map == null || this.map.track_map.length === 0 || this.standings == null)
         {
             return;
         }
@@ -57,6 +80,14 @@ class TrackMapPanel
         this._drawVehicles(ctx, Array.from(this.standings).reverse());
     }
 
+    /**
+     * Draws a filled vehicle marker circle.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {number} x Marker center X coordinate.
+     * @param {number} y Marker center Y coordinate.
+     * @param {number} radius Marker radius.
+     * @param {string} color Fill color.
+     */
     _drawCircle(ctx, x, y, radius, color)
     {
         ctx.strokeStyle = "black";
@@ -69,6 +100,16 @@ class TrackMapPanel
         ctx.fill();
     }
 
+    /**
+     * Draws a triangular marker for the leading car.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {number} cx Marker center X coordinate.
+     * @param {number} cy Marker center Y coordinate.
+     * @param {number} sideLength Triangle side length.
+     * @param {string} color Fill color.
+     * @param {number} [boderSize=0.5] Unused legacy border size parameter.
+     * @param {number} [rotationDeg=180] Rotation angle in degrees.
+     */
     _drawTriangle(ctx, cx, cy, sideLength, color, boderSize = 0.5, rotationDeg = 180,)
     {
         ctx.strokeStyle = "black";
@@ -97,6 +138,13 @@ class TrackMapPanel
         ctx.stroke();
     }
 
+    /**
+     * Draws the closed racing line path.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Ordered track points.
+     * @param {number} size Stroke width.
+     * @param {string} color Stroke color.
+     */
     _drawTrackMap(ctx, points, size, color)
     {
         ctx.beginPath();
@@ -113,6 +161,13 @@ class TrackMapPanel
         ctx.stroke();
     }
 
+    /**
+     * Draws the pit-lane path.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Ordered pit-lane points.
+     * @param {number} size Stroke width.
+     * @param {string} color Stroke color.
+     */
     _drawPitLane(ctx, points, size, color)
     {
         ctx.beginPath();
@@ -128,6 +183,11 @@ class TrackMapPanel
         ctx.stroke();
     }
 
+    /**
+     * Draws a start/finish line across the first track segment.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {{points: Array<Object>}} map Track map payload with point data.
+     */
     _drawStartLine(ctx, map)
     {
         const A = map.points[  0];
@@ -161,6 +221,11 @@ class TrackMapPanel
         ctx.stroke();
     }
 
+    /**
+     * Draws a single vehicle marker and its number label.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Object} vehicles Vehicle data.
+     */
     _drawVehicle(ctx, vehicles)
     {
         let v = vehicles;
@@ -218,6 +283,11 @@ class TrackMapPanel
         }
     }
 
+    /**
+     * Draws all vehicles while ensuring the focused car is rendered last.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} vehicles Vehicles to draw.
+     */
     _drawVehicles(ctx, vehicles)
     {
         vehicles.sort((a, b) => (b.in_pits - a.in_pits));
@@ -241,16 +311,83 @@ class TrackMapPanel
         }
     }
 
-    _drawWarningZone(ctx, points, spline, size, color)
+    /**
+     * Returns the index of the track point closest to a world position.
+     * Needed because spline 0 does not coincide with index 0 of the track map array.
+     * @param {Array<Object>} points Track points.
+     * @param {{x: number, y: number}} pos Vehicle world position.
+     * @returns {number} Closest track-point index.
+     */
+    _nearestTrackPointIndex(points, pos)
+    {
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        for (let i = 0; i < points.length; ++i)
+        {
+            const dx = points[i].x - pos.x;
+            const dy = points[i].y - pos.y;
+            const dist = dx * dx + dy * dy;
+
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                bestIdx = i;
+            }
+        }
+
+        return bestIdx;
+    }
+
+    /**
+     * Computes and caches the spline-to-track-point offset for the active track.
+     * The offset is derived from a real car position because spline 0 does not align
+     * with track-map index 0.
+     * @param {Array<Object>} points Track points.
+     * @returns {number} Cached spline-to-index offset.
+     */
+    _getSplineOffset(points)
+    {
+        if (this.splineOffset !== null)
+        {
+            return this.splineOffset;
+        }
+
+        const n = points.length;
+
+        for (const v of this.standings)
+        {
+            if (!v.world_pos || v.in_pits || !(v.spline >= 0))
+            {
+                continue;
+            }
+
+            const idx = this._nearestTrackPointIndex(points, v.world_pos);
+            this.splineOffset = Math.round(((idx - v.spline * n) % n + n) % n);
+
+            return this.splineOffset;
+        }
+
+        return 0; // no usable vehicle yet, retry next frame (cache stays empty)
+    }
+
+    /**
+     * Strokes a highlighted arc centered around a given track index.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Track points.
+     * @param {number} center Center point index.
+     * @param {number} half Half-width of the highlighted section in points.
+     * @param {number} size Stroke width.
+     * @param {string} color Stroke color.
+     */
+    _strokeZone(ctx, points, center, half, size, color)
     {
         const n = points.length;
-        const range = 0.02;
-
-        const start = Math.floor((((spline - range) % 1) + 1) % 1 * n);
-        const count = Math.max(1, Math.round(range * 2 * n));
+        const start = ((center - half) % n + n) % n;
+        const count = half * 2;
 
         ctx.beginPath();
-        ctx.moveTo(points[start % n].x, points[start % n].y);
+        ctx.moveTo(points[start].x, points[start].y);
 
         for (let i = 1; i <= count; ++i)
         {
@@ -263,13 +400,51 @@ class TrackMapPanel
         ctx.stroke();
     }
 
+    /**
+     * Draws a warning zone centered on the track point nearest to the vehicle position.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Track points.
+     * @param {{x: number, y: number}} worldPos Vehicle world position.
+     * @param {number} size Stroke width.
+     * @param {string} color Stroke color.
+     */
+    _drawWarningZone(ctx, points, worldPos, size, color)
+    {
+        const half = Math.max(1, Math.round(0.02 * points.length));
+        const center = this._nearestTrackPointIndex(points, worldPos);
+
+        this._strokeZone(ctx, points, center, half, size, color);
+    }
+
+    /**
+     * Draws a warning zone from spline coordinates using the cached spline offset.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Track points.
+     * @param {number} spline Vehicle spline position.
+     * @param {number} size Stroke width.
+     * @param {string} color Stroke color.
+     */
+    _drawWarningZoneBySpline(ctx, points, spline, size, color)
+    {
+        const n = points.length;
+        const half = Math.max(1, Math.round(0.02 * n));
+        const center = Math.round(this._getSplineOffset(points) + spline * n) % n;
+
+        this._strokeZone(ctx, points, center, half, size, color);
+    }
+
+    /**
+     * Draws warning zones for all flagged vehicles currently on track.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     */
     _drawWarningZones(ctx)
     {
         for (const vehicle of this.standings)
         {
-            if (vehicle.show_warning_icon && !vehicle.in_pits)
+            if (vehicle.show_warning_icon && !vehicle.in_pits && vehicle.world_pos)
             {
-                this._drawWarningZone(ctx, this.map.track_map, vehicle.spline, 3, "rgb(249, 199, 79)");
+                this._drawWarningZone(ctx, this.map.track_map, vehicle.world_pos, 3, "rgb(249, 199, 79)");
+                // Alternative: this._drawWarningZoneBySpline(ctx, this.map.track_map, vehicle.spline, 3, "rgb(249, 199, 79)");
             }
         }
     }

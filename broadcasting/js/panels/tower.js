@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Renders the main standings tower for single-class and multiclass events.
+ */
+
+/**
+ * Displays the live standings tower, optional extra columns, penalties, and sector bars.
+ */
 const EXTRA_COLUMNS =
 [
     {
@@ -103,6 +110,11 @@ const EXTRA_COLUMNS =
 
 class TowerPanel
 {
+    /**
+     * Creates a standings tower panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -145,6 +157,11 @@ class TowerPanel
         };
     }
 
+    /**
+     * Stores session, standings, map, and control updates used by the tower renderer.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'session')
@@ -171,6 +188,9 @@ class TowerPanel
         }
     }
 
+    /**
+     * Rebuilds and patches the tower when the standings snapshot changes.
+     */
     update()
     {
         if (this.standings == null || this.session == null || this.standings.length === 0)
@@ -208,6 +228,13 @@ class TowerPanel
         }
     }
 
+    /**
+     * Returns a gap highlight class for close battles in race mode.
+     * @param {number} gap Gap value.
+     * @param {number} position Vehicle position in class.
+     * @param {boolean} isRace Whether the session is a race.
+     * @returns {string} CSS class name or an empty string.
+     */
     _getGapColor(gap, position, isRace)
     {
         if (this.controls.gap_mode.toLowerCase() !== "ahead" || !isRace || position <= 1)
@@ -219,6 +246,13 @@ class TowerPanel
         return "";
     }
 
+    /**
+     * Resolves icon and style metadata for the tower first column.
+     * @param {Object} vehicle Vehicle data.
+     * @param {{id?: number}} bestLap Class-best lap descriptor.
+     * @param {Object} session Session payload.
+     * @returns {{style: Object|null, icon: *}} Cell style and icon descriptor.
+     */
     _getFirstColumnMeta(vehicle, bestLap, session)
     {
         if (!vehicle.in_pits && vehicle.show_warning_icon && session.gamePhase === 5)
@@ -240,6 +274,11 @@ class TowerPanel
         return { style: null, icon: null };
     }
 
+    /**
+     * Builds the race-status flag cell for finished, pit, or garage states.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {*} Virtual DOM cell or null when no special status applies.
+     */
     _getRaceFlags(vehicle)
     {
         if (vehicle.status === "Finished")
@@ -265,6 +304,11 @@ class TowerPanel
         return null;
     }
 
+    /**
+     * Builds penalty cells for the current vehicle.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {Array<*>} Virtual DOM table cells.
+     */
     _getPenalties(vehicle)
     {
         if (vehicle.status === "DNF" || vehicle.status === "DQ")
@@ -295,6 +339,15 @@ class TowerPanel
         return cells;
     }
 
+    /**
+     * Creates one standings row for a vehicle.
+     * @param {Object} vehicle Vehicle data.
+     * @param {number} position Vehicle position in class.
+     * @param {boolean} isRace Whether the current session is a race.
+     * @param {{id?: number}} bestLap Class-best lap descriptor.
+     * @param {Object} extras Enabled extra columns.
+     * @returns {Array<*>} Virtual DOM cells for the row.
+     */
     _createRow(vehicle, position, isRace, bestLap, extras)
     {
         let name = VehicleGetName(vehicle, this.controls, isRace);
@@ -358,6 +411,11 @@ class TowerPanel
         return cells;
     }
 
+    /**
+     * Renders a complete table for one vehicle class.
+     * @param {Object} renderInfo Table rendering inputs.
+     * @returns {*} Virtual DOM table node.
+     */
     _renderOneStandingsClass(renderInfo)
     {
         let v = renderInfo.standings;
@@ -394,6 +452,14 @@ class TowerPanel
             this.vdom.h('tbody', null, rows));
     }
 
+    /**
+     * Builds the header row for one class table.
+     * @param {string} c Vehicle class name.
+     * @param {Array<Object>} v Class standings.
+     * @param {string} gap_txt Gap column label.
+     * @param {Object} extras Enabled extra columns.
+     * @returns {Array<*>} Virtual DOM header cells.
+     */
     _buildClassHeader(c, v, gap_txt, extras)
     {
         let race_laps = GetTotalRaceLaps(v, this.session.eventTimeRemaining);
@@ -422,6 +488,15 @@ class TowerPanel
         return headerCells;
     }
 
+    /**
+     * Computes the static and rotating portions of a long class table.
+     * @param {string} c Vehicle class name.
+     * @param {Array<Object>} v Class standings.
+     * @param {number} static_entries Number of always-visible entries.
+     * @param {number} dynamic_entries Number of rotating entries.
+     * @param {number} update_rate Rotation interval in seconds.
+     * @returns {{start: number, end: number, scroll?: {start: number, end: number, timestamp: number}}} Visible row ranges.
+     */
     _getScrollRange(c, v, static_entries, dynamic_entries, update_rate)
     {
         if (v.length <= static_entries)
@@ -459,6 +534,10 @@ class TowerPanel
         return { start: 0, end: static_entries, scroll: opt };
     }
 
+    /**
+     * Builds the single-class tower tree.
+     * @returns {*} Virtual DOM tree.
+     */
     _buildOneClassTree()
     {
         let renderInfo =
@@ -477,6 +556,10 @@ class TowerPanel
         return this._renderOneStandingsClass(renderInfo);
     }
 
+    /**
+     * Builds the multiclass tower tree, one table per class.
+     * @returns {*} Virtual DOM tree.
+     */
     _buildMultiClassTree()
     {
         let tables = [];
@@ -509,11 +592,21 @@ class TowerPanel
         return this.vdom.h('div', null, tables);
     }
 
+    /**
+     * Returns the CSS class for a row, including focused-car highlighting.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {string} Row CSS class name.
+     */
     _getRowClass(vehicle)
     {
         return "vehicle-" + vehicle.slot_id + (vehicle.focus ? " color-selected" : "");
     }
 
+    /**
+     * Returns the transient background highlight for overtake animations.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {Object|null} Inline style object or null when no highlight is active.
+     */
     _getRowStyle(vehicle)
     {
         if (Date.now() >= vehicle.overtake_highligh_lost_until && Date.now() >= vehicle.overtake_highligh_gain_until)

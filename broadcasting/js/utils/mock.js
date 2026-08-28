@@ -1,10 +1,5 @@
 /**
- * Mock data provider for local styling / preview.
- * Activate by opening the page with "?mock" in the URL, e.g. index.html?mock
- *
- * Simulates a full broadcast feed: overlay settings, session/weather info,
- * a procedural track map and an animated 12-car multi-class field
- * (standings, gaps, battles, focused-driver telemetry and notifications).
+ * @file Mock data provider for local styling and preview of the broadcasting page.
  */
 (function ()
 {
@@ -18,7 +13,13 @@
     const TRACK_DISTANCE = 4000;       /** meters */
     const MAP_SIZE = { width: 400, height: 300 };
 
-    /** Point on a slightly wobbly ellipse so the map looks like a circuit. */
+    /**
+     * Returns a point on a slightly wobbly ellipse so the generated map resembles a circuit.
+     *
+     * @param {number} t Normalized lap position in the [0, 1] range.
+     * @param {number} scale Optional scale multiplier.
+     * @returns {{x:number,y:number}} 2D world position.
+     */
     function trackPoint(t, scale = 1.0)
     {
         const a = t * 2 * Math.PI;
@@ -30,6 +31,12 @@
         };
     }
 
+    /**
+     * Builds a procedural track map and pit lane for mock mode.
+     *
+     * @returns {{track_map:Array<Object>, pit_lane:Array<Object>, size:{width:number,height:number}, sectors:Object}}
+     * Mock track map payload.
+     */
     function buildTrackMap()
     {
         const track_map = [];
@@ -53,6 +60,11 @@
         };
     }
 
+    /**
+     * Builds a mock overlay settings payload.
+     *
+     * @returns {Object} Overlay settings payload.
+     */
     function mockOverlaySettings()
     {
         return {
@@ -101,6 +113,11 @@
         };
     }
 
+    /**
+     * Builds a mock overlay controls payload.
+     *
+     * @returns {Object} Overlay controls payload.
+     */
     function mockControls()
     {
         return {
@@ -120,6 +137,12 @@
         };
     }
 
+    /**
+     * Builds the mock session payload.
+     *
+     * @param {number} currentEventTime Current session clock in seconds.
+     * @returns {Object} Mock session payload.
+     */
     function mockSession(currentEventTime)
     {
         return {
@@ -157,7 +180,12 @@
         };
     }
 
-    /** Best times array indexable both as arr[k] and arr.time[k] (both forms are used by the panels). */
+    /**
+     * Builds a mini-sector time array compatible with both array and { time: [] } readers.
+     *
+     * @param {number} base Base sector time.
+     * @returns {Array<number>} Mini-sector timing array.
+     */
     function miniSectorTimes(base)
     {
         const arr = [];
@@ -169,6 +197,12 @@
         return arr;
     }
 
+    /**
+     * Builds one mock standings entry.
+     *
+     * @param {Object} cfg Vehicle configuration.
+     * @returns {Object} Mock vehicle row.
+     */
     function makeCar(cfg)
     {
         const s1 = cfg.lapTime * 0.31;
@@ -241,6 +275,11 @@
         };
     }
 
+    /**
+     * Creates the mock multi-class field shown in preview mode.
+     *
+     * @returns {Array<Object>} Mock standings rows.
+     */
     function buildField()
     {
         return [

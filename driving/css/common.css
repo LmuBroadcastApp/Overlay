@@ -1,11 +1,11 @@
 
 :root
 {
-    --pit-stop-estimation-left: 1%;    /** Position from the left of the screen */
-    --pit-stop-estimation-top: 1%;     /** Position from the top of the screen */
+    --pit-stop-estimation-left: 1%;             /** Position from the left of the screen */
+    --pit-stop-estimation-top: 1%;              /** Position from the top of the screen */
 
-    --telemetry-input-chart-left: 1%;            /** Position from the left of the screen */
-    --telemetry-input-chart-top: 1%;             /** Position from the top of the screen */
+    --telemetry-input-chart-left: 1%;           /** Position from the left of the screen */
+    --telemetry-input-chart-top: 1%;            /** Position from the top of the screen */
 
     --weather-forecast-left: 1%;                /** Position from the left of the screen */
     --weather-forecast-top: 1%;                 /** Position from the top of the screen */
@@ -19,7 +19,6 @@
     --telemetry-input-chart-height: 100px;
     --telemetry-input-chart-width: 530px;
 
-    /** Design tokens shared by all panels */
     --panel-bg: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
     --panel-border: 1px solid rgba(255, 255, 255, 0.08);
     --panel-radius: 0;
@@ -41,7 +40,6 @@
 
 /**********************************************************************************************************************/
 
-/** Shared glass look for every overlay panel */
 .overlay-panel
 {
     background: var(--panel-bg);

@@ -1,5 +1,17 @@
-﻿class WeatherPanel
+﻿/**
+ * @fileoverview Renders the driving weather summary and forecast panel.
+ */
+
+/**
+ * Displays grip, temperatures, rain, wind, and weather forecast snapshots.
+ */
+class WeatherPanel
 {
+    /**
+     * Creates a weather panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -15,6 +27,11 @@
         this.session = null;
     }
 
+    /**
+     * Stores the latest session payload.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'session')
@@ -23,6 +40,9 @@
         }
     }
 
+    /**
+     * Refreshes the weather summary and forecast cells.
+     */
     update()
     {
         if (this.session === null)
@@ -89,6 +109,11 @@
         this.element.querySelector('.weather-panel-forecast-body').innerHTML = body;
     }
 
+    /**
+     * Maps a sky-state code to a weather icon glyph.
+     * @param {number} sky Sky-state identifier.
+     * @returns {string} Icon glyph.
+     */
     _weatherIcon(sky)
     {
         switch (sky)
@@ -108,6 +133,12 @@
         }
     }
 
+    /**
+     * Converts grip level and wetness into a readable track-condition label.
+     * @param {number} gripLevel Grip-level identifier.
+     * @param {number} pathWetness Average racing-line wetness.
+     * @returns {string} Human-readable condition label.
+     */
     _gripLevel2String(gripLevel, pathWetness)
     {
         if (pathWetness >= 0.9)

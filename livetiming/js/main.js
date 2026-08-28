@@ -1,108 +1,141 @@
-window.addEventListener('resize', (event) => {
-    let canvas = document.getElementById("live-timing-map");
-    canvas.height = canvas.clientHeight;
-    canvas.width = canvas.clientWidth;
-});
+/**
+ * @file Entry point for the livetiming overlay page.
+ */
 
-window.addEventListener('load', (event) => {
-    let canvas = document.getElementById("live-timing-map");
-    canvas.height = canvas.clientHeight;
-    canvas.width = canvas.clientWidth;
-});
-
-function CreateTableRow(value, index)
+/**
+ * Websocket callbacks that translate feed payloads into shared state updates.
+ */
+const callBacks =
 {
-    let ve = value.telemetry.ve.toFixed(1) + "%";
-    let manufacturer = value.manufacturer;
-
-    let int = value.delta_to_next.toFixed(1);
-    let gap = value.delta_to_class_leader.toFixed(1)
-
-    if (value.laps_behind_class_leader > 0)
+    onStandingsUpdate: (data) =>
     {
-        gap = value.laps_behind_class_leader + "L";
-    }
-
-    if (value.telemetry.ve <= 0.0)
-    {
-        ve = value.telemetry.fuel.toFixed(1) + "L";
-    }
-
-    if (manufacturer.trim().length == 0)
-    {
-        manufacturer = "Default";
-    }
-
-    let speed_under_50kmh = "";
-    let in_pits_background = "";
-
-    if (value.telemetry.speed < 50.0 && !value.in_pits)
-    {
-        speed_under_50kmh = "class='speed-under-50-kmh'";
-    }
-
-    if (value.in_pits)
-    {
-        in_pits_background = "class='vehicle-in-pits'";
-    }
-
-    return `<tr class="standings-row-color-${index % 2 + 1}">
-        <td>${value.race_position}</td>
-        <td>${value.race_position_class}</td>
-        <td>${value.vehicle_number}</td>
-        <td style="color: ${getColorDefault(value.vehicle_class, "rgb(224, 224, 224)")}">${value.vehicle_class}</td>
-        <td><img alt="" width="24" src="../shared/img/brandlogo/${manufacturer}.png"</td>
-        <td ${speed_under_50kmh}>${value.driver}</td>
-        <td>${value.vehicle_name}</td>
-        <td ${in_pits_background}>${value.status}</td>
-        <td>${LaptimeToString(value.current_lap)}</td>
-        <td>${LaptimeToString(value.last_lap)}</td>
-        <td>${LaptimeToString(value.best_lap)}</td>
-        <td>${int}</td>
-        <td>${gap}</td>
-        <td>${ve}</td>
-        <td>${GetPenalties(value)}</td>
-    </tr>`;
-}
-
-let callBacks =
-{
-    onStandingsUpdate : function(data)
-    {
-        content = "";
-        let style_idx = 0;
-        for (let i = 0; i < data.length; i++)
-        {
-            content += CreateTableRow(data[i], style_idx++);
-        }
-
-        let table = document.getElementById("live-timing-table");
-        table.innerHTML = content;
-
-        let canvas = document.getElementById("live-timing-map");
-        DrawLineMap(data, canvas);
+        stateManager.setState('standings', data);
     },
-    onSessionUpdate : function(data)
+    onSessionUpdate: (data) =>
     {
-        document.getElementById("session-name").innerHTML = data.name;
-        document.getElementById("session-time").innerHTML = SessionTimeString(data);
-
-        document.getElementById("track-name").innerHTML = data.trackName;
-        document.getElementById("track-status").innerHTML = SessionTrackStatusString(data);
-
-        document.getElementById("weather-value").innerHTML = SessionTemperatureString(data);
+        stateManager.setState('session', data);
     },
-    onOverlayControlsUpdate : function(data)
+    onTrackMapUpdate: (data) =>
     {
+        stateManager.setState('map', data);
     },
-    onControlsUpdate : function(data)
+    onOverlayControlsUpdate: (data) =>
     {
+        stateManager.setState('overlay_controls', data);
     },
-    onTrackMapUpdate : function(data)
+    onOverlaySettingsUpdate: (data) =>
     {
+        stateManager.setState('overlay_settings', data);
     }
 };
 
-let webSocketWrapper = new WebSocketWrapper("ws://" + window.location.hostname + ":6433");
+/**
+ * Shared websocket connection for the livetiming page.
+ */
+const webSocketWrapper = new WebSocketWrapper(`ws://${window.location.hostname}:6433`);
 webSocketWrapper.setCallback(callBacks);
-webSocketWrapper.connect();
+
+/**
+ * Registers all panels used by the livetiming page.
+ */
+panelRegistry.register('session', SessionPanel, '#session-info');
+panelRegistry.register('worldmap', WorldMapPanel, '#track-map-panel');
+panelRegistry.register('standings', StandingsPanel, '#live-timing-standings');
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const fps = 24;
+const frameDuration = 1000 / fps;
+
+let lastTime = 0;
+let animationId = null;
+
+/**
+ * Main animation loop that updates all registered panels at a fixed maximum rate.
+ *
+ * @param {DOMHighResTimeStamp} timestamp requestAnimationFrame timestamp.
+ */
+function fnc_main_loop(timestamp)
+{
+    const deltaTime = timestamp - lastTime;
+    if (deltaTime >= frameDuration)
+    {
+        panelRegistry.updateAll();
+        lastTime = timestamp;
+    }
+    animationId = requestAnimationFrame(fnc_main_loop);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Enables Ctrl-drag positioning for the track map and restores persisted offsets.
+ */
+function InitDraggablePanels()
+{
+    const storageKey = 'livetiming-panel-positions';
+    const root = document.documentElement;
+
+    let positions = {};
+    try { positions = JSON.parse(localStorage.getItem(storageKey)) || {}; } catch (e) { /* corrupted, start fresh */ }
+
+    for (const [varName, value] of Object.entries(positions))
+    {
+        root.style.setProperty(varName, value);
+    }
+
+    const draggable = new DraggablePanels((panelId, position) =>
+    {
+        Object.assign(positions, position);
+        localStorage.setItem(storageKey, JSON.stringify(positions));
+    });
+
+    draggable.register('#track-map-panel',
+    [
+        { varName: '--map-panel-position-left', property: 'margin-left' },
+        { varName: '--map-panel-position-top', property: 'margin-top' }
+    ]);
+}
+
+/**
+ * Initializes the dark/light theme toggle and restores the persisted selection.
+ */
+function InitThemeToggle()
+{
+    const checkbox = document.querySelector('#light-theme');
+    if (!checkbox) return;
+
+    const apply = (light) =>
+    {
+        document.body.classList.toggle('theme-light', light);
+        localStorage.setItem('livetiming-theme', light ? 'light' : 'dark');
+    };
+
+    checkbox.checked = localStorage.getItem('livetiming-theme') === 'light'
+                    || window.location.search.includes('light');
+
+    checkbox.addEventListener('change', () => apply(checkbox.checked));
+    apply(checkbox.checked);
+}
+
+window.addEventListener('beforeunload', () =>
+{
+    cancelAnimationFrame(animationId);
+    webSocketWrapper.disconnect();
+    panelRegistry.destroyAll();
+});
+
+window.addEventListener('load', () =>
+{
+    InitThemeToggle();
+    InitDraggablePanels();
+    panelRegistry.createAll(stateManager);
+
+    // In mock mode (index.html?mock) the data is generated locally, no websocket needed
+    if (!window.MOCK_MODE)
+    {
+        webSocketWrapper.connect();
+    }
+
+    animationId = requestAnimationFrame(fnc_main_loop);
+});

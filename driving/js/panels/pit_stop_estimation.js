@@ -1,5 +1,17 @@
+/**
+ * @fileoverview Renders the pit stop estimation breakdown panel.
+ */
+
+/**
+ * Displays the estimated time contribution of each pit stop service item.
+ */
 class PitStopEstimation
 {
+    /**
+     * Creates a pit stop estimation panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -15,6 +27,11 @@ class PitStopEstimation
         this.pitStop = null;
     }
 
+    /**
+     * Stores the latest pit-stop estimation payload.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'onPitStopEstimation')
@@ -23,6 +40,9 @@ class PitStopEstimation
         }
     }
 
+    /**
+     * Refreshes the pit stop breakdown values.
+     */
     update()
     {
         if (this.pitStop == null)

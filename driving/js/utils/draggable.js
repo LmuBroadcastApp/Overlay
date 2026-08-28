@@ -1,4 +1,8 @@
 /**
+ * @fileoverview Provides Ctrl-drag support for repositioning driving overlay panels.
+ */
+
+/**
  * Makes overlay panels draggable with the mouse while Ctrl is held.
  *
  * Each panel is positioned through a pair of CSS variables (left/top).
@@ -9,6 +13,10 @@
  */
 class DraggablePanels
 {
+    /**
+     * Creates a draggable-panel controller.
+     * @param {Function} onMoved Callback invoked after a drag completes.
+     */
     constructor(onMoved)
     {
         this.onMoved = onMoved;
@@ -35,11 +43,21 @@ class DraggablePanels
         });
     }
 
+    /**
+     * Applies the current drag cursor to all registered elements.
+     * @param {string} cursor CSS cursor value.
+     */
     _setCursor(cursor)
     {
         this.elements.forEach(el => el.style.cursor = cursor);
     }
 
+    /**
+     * Registers one overlay panel for Ctrl-drag repositioning.
+     * @param {string} selector CSS selector for the draggable element.
+     * @param {string} varLeft CSS custom property storing the left position.
+     * @param {string} varTop CSS custom property storing the top position.
+     */
     register(selector, varLeft, varTop)
     {
         const element = document.querySelector(selector);

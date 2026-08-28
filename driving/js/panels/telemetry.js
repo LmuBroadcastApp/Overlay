@@ -1,5 +1,16 @@
+/**
+ * @fileoverview Renders the driving telemetry chart panel and its rolling input history.
+ */
+
+/**
+ * Fixed-size circular queue used to keep recent telemetry samples.
+ */
 class CircularQueue
 {
+    /**
+     * Creates a queue with a fixed maximum capacity.
+     * @param {number} capacity Maximum number of items to retain.
+     */
     constructor(capacity)
     {
         this.buffer = new Array(capacity);
@@ -10,6 +21,9 @@ class CircularQueue
         this.count = 0;
     }
 
+    /**
+     * Clears the queue contents.
+     */
     reset()
     {
         this.head = 0;
@@ -17,6 +31,10 @@ class CircularQueue
         this.count = 0;
     }
 
+    /**
+     * Pre-fills the queue with the same value.
+     * @param {*} value Initial value used for every slot.
+     */
     fill(value)
     {
         this.buffer.fill(value);
@@ -26,6 +44,10 @@ class CircularQueue
         this.tail = this.capacity - 1;
     }
 
+    /**
+     * Appends one value, discarding the oldest when at capacity.
+     * @param {*} value Value to enqueue.
+     */
     enqueue(value)
     {
         this.tail = (this.tail + 1) % this.capacity;
@@ -41,6 +63,10 @@ class CircularQueue
         }
     }
 
+    /**
+     * Returns the queue contents in logical order.
+     * @returns {Array<*>} Queue contents from oldest to newest.
+     */
     toArray()
     {
         const result = [];
@@ -55,8 +81,16 @@ class CircularQueue
     }
 }
 
+/**
+ * Displays steering, throttle, brake, RPM, speed, and gear input traces.
+ */
 class TelemetryChart
 {
+    /**
+     * Creates a telemetry chart panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the target canvas.
+     * @param {StateManager} stateManager Shared state store.
+     */
     constructor(selector, stateManager)
     {
         this.element = document.querySelector(selector);
@@ -97,6 +131,11 @@ class TelemetryChart
         };
     }
 
+    /**
+     * Stores focused-car telemetry samples from standings updates.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
     handleStateChange(key, value)
     {
         if (key === 'standings')
@@ -110,6 +149,9 @@ class TelemetryChart
         }
     }
 
+    /**
+     * Resizes and redraws the telemetry chart for the current frame.
+     */
     update()
     {
         const style = getComputedStyle(document.documentElement);
@@ -174,6 +216,13 @@ class TelemetryChart
         }
     }
 
+    /**
+     * Draws the chart background grid.
+     * @param {number} x Grid origin X coordinate.
+     * @param {number} y Grid origin Y coordinate.
+     * @param {number} w Grid width.
+     * @param {number} h Grid height.
+     */
     _drawGrid(x, y, w, h)
     {
         this.ctx.save();
@@ -192,6 +241,12 @@ class TelemetryChart
         this.ctx.restore();
     }
 
+    /**
+     * Draws the outer RPM arc around the steering widget.
+     * @param {number} x Gauge center X coordinate.
+     * @param {number} y Gauge center Y coordinate.
+     * @param {number} radius Gauge radius.
+     */
     _drawRpmGauge(x, y, radius)
     {
         if (this.vehicle.telemetry.max_rpm <= 0) return;
@@ -281,6 +336,13 @@ class TelemetryChart
         this.ctx.restore();
     }
 
+    /**
+     * Draws the steering indicator, speed, gear, and RPM ring.
+     * @param {number} x Widget center X coordinate.
+     * @param {number} y Widget center Y coordinate.
+     * @param {number} radius Steering ring radius.
+     * @param {number} value Normalized steering value in the [0, 1] range.
+     */
     _drawSteering(x, y, radius, value)
     {
         value = value * 2 - 1;
@@ -342,6 +404,16 @@ class TelemetryChart
         this.ctx.restore();
     }
 
+    /**
+     * Draws a vertical telemetry bar for brake or throttle.
+     * @param {number} x Bar origin X coordinate.
+     * @param {number} y Bar origin Y coordinate.
+     * @param {number} w Bar width.
+     * @param {number} h Bar height.
+     * @param {number} value Filled ratio in the [0, 1] range.
+     * @param {string} color Fill color.
+     * @param {string} glowColor Glow highlight color.
+     */
     _drawBar(x, y, w, h, value, color, glowColor)
     {
         const radius = 3;
@@ -380,6 +452,16 @@ class TelemetryChart
         this.ctx.restore();
     }
 
+    /**
+     * Draws one telemetry trace and its filled area.
+     * @param {Array<number>} data Normalized data points.
+     * @param {string} color Stroke color.
+     * @param {string} fillColor Area fill color.
+     * @param {number} chartX Chart origin X coordinate.
+     * @param {number} chartY Chart origin Y coordinate.
+     * @param {number} chartW Chart width.
+     * @param {number} chartH Chart height.
+     */
     _drawLine(data, color, fillColor, chartX, chartY, chartW, chartH)
     {
         if (data.length < 2) return;

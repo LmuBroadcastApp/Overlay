@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Boots the driving overlay, wires websocket events, and manages panel updates.
+ */
+
+/**
+ * Applies persisted overlay settings to the driving panel CSS variables.
+ * @param {Object} settings Overlay settings payload from the backend.
+ */
 function UpdateOverlaySettings(settings)
 {
     const root = document.documentElement;
@@ -26,17 +34,30 @@ function UpdateOverlaySettings(settings)
     }
 }
 
+/**
+ * Handles draggable panel move notifications.
+ * @param {string} panelId Moved panel element ID.
+ * @param {number} left Final left position in pixels.
+ * @param {number} top Final top position in pixels.
+ */
 function OnPanelMoved(panelId, left, top)
 {
     // Called when the user finishes dragging a panel (left/top in pixels)
     console.log(`Panel ${panelId} moved to left=${left}px, top=${top}px`);
 }
 
+/**
+ * Shows the overlay only while the player is in real time.
+ * @param {boolean} inRealTime Whether the game is currently in real-time mode.
+ */
 function HideOrShowOverlay(inRealTime)
 {
     document.body.style.display = inRealTime ? 'block' : 'none';
 }
 
+/**
+ * Shared websocket callbacks used to push feed updates into the state manager.
+ */
 const callBacks =
 {
     onOverlaySettingsUpdate: (data) =>
@@ -84,6 +105,10 @@ const frameDuration = 1000 / fps;
 let lastTime = 0;
 let animationId = null;
 
+/**
+ * Main animation loop that updates all registered panels at the configured frame rate.
+ * @param {number} timestamp requestAnimationFrame timestamp.
+ */
 function fnc_main_loop(timestamp)
 {
     const deltaTime = timestamp - lastTime;
