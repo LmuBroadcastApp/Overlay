@@ -34,7 +34,7 @@ class PitStopEstimation
      */
     handleStateChange(key, value)
     {
-        if (key === 'onPitStopEstimation')
+        if (key === 'pitStopEstimation')
         {
             this.pitStop = value;
         }

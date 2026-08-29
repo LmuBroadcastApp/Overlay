@@ -80,6 +80,10 @@ const callBacks =
     {
         UpdateOverlaySettings(data);
         stateManager.setState('overlay_settings', data);
+    },
+    onPitStopEstimation: (data) =>
+    {
+        stateManager.setState('pitStopEstimation', data);
     }
 };
 
