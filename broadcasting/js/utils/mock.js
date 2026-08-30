@@ -133,7 +133,7 @@
             sector_bars: true,
             show_telemetry: true,
             show_last_pitstop: true,
-            extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true }
+            extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }
 

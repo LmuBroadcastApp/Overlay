@@ -66,7 +66,7 @@ const EXTRA_COLUMNS =
             let diff = v.race_position_class - v.qualy_position_class;
             let num = String(Math.abs(diff)).padStart(2, '0');
 
-            let arrow = '';
+            let arrow = '\u2B9E';
             let cls = '';
 
             if (diff < 0)
@@ -77,7 +77,7 @@ const EXTRA_COLUMNS =
             else if (diff > 0)
             {
                 cls = "lost-position";
-                arrow = "\u2B9E";
+                arrow = "\u2B9F";
             }
 
             return vdom.h('td', { className: 'vehicle-extra-column standings-secondary-color' },
