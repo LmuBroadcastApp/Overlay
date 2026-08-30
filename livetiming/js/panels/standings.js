@@ -196,18 +196,15 @@ class StandingsPanel
      */
     pitStopsCell(value)
     {
-        const count = value.pit_stops || 0;
-        const stops = value.pitstops || [];
-
-        if (count === 0)
+        if (value.pitstops.length === 0)
         {
             return `<td></td>`;
         }
 
-        const last = stops.length > 0 ? stops[stops.length - 1].pit_lane_time : -1;
-        const lastText = last > 0 ? ` &middot; ${last.toFixed(1)}s` : '';
+        const laptime = value.pitstops[value.pitstops.length - 1].pit_lane_time;
+        const lap = value.pitstops[value.pitstops.length - 1].lap;
 
-        return `<td>${count}${lastText}</td>`;
+        return `<td>L${lap} &nbsp;&middot;&nbsp; ${laptime}</td>`;
     }
 
     /**
@@ -218,15 +215,7 @@ class StandingsPanel
      */
     tiresCell(value)
     {
-        const tires = value.tire_compound || [];
-
-        if (tires.length === 0)
-        {
-            return `<td></td>`;
-        }
-
-        const compounds = [...new Set(tires)].map(name => name.charAt(0));
-
+        const compounds = [...new Set(value.tire_compound)].map(name => name.charAt(0));
         return `<td>${compounds.join('/')}</td>`;
     }
 
