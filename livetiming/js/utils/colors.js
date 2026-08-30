@@ -1,51 +1,44 @@
 /**
- * @file Shared color helpers for assigning persistent colors to vehicle classes.
+ * @file Color helpers for assigning vehicle class colors, matching the broadcasting overlay.
  */
-
-const g_colorMap = new Map();
 
 /**
- * Returns the registered color for a key, or a fallback when no color exists yet.
+ * Maps a vehicle class to the fixed overlay color used across the broadcasting panels.
  *
- * @param {string} key Color map key.
- * @param {string} defaultValue Fallback CSS color string.
- * @returns {string} Registered or fallback color.
+ * @param {string} className Vehicle class name.
+ * @returns {string} CSS color string.
  */
-function getColorDefault(key, defaultValue)
+function ColorFromVehicleClass(className)
 {
-    return g_colorMap.has(key) ? g_colorMap.get(key) : defaultValue;
-}
-
-/**
- * Generates a random hex color.
- *
- * @returns {string} Random color in #RRGGBB format.
- */
-function getRandomColor()
-{
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-
-    for (let i = 0; i < 6; i++)
+    switch (className.toLowerCase())
     {
-        color += letters[Math.floor(Math.random() * 16)];
+        case "gt3":
+        {
+            return "rgba(0, 143, 55, 1.0)";
+        }
+        case "gte":
+        {
+            return "rgba(240, 140, 0, 1.0)";
+        }
+        case "lmp2":
+        {
+            return "rgba(6, 75, 145, 1.0)";
+        }
+        case "lmp3":
+        {
+            return "rgba(58, 25, 74, 1.0)";
+        }
+        case "hyper":
+        {
+            return "rgba(171, 24, 20, 1.0)";
+        }
+        case "lmp2_elms":
+        {
+            return "rgba(190, 74, 9, 1.0)";
+        }
+        default:
+        {
+            return "rgba(79, 93, 117, 1.0)";
+        }
     }
-
-    return color;
-}
-
-/**
- * Ensures a vehicle class has a stable generated color and returns it.
- *
- * @param {string} key Vehicle class name.
- * @returns {string} Stable color for the class.
- */
-function ensureClassColor(key)
-{
-    if (!g_colorMap.has(key))
-    {
-        g_colorMap.set(key, getRandomColor());
-    }
-
-    return g_colorMap.get(key);
 }

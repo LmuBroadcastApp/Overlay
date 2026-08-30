@@ -306,7 +306,7 @@ class WorldMapPanel
         const x = v.world_pos.x;
         const y = v.world_pos.y;
 
-        let c = ensureClassColor(v.vehicle_class);
+        let c = ColorFromVehicleClass(v.vehicle_class);
         let radius = 5.5;
 
         if (v.focus)

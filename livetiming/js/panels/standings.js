@@ -91,7 +91,7 @@ class StandingsPanel
         {
             for (const [vehicleClass, vehicles] of GetByClasses(this.standings))
             {
-                const caption = `<caption style="color: ${getColorDefault(vehicleClass, "rgb(224, 224, 224)")}">${vehicleClass}</caption>`;
+                const caption = `<caption style="color: ${ColorFromVehicleClass(vehicleClass)}">${vehicleClass}</caption>`;
                 content += this.createTable(vehicles, bestSectorsByClass, caption);
             }
         }
@@ -324,7 +324,7 @@ class StandingsPanel
             <td>${value.race_position_class}</td>
             ${this.positionsGainedCell(value)}
             <td>${value.vehicle_number}</td>
-            <td style="color: ${getColorDefault(value.vehicle_class, "rgb(224, 224, 224)")}">${value.vehicle_class}</td>
+            <td style="color: ${ColorFromVehicleClass(value.vehicle_class)}">${value.vehicle_class}</td>
             <td><img alt="" width="24" src="../shared/img/brandlogo/${manufacturer}.png"</td>
             <td ${show_warning_icon}>${warningIcon}${value.driver}</td>
             <td>${value.vehicle_name}</td>
