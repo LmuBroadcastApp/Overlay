@@ -18,9 +18,9 @@
     --standings-panel-lost-position-color: rgb(230, 110, 79);                           /** Row color for when a vehicle lost position */
 
     --standings-panel-sector-inactive-color: rgb(100, 100, 100);                        /** Color for the a vehicle has not been on that sector yet */
-    --standings-panel-sector-1-color: rgb(150, 150, 150);                               /** Color for when vehicle is or has been on the sector */
-    --standings-panel-sector-2-color: rgb(150, 150, 150);                               /** Color for when vehicle is or has been on the sector */
-    --standings-panel-sector-3-color: rgb(150, 150, 150);                               /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-1-color: rgb(255, 209, 102);                               /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-2-color: rgb(  6, 214, 160);                               /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-3-color: rgb(162, 155, 2540);                               /** Color for when vehicle is or has been on the sector */
 
     --standings-panel-col-01-width:  24px;                                              /** Fast lap and exclamation icons */
     --standings-panel-col-02-width:  32px;                                              /** Vehicle position */
