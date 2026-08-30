@@ -155,6 +155,53 @@ function GetBestSectors(standings, vehicle_class)
 }
 
 /**
+ * Returns a representative lap time used for race-lap projections.
+ *
+ * @param {Array<Object>} standings Standings rows.
+ * @returns {number} Representative lap time in seconds, or -1.
+ */
+function GetLapTimeForTotalRaceLaps(standings)
+{
+    for (const vehicle of standings)
+    {
+        if (vehicle.last_lap > 0)
+        {
+            return vehicle.last_lap;
+        }
+
+        if (vehicle.best_lap > 0)
+        {
+            return vehicle.best_lap;
+        }
+
+        if (vehicle.qualy_best_lap > 0)
+        {
+            return vehicle.qualy_best_lap;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * Estimates total race laps from race duration and representative pace.
+ *
+ * @param {Array<Object>} standings Standings rows.
+ * @param {number} raceTime Race duration in seconds.
+ * @returns {(string|number)} Estimated total laps or placeholder.
+ */
+function GetTotalRaceLaps(standings, raceTime)
+{
+    const representative = GetLapTimeForTotalRaceLaps(standings);
+    if (representative <= 0 || raceTime <= 0)
+    {
+        return "-";
+    }
+
+    return Math.round((raceTime / representative) + standings[0].laps);
+}
+
+/**
  * Groups standings rows by vehicle class while preserving their current order.
  *
  * @param {Array<Object>} standings Full standings array.

@@ -331,8 +331,8 @@ class WorldMapPanel
         // Ring: white for everyone, gold for the overall leader
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.lineWidth = v.race_position === 1 ? 2 : 1.25;
-        ctx.strokeStyle = v.race_position === 1 ? '#ffd166' : colors.ring;
+        ctx.lineWidth = v.race_position_class === 1 ? 2 : 1.25;
+        ctx.strokeStyle = v.race_position_class === 1 ? '#ffd166' : colors.ring;
         ctx.stroke();
 
         if (!v.in_pits)
@@ -371,23 +371,10 @@ class WorldMapPanel
     _drawVehicles(ctx, vehicles, colors)
     {
         vehicles.sort((a, b) => (b.in_pits - a.in_pits));
-        let focus = null;
 
         for (let idx in vehicles)
         {
-            if (vehicles[idx].focus)
-            {
-                focus = vehicles[idx];
-            }
-            else
-            {
-                this._drawVehicle(ctx, vehicles[idx], colors);
-            }
-        }
-
-        if (focus)
-        {
-            this._drawVehicle(ctx, focus, colors);
+            this._drawVehicle(ctx, vehicles[idx], colors);
         }
     }
 

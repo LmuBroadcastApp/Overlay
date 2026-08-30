@@ -327,6 +327,38 @@ body.theme-light
     border-radius: 6px;
 }
 
+#live-timing-standings caption .standings-caption-drivers
+{
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    white-space: nowrap;
+}
+
+#live-timing-standings caption .standings-caption-icon
+{
+    font-family: 'FiraCode Nerd Font', 'Titillium Web', sans-serif;
+    font-size: 1.05em;
+}
+
+#live-timing-standings caption .standings-caption-class
+{
+    letter-spacing: 0.14em;
+}
+
+#live-timing-standings caption .standings-caption-laps
+{
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+}
+
+#live-timing-standings caption .standings-caption-drivers,
+#live-timing-standings caption .standings-caption-laps
+{
+    color: var(--text-2);
+}
+
 #live-timing-standings thead th
 {
     padding: 0.65em 0.3em;

@@ -67,11 +67,13 @@
      */
     function mockSession(currentEventTime)
     {
-        return {
+return {
             name: 'RACE',
             trackName: 'Circuit de la Sarthe',
             currentEventTime: currentEventTime,
             endEventTime: 7200,
+            eventTimeRemaining: 7200 - currentEventTime,
+            maximumLaps: 24,
             sectorFlags: [false, false, false],
             trackTemp: 31.2,
             ambientTemp: 24.6,

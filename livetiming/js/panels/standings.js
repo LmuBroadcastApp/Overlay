@@ -37,7 +37,10 @@ class StandingsPanel
 
         this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.standings = this.stateManager.getState('standings');
+        this.sessionName = this.stateManager.getState('standings')?.name ?? '';
+
         this.maxCutPoints = this.stateManager.getState('session')?.max_cut_points ?? 0;
+        this.eventTimeRemaining = this.stateManager.getState('session')?.eventTimeRemaining ?? 0;
 
         this.splitByClass = false;
         this.checkbox = document.querySelector('#split-by-class');
@@ -64,7 +67,9 @@ class StandingsPanel
         }
         else if (key === 'session')
         {
+            this.sessionName = value?.name ?? '';
             this.maxCutPoints = value?.max_cut_points ?? 0;
+            this.eventTimeRemaining = value?.eventTimeRemaining ?? 0;
         }
     }
 
@@ -91,13 +96,12 @@ class StandingsPanel
         {
             for (const [vehicleClass, vehicles] of GetByClasses(this.standings))
             {
-                const caption = `<caption style="color: ${ColorFromVehicleClass(vehicleClass)}">${vehicleClass}</caption>`;
-                content += this.createTable(vehicles, bestSectorsByClass, caption);
+                content += this.createTable(vehicles, bestSectorsByClass, vehicleClass);
             }
         }
         else
         {
-            content = this.createTable(this.standings, bestSectorsByClass, '');
+            content = this.createTable(this.standings, bestSectorsByClass, 'Multiclass');
         }
 
         this.element.innerHTML = content;
@@ -108,11 +112,12 @@ class StandingsPanel
      *
      * @param {Array<Object>} vehicles Rows to render.
      * @param {Map<string, Object>} bestSectorsByClass Best sectors indexed by vehicle class.
-     * @param {string} caption Optional table caption HTML.
+     * @param {string} vehicleClass Vehicle class label, or empty when not splitting by class.
      * @returns {string} HTML table markup.
      */
-    createTable(vehicles, bestSectorsByClass, caption)
+    createTable(vehicles, bestSectorsByClass, vehicleClass)
     {
+        const caption = this.buildCaption(vehicleClass, vehicles);
         const header = StandingsPanel.COLUMNS.map(([title]) => `<th>${title}</th>`).join('');
         const cols = StandingsPanel.COLUMNS
             .map(([, width]) => width ? `<col style="width: ${width}">` : `<col>`)
@@ -133,6 +138,40 @@ class StandingsPanel
             </thead>
             <tbody>${rows}</tbody>
         </table>`;
+    }
+
+    /**
+     * Builds the table caption showing class, driver count with icon, and laps/remaining.
+     *
+     * @param {string} vehicleClass Vehicle class label, or empty when not splitting by class.
+     * @param {Array<Object>} vehicles Rows for this table.
+     * @returns {string} HTML caption markup.
+     */
+    buildCaption(vehicleClass, vehicles)
+    {
+        if (vehicles.length === 0)
+        {
+            return '';
+        }
+
+        let numLaps = '-/-';
+
+        if (this.sessionName === 'RACE')
+        {
+            const raceLaps = GetTotalRaceLaps(vehicles, this.eventTimeRemaining);
+            numLaps = `L${vehicles[0].laps + 1} / ${raceLaps}`;
+        }
+
+        const classSpan = vehicleClass ? `<span class="standings-caption-class">${vehicleClass}</span>` : '';
+        const color = ColorFromVehicleClass(vehicleClass);
+
+        return `<caption class="standings-caption" style="color:${color}">
+            ${classSpan}
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="standings-caption-drivers"><span class="standings-caption-icon">&#xF0D93;</span><span>${vehicles.length}</span></span>
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="standings-caption-laps">${numLaps}</span>
+        </caption>`;
     }
 
     /**
