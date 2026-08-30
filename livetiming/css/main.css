@@ -505,6 +505,16 @@ body.theme-light
     text-shadow: 0 0 8px rgba(255, 89, 94, 0.4);
 }
 
+.fuel-warn
+{
+    color: var(--yellow);
+}
+
+.fuel-crit
+{
+    color: var(--red);
+}
+
 .warning-icon
 {
     margin-right: 0.4em;

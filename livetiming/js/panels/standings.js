@@ -80,13 +80,20 @@ class StandingsPanel
     {
         if (this.standings === null) return;
 
-        // Class best sectors, computed once per update and shared by all rows
+        // Class best sectors/la`p, computed once per update and shared by all rows
         const bestSectorsByClass = new Map();
+        const bestLapTimeByClass = new Map();
+
         for (const vehicle of this.standings)
         {
             if (!bestSectorsByClass.has(vehicle.vehicle_class))
             {
                 bestSectorsByClass.set(vehicle.vehicle_class, GetBestSectors(this.standings, vehicle.vehicle_class));
+            }
+
+            if (!bestLapTimeByClass.has(vehicle.vehicle_class))
+            {
+                bestLapTimeByClass.set(vehicle.vehicle_class, GetBestLapTime(this.standings, vehicle.vehicle_class));
             }
         }
 
@@ -96,12 +103,12 @@ class StandingsPanel
         {
             for (const [vehicleClass, vehicles] of GetByClasses(this.standings))
             {
-                content += this.createTable(vehicles, bestSectorsByClass, vehicleClass);
+                content += this.createTable(vehicles, bestSectorsByClass, bestLapTimeByClass, vehicleClass);
             }
         }
         else
         {
-            content = this.createTable(this.standings, bestSectorsByClass, 'Multiclass');
+            content = this.createTable(this.standings, bestSectorsByClass, bestLapTimeByClass, 'Multiclass');
         }
 
         this.element.innerHTML = content;
@@ -112,13 +119,15 @@ class StandingsPanel
      *
      * @param {Array<Object>} vehicles Rows to render.
      * @param {Map<string, Object>} bestSectorsByClass Best sectors indexed by vehicle class.
+     * @param {Map<string, Object>} bestLapTimeByClass Best laptime by vehicle class.
      * @param {string} vehicleClass Vehicle class label, or empty when not splitting by class.
      * @returns {string} HTML table markup.
      */
-    createTable(vehicles, bestSectorsByClass, vehicleClass)
+    createTable(vehicles, bestSectorsByClass, bestLapTimeByClass, vehicleClass)
     {
         const caption = this.buildCaption(vehicleClass, vehicles);
         const header = StandingsPanel.COLUMNS.map(([title]) => `<th>${title}</th>`).join('');
+
         const cols = StandingsPanel.COLUMNS
             .map(([, width]) => width ? `<col style="width: ${width}">` : `<col>`)
             .join('');
@@ -126,8 +135,10 @@ class StandingsPanel
         let rows = "";
         for (let i = 0; i < vehicles.length; i++)
         {
-            const classBest = bestSectorsByClass.get(vehicles[i].vehicle_class);
-            rows += this.createTableRow(vehicles[i], i, classBest);
+            const classSectorsBest = bestSectorsByClass.get(vehicles[i].vehicle_class);
+            const classLapBest = bestLapTimeByClass.get(vehicles[i].vehicle_class);
+
+            rows += this.createTableRow(vehicles[i], i, classSectorsBest, classLapBest);
         }
 
         return `<table class="standings-table">
@@ -211,6 +222,24 @@ class StandingsPanel
     }
 
     /**
+     * Renders a best lap time cell, including purple class-best highlighting.
+     *
+     * @param {number} sector Car best sector time.
+     * @param {number} classBest Best lap time in the class.
+     * @returns {string} HTML table cell.
+     */
+    bestLapTimeCell(laptime, classBest)
+    {
+        let state = 'sector-inactive';
+        if (IsValidTime(laptime))
+        {
+            state = classBest > 0 && Math.abs(classBest - laptime) <= 0.001 ? 'sector-purple' : 'sector-green';
+        }
+
+        return `<td class="${state}">${LaptimeToString(laptime)}</td>`;
+    }
+
+    /**
      * Renders the gained/lost positions cell against qualifying class position.
      *
      * @param {Object} value Vehicle standings row.
@@ -249,7 +278,7 @@ class StandingsPanel
         const laptime = value.pitstops[value.pitstops.length - 1].pit_lane_time;
         const lap = value.pitstops[value.pitstops.length - 1].lap;
 
-        return `<td>L${lap} &nbsp;&middot;&nbsp; ${laptime}</td>`;
+        return `<td>L${lap} &nbsp;&middot;&nbsp; ${laptime}s</td>`;
     }
 
     /**
@@ -325,19 +354,40 @@ class StandingsPanel
         return `<td class="${state}">${text}</td>`;
     }
 
+    fuelVeCell(value)
+    {
+        let fuel_or_ve = value.telemetry.ve.toFixed(1);
+        let state = ''; let postfix = '%';
+
+        if (value.telemetry.ve <= 0.0)
+        {
+            fuel_or_ve = value.telemetry.fuel.toFixed(1);
+            postfix= 'L';
+        }
+
+        if (fuel_or_ve <= 15)
+        {
+            state = 'fuel-crit';
+        }
+        else if (fuel_or_ve <= 30)
+        {
+            state  = 'fuel-warn';
+        }
+
+        return `<td class="${state}">${fuel_or_ve}${postfix}</td>`;
+    }
+
     /**
      * Renders one standings row.
      *
      * @param {Object} value Vehicle standings row.
      * @param {number} index Row index inside the rendered table.
-     * @param {{S1:number,S2:number,S3:number}} classBest Best sector times for the row class.
+     * @param {{S1:number,S2:number,S3:number}} classSectorsBest Best sector times for the row class.
+     * @param {number} classLapBest Best lap time for the row class.
      * @returns {string} HTML table row.
      */
-    createTableRow(value, index, classBest)
+    createTableRow(value, index, classSectorsBest, classLapBest)
     {
-        let ve = value.telemetry.ve.toFixed(1) + "%";
-        let manufacturer = value.manufacturer;
-
         let int = value.delta_to_next.toFixed(1);
         let gap = value.delta_to_class_leader.toFixed(1);
 
@@ -346,11 +396,7 @@ class StandingsPanel
             gap = value.laps_behind_class_leader + "L";
         }
 
-        if (value.telemetry.ve <= 0.0)
-        {
-            ve = value.telemetry.fuel.toFixed(1) + "L";
-        }
-
+        let manufacturer = value.manufacturer;
         if (manufacturer.trim().length === 0)
         {
             manufacturer = "Default";
@@ -391,17 +437,17 @@ class StandingsPanel
             ${this.currentSectorCell(current.sector2, best.sector2)}
             ${this.currentSectorCell(current.sector3, best.sector3)}
             <td>${LaptimeToString(value.last_lap)}</td>
-            <td>${LaptimeToString(value.best_lap)}</td>
-            ${this.bestSectorCell(best.sector1, classBest.S1)}
-            ${this.bestSectorCell(best.sector2, classBest.S2)}
-            ${this.bestSectorCell(best.sector3, classBest.S3)}
+            ${this.bestLapTimeCell(value.best_lap, classLapBest)}
+            ${this.bestSectorCell(best.sector1, classSectorsBest.S1)}
+            ${this.bestSectorCell(best.sector2, classSectorsBest.S2)}
+            ${this.bestSectorCell(best.sector3, classSectorsBest.S3)}
             <td>${int}</td>
             <td>${gap}</td>
             ${this.pitStopsCell(value)}
             ${this.tiresCell(value)}
             ${this.damageCell(value)}
             ${this.cutPointsCell(value)}
-            <td>${ve}</td>
+            ${this.fuelVeCell(value)}
             <td>${GetPenalties(value)}</td>
         </tr>`;
     }

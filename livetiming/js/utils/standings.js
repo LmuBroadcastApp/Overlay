@@ -105,6 +105,39 @@ function Sector2String(sector)
 }
 
 /**
+ * Finds the best lap times for one vehicle class across the whole standings.
+ *
+ * @param {Array<Object>} standings Full standings array.
+ * @param {string} vehicle_class Class name to filter by.
+ * @returns Best sector times for the class or -1.
+ */
+function GetBestLapTime(standings, vehicle_class)
+{
+    const max_time = 99999999999;
+    let result = max_time;
+
+    for (let i = 0; i < standings.length; ++i)
+    {
+        if (standings[i].vehicle_class !== vehicle_class)
+        {
+            continue;
+        }
+
+        if (standings[i].best_lap > 0)
+        {
+            result = Math.min(result, standings[i].best_lap)
+        }
+    }
+
+    if (result === max_time)
+    {
+        return -1;
+    }
+
+    return result;
+}
+
+/**
  * Finds the best sector times for one vehicle class across the whole standings.
  *
  * @param {Array<Object>} standings Full standings array.
