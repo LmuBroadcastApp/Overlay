@@ -14,7 +14,8 @@ class StandingsPanel
         ['Logo', '2.8%'], ['Driver', ''], ['Team', ''], ['Status', '3%'], ['Laps', '2.6%'],
         ['Current Time', '5.6%'], ['S1', '3.9%'], ['S2', '3.9%'], ['S3', '3.9%'],
         ['Last Time', '5.6%'], ['Best Time', '5.6%'], ['Best S1', '3.9%'], ['Best S2', '3.9%'], ['Best S3', '3.9%'],
-        ['INT', '2.6%'], ['GAP', '2.6%'], ['Pits', '4%'], ['Tires', '2.6%'], ['VE/FUEL', '3.4%'], ['', '2.6%']
+        ['INT', '2.6%'], ['GAP', '2.6%'], ['Pits', '4%'], ['Tires', '2.6%'],
+        ['Dmg', '3.4%'], ['Cut', '3%'], ['VE/FUEL', '3.4%'], ['', '2.6%']
     ];
 
     /**
@@ -36,6 +37,7 @@ class StandingsPanel
 
         this.stateManager.subscribe(this.handleStateChange.bind(this));
         this.standings = this.stateManager.getState('standings');
+        this.maxCutPoints = this.stateManager.getState('session')?.max_cut_points ?? 0;
 
         this.splitByClass = false;
         this.checkbox = document.querySelector('#split-by-class');
@@ -59,6 +61,10 @@ class StandingsPanel
         if (key === 'standings')
         {
             this.standings = value;
+        }
+        else if (key === 'session')
+        {
+            this.maxCutPoints = value?.max_cut_points ?? 0;
         }
     }
 
@@ -220,6 +226,50 @@ class StandingsPanel
     }
 
     /**
+     * Renders the overall vehicle damage percentage with severity coloring.
+     *
+     * @param {Object} value Vehicle standings row.
+     * @returns {string} HTML table cell.
+     */
+    damageCell(value)
+    {
+        const damage = value.damage;
+        if (damage == null)
+        {
+            return `<td></td>`;
+        }
+
+        const state = damage >= 50 ? 'damage-crit' : (damage >= 15 ? 'damage-warn' : 'damage-ok');
+        return `<td class="${state}">${damage.toFixed(1)}%</td>`;
+    }
+
+    /**
+     * Renders the accumulated track cut points, optionally against the session limit.
+     *
+     * @param {Object} value Vehicle standings row.
+     * @returns {string} HTML table cell.
+     */
+    cutPointsCell(value)
+    {
+        const cut = value.cut_points;
+        if (cut == null)
+        {
+            return `<td></td>`;
+        }
+
+        let state = 'cut-ok';
+        let text = cut.toFixed(1);
+
+        if (this.maxCutPoints > 0)
+        {
+            text += `/${this.maxCutPoints}`;
+            state = cut >= this.maxCutPoints ? 'cut-crit' : (cut >= this.maxCutPoints * 0.5 ? 'cut-warn' : 'cut-ok');
+        }
+
+        return `<td class="${state}">${text}</td>`;
+    }
+
+    /**
      * Renders one standings row.
      *
      * @param {Object} value Vehicle standings row.
@@ -293,6 +343,8 @@ class StandingsPanel
             <td>${gap}</td>
             ${this.pitStopsCell(value)}
             ${this.tiresCell(value)}
+            ${this.damageCell(value)}
+            ${this.cutPointsCell(value)}
             <td>${ve}</td>
             <td>${GetPenalties(value)}</td>
         </tr>`;

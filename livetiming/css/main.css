@@ -441,6 +441,38 @@ body.theme-light
     font-weight: 700;
 }
 
+.damage-ok
+{
+    color: var(--text-1);
+}
+
+.damage-warn
+{
+    color: var(--yellow);
+}
+
+.damage-crit
+{
+    color: var(--red);
+    text-shadow: 0 0 8px rgba(255, 89, 94, 0.4);
+}
+
+.cut-ok
+{
+    color: var(--text-1);
+}
+
+.cut-warn
+{
+    color: var(--yellow);
+}
+
+.cut-crit
+{
+    color: var(--red);
+    text-shadow: 0 0 8px rgba(255, 89, 94, 0.4);
+}
+
 .warning-icon
 {
     margin-right: 0.4em;
