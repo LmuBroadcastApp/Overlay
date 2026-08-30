@@ -149,6 +149,7 @@ class WorldMapPanel
         this._drawTrack(ctx, this.map.track_map, colors);
 
         //this._drawYellowSectors(ctx);
+        //this._drawClassLegend(ctx, colors);
         //this._drawStartLine(ctx, this.map.track_map, colors);
 
         this._drawWarningZones(ctx);
@@ -309,12 +310,6 @@ class WorldMapPanel
         let c = ColorFromVehicleClass(v.vehicle_class);
         let radius = 5.5;
 
-        if (v.focus)
-        {
-            c = colors.ring;
-            radius += 2;
-        }
-
         if (v.in_pits)
         {
             radius *= 0.65;
@@ -394,6 +389,63 @@ class WorldMapPanel
         {
             this._drawVehicle(ctx, focus, colors);
         }
+    }
+
+    /**
+     * Draws a compact class legend in the map corner.
+     *
+     * @param {CanvasRenderingContext2D} ctx Canvas context.
+     * @param {Object} colors Theme palette.
+     */
+    _drawClassLegend(ctx, colors)
+    {
+        if (!this.standings || this.standings.length === 0)
+        {
+            return;
+        }
+
+        const classes = [];
+        for (const v of this.standings)
+        {
+            if (!classes.includes(v.vehicle_class))
+            {
+                classes.push(v.vehicle_class);
+            }
+        }
+
+        if (classes.length === 0)
+        {
+            return;
+        }
+
+        const pad = 7;
+        const rowH = 15;
+        const boxW = 96;
+        const boxH = pad * 2 + rowH * classes.length;
+        const x = 0;
+        const y = this.map.size.height - boxH;
+
+        this._roundRect(ctx, x, y, boxW, boxH, 6);
+        ctx.fillStyle = colors.labelBg;
+        ctx.fill();
+
+        ctx.font = 'bold 9px Roboto, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+
+        classes.forEach((cls, i) =>
+        {
+            const cy = y + pad + rowH * i + rowH / 2;
+            const cx = x + 12;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, 2 * Math.PI, false);
+            ctx.fillStyle = ColorFromVehicleClass(cls);
+            ctx.fill();
+
+            ctx.fillStyle = colors.labelText;
+            ctx.fillText(cls, cx + 8, cy);
+        });
     }
 
     /** Sector boundaries as spline fractions; from map sector distances when available, otherwise thirds. */

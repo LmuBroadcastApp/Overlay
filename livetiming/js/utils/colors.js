@@ -42,3 +42,36 @@ function ColorFromVehicleClass(className)
         }
     }
 }
+
+/**
+ * Maps a tire compound name to its display color, matching the broadcasting overlay.
+ *
+ * @param {string} compound Tire compound name.
+ * @returns {string} CSS color string.
+ */
+function TireCompoundColor(compound)
+{
+    switch ((compound || '').toLowerCase())
+    {
+        case "soft":
+        {
+            return "rgba(240, 240, 240, 1.0)";
+        }
+        case "medium":
+        {
+            return "rgba(255, 208, 0, 1.0)";
+        }
+        case "hard":
+        {
+            return "rgba(215, 38, 61, 1.0)";
+        }
+        case "wet":
+        {
+            return "rgba(144, 224, 239, 1.0)";
+        }
+        default:
+        {
+            return "rgba(79, 93, 117, 1.0)";
+        }
+    }
+}

@@ -221,8 +221,25 @@ class StandingsPanel
      */
     tiresCell(value)
     {
-        const compounds = [...new Set(value.tire_compound)].map(name => name.charAt(0));
-        return `<td>${compounds.join('/')}</td>`;
+        const compounds = (value.tire_compound || []).filter(c => c);
+        if (compounds.length === 0)
+        {
+            return `<td></td>`;
+        }
+
+        const unique = [...new Set(compounds)];
+
+        if (unique.length === 1)
+        {
+            return `<td><span style="color: ${TireCompoundColor(compounds[0])}">${compounds[0].charAt(0)}</span></td>`;
+        }
+
+        return `<td style="font-size: 0.6em; line-height: 1;">
+            <span style="color: ${TireCompoundColor(compounds[0])}">&#11044;</span>
+            <span style="margin-left: 2px; color: ${TireCompoundColor(compounds[1])}">&#11044;</span><br/>
+            <span style="color: ${TireCompoundColor(compounds[2])}">&#11044;</span>
+            <span style="margin-left: 2px; color: ${TireCompoundColor(compounds[3])}">&#11044;</span>
+        </td>`;
     }
 
     /**
