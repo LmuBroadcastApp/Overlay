@@ -156,49 +156,147 @@ function GetBestSectors(standings, vehicle_class)
 
 /**
  * Returns a representative lap time used for race-lap projections.
- *
- * @param {Array<Object>} standings Standings rows.
- * @returns {number} Representative lap time in seconds, or -1.
+ * (Kept exactly as you provided it)
  */
 function GetLapTimeForTotalRaceLaps(standings)
 {
     for (const vehicle of standings)
     {
-        if (vehicle.last_lap > 0)
-        {
-            return vehicle.last_lap;
-        }
-
-        if (vehicle.best_lap > 0)
-        {
-            return vehicle.best_lap;
-        }
-
-        if (vehicle.qualy_best_lap > 0)
-        {
-            return vehicle.qualy_best_lap;
-        }
+        if (vehicle.last_lap > 0) return vehicle.last_lap;
+        if (vehicle.best_lap > 0) return vehicle.best_lap;
+        if (vehicle.qualy_best_lap > 0) return vehicle.qualy_best_lap;
     }
-
     return -1;
 }
 
 /**
- * Estimates total race laps from race duration and representative pace.
+ * Estimates total race laps factoring in Ve consumption and pit stops.
  *
  * @param {Array<Object>} standings Standings rows.
- * @param {number} raceTime Race duration in seconds.
+ * @param {number} raceTime Remaining race duration in seconds.
+ * @returns {(string|number)} Estimated total laps or placeholder.
+ */
+function GetTotalRaceLapsVe(standings, raceTime)
+{
+    const representative = GetLapTimeForTotalRaceLaps(standings);
+    if (representative <= 0 || raceTime <= 0) return "-";
+
+    const leaderVehicle = standings[0];
+    const AVERAGE_PIT_STOP_TIME = 60;
+
+    const vePerLap = leaderVehicle.fuel_monitor.ve_per_lap;
+    let currentVe = leaderVehicle.telemetry.ve;
+
+    if (vePerLap < 2.0)
+    {
+        return Math.round((raceTime / representative) + leaderVehicle.laps);
+    }
+
+    let timeRemaining = raceTime;
+    let projectedLaps = 0;
+
+    // Simulate the rest of the race
+    while (timeRemaining > 0)
+    {
+        if (timeRemaining < representative)
+        {
+            break;
+        }
+
+        timeRemaining -= representative;
+        currentVe -= vePerLap;
+        projectedLaps++;
+
+        if (currentVe <= vePerLap)
+        {
+            if (timeRemaining >= (AVERAGE_PIT_STOP_TIME + representative))
+            {
+                timeRemaining -= AVERAGE_PIT_STOP_TIME;
+                currentVe = 100; // Refill to max
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    return leaderVehicle.laps + projectedLaps;
+}
+
+/**
+ * Estimates total race laps factoring in fuel consumption and pit stops.
+ *
+ * @param {Array<Object>} standings Standings rows.
+ * @param {number} raceTime Remaining race duration in seconds.
+ * @returns {(string|number)} Estimated total laps or placeholder.
+ */
+function GetTotalRaceLapsFuel(standings, raceTime)
+{
+    const representative = GetLapTimeForTotalRaceLaps(standings);
+    if (representative <= 0 || raceTime <= 0) return "-";
+
+    const leaderVehicle = standings[0];
+    const AVERAGE_PIT_STOP_TIME = 60;
+
+    const fuelPerLap = leaderVehicle.fuel_monitor.fl_per_lap;
+    let currentFuel = leaderVehicle.telemetry.fuel;
+
+    if (fuelPerLap < 2.0)
+    {
+        return Math.round((raceTime / representative) + leaderVehicle.laps);
+    }
+
+    let timeRemaining = raceTime;
+    let projectedLaps = 0;
+
+    // Simulate the rest of the race
+    while (timeRemaining > 0)
+    {
+        if (timeRemaining < representative)
+        {
+            break;
+        }
+
+        timeRemaining -= representative;
+        currentFuel -= fuelPerLap;
+        projectedLaps++;
+
+        if (currentFuel <= fuelPerLap)
+        {
+            if (timeRemaining >= (AVERAGE_PIT_STOP_TIME + representative))
+            {
+                timeRemaining -= AVERAGE_PIT_STOP_TIME;
+                currentFuel = leaderVehicle.telemetry.max_fuel; // Refill to max
+            }
+            else
+            {
+                break;
+            }
+        }
+    }
+
+    return leaderVehicle.laps + projectedLaps;
+}
+
+/**
+ * Estimates total race laps factoring in fuel/Ve consumption and pit stops.
+ *
+ * @param {Array<Object>} standings Standings rows.
+ * @param {number} raceTime Remaining race duration in seconds.
  * @returns {(string|number)} Estimated total laps or placeholder.
  */
 function GetTotalRaceLaps(standings, raceTime)
 {
-    const representative = GetLapTimeForTotalRaceLaps(standings);
-    if (representative <= 0 || raceTime <= 0)
+    if (standings.length == 0) return 0;
+    const cls = standings[0].vehicle_class.toLowerCase();
+
+    if (cls === 'gt3' || cls === 'hyper')
     {
-        return "-";
+        return GetTotalRaceLapsVe(standings, raceTime);
     }
 
-    return Math.round((raceTime / representative) + standings[0].laps);
+    return GetTotalRaceLapsFuel(standings, raceTime);
 }
 
 /**
