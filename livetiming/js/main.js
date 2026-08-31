@@ -69,36 +69,7 @@ function fnc_main_loop(timestamp)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Enables Ctrl-drag positioning for the track map and restores persisted offsets.
- */
-function InitDraggablePanels()
-{
-    const storageKey = 'livetiming-panel-positions';
-    const root = document.documentElement;
-
-    let positions = {};
-    try { positions = JSON.parse(localStorage.getItem(storageKey)) || {}; } catch (e) { /* corrupted, start fresh */ }
-
-    for (const [varName, value] of Object.entries(positions))
-    {
-        root.style.setProperty(varName, value);
-    }
-
-    const draggable = new DraggablePanels((panelId, position) =>
-    {
-        Object.assign(positions, position);
-        localStorage.setItem(storageKey, JSON.stringify(positions));
-    });
-
-    draggable.register('#track-map-panel',
-    [
-        { varName: '--map-panel-position-left', property: 'margin-left' },
-        { varName: '--map-panel-position-top', property: 'margin-top' }
-    ]);
-}
-
-/**
- * Initializes the dark/light theme toggle and restores the persisted selection.
+ * Initializes the dark/light theme toggle.
  */
 function InitThemeToggle()
 {
@@ -108,11 +79,9 @@ function InitThemeToggle()
     const apply = (light) =>
     {
         document.body.classList.toggle('theme-light', light);
-        localStorage.setItem('livetiming-theme', light ? 'light' : 'dark');
     };
 
-    checkbox.checked = localStorage.getItem('livetiming-theme') === 'light'
-                    || window.location.search.includes('light');
+    checkbox.checked = window.location.search.includes('light');
 
     checkbox.addEventListener('change', () => apply(checkbox.checked));
     apply(checkbox.checked);
@@ -128,7 +97,6 @@ window.addEventListener('beforeunload', () =>
 window.addEventListener('load', () =>
 {
     InitThemeToggle();
-    InitDraggablePanels();
     panelRegistry.createAll(stateManager);
 
     // In mock mode (index.html?mock) the data is generated locally, no websocket needed

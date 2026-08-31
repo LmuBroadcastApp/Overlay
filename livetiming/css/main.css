@@ -215,22 +215,33 @@ body.theme-light
 {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 1em;
     align-items: start;
+}
+
+#live-timing-standings
+{
+    display: contents;
+}
+
+#live-timing-standings .standings-table
+{
+    grid-column: 1 / -1;
+}
+
+#live-timing-standings .standings-table:nth-child(-n+2)
+{
+    grid-column: 1;
 }
 
 #track-map-panel
 {
     display: block;
-    z-index: 10;
 
-    position: sticky;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+
     padding: 0.75em;
-    top: 1em;
-
-    margin-left: var(--map-panel-position-left, 0px);
-    margin-top: var(--map-panel-position-top, 0px);
-
+    margin-left: 1em;
 
     background-color: var(--bg-2);
     border-radius: var(--radius);

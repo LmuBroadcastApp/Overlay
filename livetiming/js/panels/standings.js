@@ -35,22 +35,48 @@ class StandingsPanel
             return;
         }
 
-        this.stateManager.subscribe(this.handleStateChange.bind(this));
+        this.stateHandler = this.handleStateChange.bind(this);
+        this.stateManager.subscribe(this.stateHandler);
+
         this.standings = this.stateManager.getState('standings');
-        this.sessionName = this.stateManager.getState('standings')?.name ?? '';
+        this.sessionName = this.stateManager.getState('session')?.name ?? '';
 
         this.maxCutPoints = this.stateManager.getState('session')?.max_cut_points ?? 0;
         this.eventTimeRemaining = this.stateManager.getState('session')?.eventTimeRemaining ?? 0;
 
+        this.dirty = true;
         this.splitByClass = false;
         this.checkbox = document.querySelector('#split-by-class');
 
         if (this.checkbox)
         {
-            this.checkboxHandler = () => { this.splitByClass = this.checkbox.checked; };
+            this.checkboxHandler = () =>
+            {
+                this.splitByClass = this.checkbox.checked;
+                this.dirty = true;
+            };
+
             this.checkbox.addEventListener('change', this.checkboxHandler);
             this.splitByClass = this.checkbox.checked;
         }
+    }
+
+    /**
+     * Escapes text for safe interpolation into HTML markup.
+     *
+     * @param {*} text Raw value from the live feed.
+     * @returns {string} HTML-escaped string.
+     */
+    static escapeHtml(text)
+    {
+        if (text == null) return '';
+
+        return String(text)
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
     }
 
     /**
@@ -64,23 +90,26 @@ class StandingsPanel
         if (key === 'standings')
         {
             this.standings = value;
+            this.dirty = true;
         }
         else if (key === 'session')
         {
-            this.sessionName = value?.name ?? '';
-            this.maxCutPoints = value?.max_cut_points ?? 0;
             this.eventTimeRemaining = value?.eventTimeRemaining ?? 0;
+            this.maxCutPoints = value?.max_cut_points ?? 0;
+            this.sessionName = value?.name ?? '';
+            this.dirty = true;
         }
     }
 
     /**
-     * Re-renders the standings using the latest live data.
+     * Re-renders the standings when the underlying data changed.
      */
     update()
     {
-        if (this.standings === null) return;
+        if (!this.standings || !this.dirty) return;
+        this.dirty = false;
 
-        // Class best sectors/la`p, computed once per update and shared by all rows
+        // Class best sectors/lap, computed once per update and shared by all rows
         const bestSectorsByClass = new Map();
         const bestLapTimeByClass = new Map();
 
@@ -119,7 +148,7 @@ class StandingsPanel
      *
      * @param {Array<Object>} vehicles Rows to render.
      * @param {Map<string, Object>} bestSectorsByClass Best sectors indexed by vehicle class.
-     * @param {Map<string, Object>} bestLapTimeByClass Best laptime by vehicle class.
+     * @param {Map<string, number>} bestLapTimeByClass Best laptime by vehicle class.
      * @param {string} vehicleClass Vehicle class label, or empty when not splitting by class.
      * @returns {string} HTML table markup.
      */
@@ -173,7 +202,7 @@ class StandingsPanel
             numLaps = `L${vehicles[0].laps + 1} / ${raceLaps}`;
         }
 
-        const classSpan = vehicleClass ? `<span class="standings-caption-class">${vehicleClass}</span>` : '';
+        const classSpan = vehicleClass ? `<span class="standings-caption-class">${StandingsPanel.escapeHtml(vehicleClass)}</span>` : '';
         const color = ColorFromVehicleClass(vehicleClass);
 
         return `<caption class="standings-caption" style="color:${color}">
@@ -204,39 +233,22 @@ class StandingsPanel
     }
 
     /**
-     * Renders a best sector cell, including purple class-best highlighting.
+     * Renders a best time cell (sector or lap), including purple class-best highlighting.
      *
-     * @param {number} sector Car best sector time.
-     * @param {number} classBest Best sector time in the class.
+     * @param {number} time Car best time.
+     * @param {number} classBest Best time in the class.
+     * @param {Function} format Formatter used to render the time.
      * @returns {string} HTML table cell.
      */
-    bestSectorCell(sector, classBest)
+    bestTimeCell(time, classBest, format)
     {
         let state = 'sector-inactive';
-        if (IsValidTime(sector))
+        if (IsValidTime(time))
         {
-            state = classBest > 0 && Math.abs(classBest - sector) <= 0.001 ? 'sector-purple' : 'sector-green';
+            state = classBest > 0 && Math.abs(classBest - time) <= 0.001 ? 'sector-purple' : 'sector-green';
         }
 
-        return `<td class="${state}">${Sector2String(sector)}</td>`;
-    }
-
-    /**
-     * Renders a best lap time cell, including purple class-best highlighting.
-     *
-     * @param {number} sector Car best sector time.
-     * @param {number} classBest Best lap time in the class.
-     * @returns {string} HTML table cell.
-     */
-    bestLapTimeCell(laptime, classBest)
-    {
-        let state = 'sector-inactive';
-        if (IsValidTime(laptime))
-        {
-            state = classBest > 0 && Math.abs(classBest - laptime) <= 0.001 ? 'sector-purple' : 'sector-green';
-        }
-
-        return `<td class="${state}">${LaptimeToString(laptime)}</td>`;
+        return `<td class="${state}">${format(time)}</td>`;
     }
 
     /**
@@ -348,33 +360,37 @@ class StandingsPanel
         if (this.maxCutPoints > 0)
         {
             text += `/${this.maxCutPoints}`;
-            state = cut >= this.maxCutPoints ? 'cut-crit' : (cut >= this.maxCutPoints * 0.5 ? 'cut-warn' : 'cut-ok');
+            state = cut >= (this.maxCutPoints - 1) ? 'cut-crit' : (cut >= this.maxCutPoints * 0.5 ? 'cut-warn' : 'cut-ok');
         }
 
         return `<td class="${state}">${text}</td>`;
     }
 
+    /**
+     * Renders remaining virtual energy (hybrid classes) or fuel with severity coloring.
+     *
+     * @param {Object} value Vehicle standings row.
+     * @returns {string} HTML table cell.
+     */
     fuelVeCell(value)
     {
-        let fuel_or_ve = value.telemetry.ve.toFixed(1);
-        let state = ''; let postfix = '%';
+        const telemetry = value.telemetry;
+        const useVe = telemetry.ve > 0.0;
 
-        if (value.telemetry.ve <= 0.0)
-        {
-            fuel_or_ve = value.telemetry.fuel.toFixed(1);
-            postfix= 'L';
-        }
+        const postfix = useVe ? '%' : 'L';
+        const amount = useVe ? telemetry.ve : (telemetry.fuel ?? 0);
 
-        if (fuel_or_ve <= 15)
+        let state = '';
+        if (amount <= 15)
         {
             state = 'fuel-crit';
         }
-        else if (fuel_or_ve <= 30)
+        else if (amount <= 30)
         {
-            state  = 'fuel-warn';
+            state = 'fuel-warn';
         }
 
-        return `<td class="${state}">${fuel_or_ve}${postfix}</td>`;
+        return `<td class="${state}">${amount.toFixed(1)}${postfix}</td>`;
     }
 
     /**
@@ -388,32 +404,24 @@ class StandingsPanel
      */
     createTableRow(value, index, classSectorsBest, classLapBest)
     {
-        let int = value.delta_to_next.toFixed(1);
-        let gap = value.delta_to_class_leader.toFixed(1);
+        const esc = StandingsPanel.escapeHtml;
+
+        let int = (value.delta_to_next ?? 0).toFixed(1);
+        let gap = (value.delta_to_class_leader ?? 0).toFixed(1);
 
         if (value.laps_behind_class_leader > 0)
         {
             gap = value.laps_behind_class_leader + "L";
         }
 
-        let manufacturer = value.manufacturer;
+        let manufacturer = value.manufacturer || '';
         if (manufacturer.trim().length === 0)
         {
             manufacturer = "Default";
         }
 
-        let show_warning_icon = "";
-        let in_pits_background = "";
-
-        if (value.show_warning_icon && !value.in_pits)
-        {
-            show_warning_icon = "class='show-warning-icon'";
-        }
-
-        if (value.in_pits)
-        {
-            in_pits_background = "class='vehicle-in-pits'";
-        }
+        const driverClass = value.show_warning_icon && !value.in_pits ? ' class="show-warning-icon"' : '';
+        const statusClass = value.in_pits ? ' class="vehicle-in-pits"' : '';
 
         const current = value.current_lap_sectors || {};
         const best = value.best_lap_sectors || {};
@@ -425,22 +433,22 @@ class StandingsPanel
             <td>${value.race_position}</td>
             <td>${value.race_position_class}</td>
             ${this.positionsGainedCell(value)}
-            <td>${value.vehicle_number}</td>
-            <td style="color: ${ColorFromVehicleClass(value.vehicle_class)}">${value.vehicle_class}</td>
-            <td><img alt="" width="24" src="../shared/img/brandlogo/${manufacturer}.png"</td>
-            <td ${show_warning_icon}>${warningIcon}${value.driver}</td>
-            <td>${value.vehicle_name}</td>
-            <td ${in_pits_background}>${value.status}</td>
+            <td>${esc(value.vehicle_number)}</td>
+            <td style="color: ${ColorFromVehicleClass(value.vehicle_class)}">${esc(value.vehicle_class)}</td>
+            <td><img alt="" width="24" src="../shared/img/brandlogo/${encodeURIComponent(manufacturer)}.png"></td>
+            <td${driverClass}>${warningIcon}${esc(value.driver)}</td>
+            <td>${esc(value.vehicle_name)}</td>
+            <td${statusClass}>${esc(value.status)}</td>
             <td>${value.laps ?? ''}</td>
             <td>${LaptimeToString(value.current_lap)}</td>
             ${this.currentSectorCell(current.sector1, best.sector1)}
             ${this.currentSectorCell(current.sector2, best.sector2)}
             ${this.currentSectorCell(current.sector3, best.sector3)}
             <td>${LaptimeToString(value.last_lap)}</td>
-            ${this.bestLapTimeCell(value.best_lap, classLapBest)}
-            ${this.bestSectorCell(best.sector1, classSectorsBest.S1)}
-            ${this.bestSectorCell(best.sector2, classSectorsBest.S2)}
-            ${this.bestSectorCell(best.sector3, classSectorsBest.S3)}
+            ${this.bestTimeCell(value.best_lap, classLapBest, LaptimeToString)}
+            ${this.bestTimeCell(best.sector1, classSectorsBest.S1, Sector2String)}
+            ${this.bestTimeCell(best.sector2, classSectorsBest.S2, Sector2String)}
+            ${this.bestTimeCell(best.sector3, classSectorsBest.S3, Sector2String)}
             <td>${int}</td>
             <td>${gap}</td>
             ${this.pitStopsCell(value)}
@@ -453,13 +461,18 @@ class StandingsPanel
     }
 
     /**
-     * Cleans up DOM listeners created by the panel.
+     * Cleans up DOM listeners and state subscriptions created by the panel.
      */
     destroy()
     {
         if (this.checkbox && this.checkboxHandler)
         {
             this.checkbox.removeEventListener('change', this.checkboxHandler);
+        }
+
+        if (this.stateHandler)
+        {
+            this.stateManager.unsubscribe(this.stateHandler);
         }
     }
 }
