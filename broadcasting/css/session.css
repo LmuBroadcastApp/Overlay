@@ -1,13 +1,15 @@
 #session-panel
 {
-    margin-left: var(--session-panel-position-left);
-    margin-top: var(--session-panel-position-top);
+    left: var(--session-panel-position-left);
+    top: var(--session-panel-position-top);
+
+    position: fixed;
 
     font-size: var(--session-panel-font-size);
     width: var(--session-panel-width);
 
     font-weight: bold;
-    color: white;
+    color: var(--text-color-primary);
 }
 
 #session-panel .session-container
@@ -18,7 +20,7 @@
 
 #session-panel .session-time
 {
-    font-size: calc(var(--session-panel-font-size) + 0.5em);
+    font-size: calc(var(--session-panel-font-size) + 0.5rem);
 }
 
 #session-panel .session-flag
@@ -33,7 +35,8 @@
     align-items: center;
 }
 
-#session-panel .sector-flag {
+#session-panel .sector-flag
+{
     border: 1px solid yellow;
     place-items: center;
 

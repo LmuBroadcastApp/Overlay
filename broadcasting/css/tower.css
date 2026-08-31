@@ -1,19 +1,21 @@
 
 #tower-panel
 {
-    margin-left: var(--standings-panel-position-left);
-    margin-top: var(--standings-panel-position-top);
+    left: var(--standings-panel-position-left);
+    top: var(--standings-panel-position-top);
+
+    position: fixed;
 
     font-weight: var(--standings-panel-font-weight);
     font-size: var(--standings-panel-font-size);
 
-    color: white;
+    color: var(--text-color-primary);
 }
 
 #tower-panel table
 {
     border-collapse: separate;
-    margin-bottom: 0.5em;
+    margin-bottom: 0.5rem;
     border-spacing: 0;
 }
 
@@ -44,21 +46,21 @@
 
 #tower-panel .gain-position
 {
-    color: rgb(27, 153, 139);
+    color: var(--standings-panel-gain-position-color);
 }
 
 #tower-panel .lost-position
 {
-    color: rgb(244, 96, 54);
+    color: var(--standings-panel-lost-position-color);
 }
 
 #tower-panel .penalty-style
 {
-    background-color: rgb(246, 26, 54);
-    color: whitesmoke;
+    background-color: var(--penalty-color);
+    color: var(--text-color-secondary);
 
     font-size: calc(var(--standings-panel-font-size) * 0.90);
-    font-weight: 550;
+    font-weight: var(--standings-panel-font-weight);
 
     text-align: center;
     min-width: 30px;
@@ -66,11 +68,11 @@
 
 #tower-panel .vehicle-in-pits
 {
-    background-color: rgb(249, 199, 79);
-    color: black;
+    background-color: var(--pit-color);
+    color: var(--text-color-dark);
 
     font-size: calc(var(--standings-panel-font-size) * 0.90);
-    font-weight: 550;
+    font-weight: var(--standings-panel-font-weight);
 
     text-align: center;
     min-width: 30px;
@@ -93,8 +95,8 @@
 #tower-panel .vehicle-driver
 {
     width: var(--standings-panel-col-03-width);
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: var(--cell-padding-x);
+    padding-left: var(--cell-padding-x);
 }
 
 #tower-panel .vehicle-driver-truncate-text
@@ -120,12 +122,12 @@
     right: 0;
 
     box-shadow: -12px 0 12px -8px rgba(0, 0, 0, 0.2);
-    background-color: rgb(249, 199, 79);
-    color: black;
+    background-color: var(--pit-color);
+    color: var(--text-color-dark);
 
     font-size: calc(var(--standings-panel-font-size) * 0.90);
+    font-weight: var(--standings-panel-font-weight);
     text-align: center;
-    font-weight: bold;
 }
 
 #tower-panel .vehicle-logo
@@ -151,8 +153,8 @@
     min-width: var(--standings-panel-col-07-width);
     text-align: center;
 
-    padding-right: 10px;
-    padding-left: 10px;
+    padding-right: var(--panel-padding);
+    padding-left: var(--panel-padding);
 }
 
 #tower-panel .vehicle-laptime
@@ -182,7 +184,7 @@
 
 #tower-panel .sector-bar-fill
 {
-    transition: width 0.3s ease;
+    transition: width var(--transition-speed);
     border-radius: 2px;
     height: 100%;
 }

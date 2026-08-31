@@ -6,13 +6,13 @@
     top: var(--notification-panel-position-top);
 
     width: var(--notification-panel-width);
-    position: absolute;
+    position: fixed;
 
     flex-direction: column;
     display: flex;
 
-    z-index: 9999;
-    gap: 10px;
+    z-index: var(--z-index-notification);
+    gap: var(--panel-padding);
 }
 
 #notification-container .track-limits,
@@ -30,27 +30,27 @@
 
 #notification-container .track-limits
 {
-    background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(255, 165, 0, 1.0));
+    background-image: linear-gradient(to right, var(--panel-dark-bg), rgba(255, 165, 0, 1.0));
 }
 
 #notification-container .fast-lap
 {
-    background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(154, 52, 142, 1.0));
+    background-image: linear-gradient(to right, var(--panel-dark-bg), rgba(154, 52, 142, 1.0));
 }
 
 #notification-container .possible-best-lap
 {
-    background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(0, 200, 220, 1.0));
+    background-image: linear-gradient(to right, var(--panel-dark-bg), rgba(0, 200, 220, 1.0));
 }
 
 #notification-container .penalty
 {
-    background-image: linear-gradient(to right, rgba(33, 37, 41, 0.9), rgba(242, 92, 84, 1.0));
+    background-image: linear-gradient(to right, var(--panel-dark-bg), rgba(242, 92, 84, 1.0));
 }
 
 #notification-container .race-winner
 {
-    background: linear-gradient(120deg, rgba(33,37,41,0.9) 30%, gold 50%, rgba(33,37,41,0.9) 70%);
+    background: linear-gradient(120deg, var(--panel-dark-bg) 30%, var(--winner-color) 50%, var(--panel-dark-bg) 70%);
     animation: winner-shimmer 5s linear infinite;
     background-size: 200% 100%;
 }
@@ -63,34 +63,34 @@
 
 #notification-container .winner-entry
 {
-    border: 2px solid gold;
+    border: 2px solid var(--winner-color);
 }
 
 /**********************************************************************************************************************/
 
-#notification-container .overflow
+#notification-container .notification-overflow
 {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
-#notification-container .padding
+#notification-container .notification-cell-padding
 {
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: var(--cell-padding-x);
+    padding-left: var(--cell-padding-x);
 }
 
 #notification-container .notification-entry
 {
-    color: whitesmoke;
+    color: var(--text-color-secondary);
     width: 100%;
 }
 
 #notification-container .header
 {
-    background: rgba(33, 37, 41, 0.9);
-    font-weight: 550;
+    background: var(--panel-dark-bg);
+    font-weight: var(--standings-panel-font-weight);
 
     justify-content: space-between;
     display: flex;
@@ -98,8 +98,8 @@
 
 #notification-container .info
 {
-    background: rgba(33, 37, 41, 0.9);
-    font-weight: 550;
+    background: var(--panel-dark-bg);
+    font-weight: var(--standings-panel-font-weight);
 
     display: flex;
     flex: 1;

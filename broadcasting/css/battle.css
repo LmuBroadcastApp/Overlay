@@ -5,10 +5,10 @@
 
     font-weight: var(--battle-panel-font-weight);
     font-size: var(--battle-panel-font-size);
+    color: var(--text-color-primary);
 
-    position: absolute;
+    position: fixed;
     display: none;
-    color: white;
 }
 
 #battle-panel .battle-table
@@ -26,8 +26,8 @@
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
 
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: var(--cell-padding-x);
+    padding-left: var(--cell-padding-x);
 }
 
 #battle-panel .battle-header
@@ -35,22 +35,22 @@
     border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     background-color: rgba(0, 0, 0, 0.8);
 
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: var(--cell-padding-x);
+    padding-left: var(--cell-padding-x);
 
-    font-weight: calc(calc(var(--battle-panel-font-weight) + 100));
+    font-weight: calc(var(--battle-panel-font-weight) + 100);
     text-transform: uppercase;
 }
 
 #battle-panel .battle-status
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     width: 5%;
 }
 
 #battle-panel .battle-position
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     text-align: left !important;
     width: 5%;
 }
@@ -64,24 +64,24 @@
 #battle-panel .battle-logo
 {
     width: 5%;
-    min-width: var(--weather-panel-img-width);
+    min-width: var(--battle-panel-logo-min-width);
 }
 
 #battle-panel .battle-number
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     width: 5%;
 }
 
 #battle-panel .battle-gap
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     width: 10%;
 }
 
 #battle-panel .battle-tire
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     width: 5%;
 }
 
@@ -92,6 +92,6 @@
 
 #battle-panel .battle-class
 {
-    font-weight: calc(var(--battle-panel-font-weight));
+    font-weight: var(--battle-panel-font-weight);
     width: 10%;
 }

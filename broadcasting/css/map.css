@@ -2,5 +2,7 @@
 {
     right: var(--map-panel-position-right);
     top: var(--map-panel-position-top);
+
+    z-index: var(--z-index-panel);
     position: fixed;
 }

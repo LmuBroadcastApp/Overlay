@@ -4,14 +4,16 @@
     top: var(--weather-panel-position-top);
 
     font-size: var(--weather-panel-font-size);
+    z-index: var(--z-index-panel);
+
     position: fixed;
     display: flex;
 }
 
 #weather-panel table
 {
-    text-align: center;
     color: var(--weather-panel-text-color);
+    text-align: center;
 }
 
 #weather-panel .weather-panel-forecast
@@ -29,8 +31,8 @@
 #weather-panel table th
 {
     background-color: var(--weather-panel-header-background-color);
-    padding-right: 10px;
-    padding-left: 10px;
+    padding-right: var(--panel-padding);
+    padding-left: var(--panel-padding);
 }
 
 #weather-panel table td
@@ -38,8 +40,8 @@
     background-color: var(--weather-panel-body-background-color);
     position: relative;
 
-    padding-right: 10px;
-    padding-left: 10px;
+    padding-right: var(--panel-padding);
+    padding-left: var(--panel-padding);
 }
 
 #weather-panel .progress-cell::after
@@ -53,6 +55,6 @@
     width: var(--progress, 0%);
     height: 3px;
 
-    background: #2b7cff;
-    transition: width 0.3s ease;
+    background: var(--progress-bar-color);
+    transition: width var(--transition-speed);
 }

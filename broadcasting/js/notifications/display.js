@@ -72,19 +72,19 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Fastest lap</span>
-                <span class='padding'>New Record</span>
+                <span class='notification-cell-padding'>Fastest lap</span>
+                <span class='notification-cell-padding'>New Record</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data fast-lap'>
-                    <span class='name overflow padding'>${NAME}</span>
-                    <span class='padding'>${TIME}</span>
+                    <span class='name notification-overflow notification-cell-padding'>${NAME}</span>
+                    <span class='notification-cell-padding'>${TIME}</span>
                 </div>
             </div>
         </div>`;
@@ -106,19 +106,19 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Penalty</span>
-                <span class='padding'>${TYPE}</span>
+                <span class='notification-cell-padding'>Penalty</span>
+                <span class='notification-cell-padding'>${TYPE}</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data penalty'>
-                    <span class='name overflow padding'>${DRIVER}</span>
-                    <span class='padding'>${PENALTY}</span>
+                    <span class='name notification-overflow notification-cell-padding'>${DRIVER}</span>
+                    <span class='notification-cell-padding'>${PENALTY}</span>
                 </div>
             </div>
         </div>`;
@@ -140,19 +140,19 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Warning</span>
-                <span class='padding'>${TYPE}</span>
+                <span class='notification-cell-padding'>Warning</span>
+                <span class='notification-cell-padding'>${TYPE}</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data track-limits'>
-                    <span class='name overflow padding'>${DRIVER}</span>
-                    <span class='padding'>${PENALTY}</span>
+                    <span class='name notification-overflow notification-cell-padding'>${DRIVER}</span>
+                    <span class='notification-cell-padding'>${PENALTY}</span>
                 </div>
             </div>
         </div>`;
@@ -174,19 +174,19 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Incident</span>
-                <span class='padding'>${TYPE}</span>
+                <span class='notification-cell-padding'>Incident</span>
+                <span class='notification-cell-padding'>${TYPE}</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data track-limits'>
-                    <span class='name overflow padding'>${DRIVER}</span>
-                    <span class='padding'>${IMPACT}</span>
+                    <span class='name notification-overflow notification-cell-padding'>${DRIVER}</span>
+                    <span class='notification-cell-padding'>${IMPACT}</span>
                 </div>
             </div>
         </div>`;
@@ -208,19 +208,19 @@ class NotificationSystem
 
         return `<div class='notification-entry winner-entry'>
             <div class='header'>
-                <span class='padding'>🏁 Winner</span>
-                <span class='padding'>${TYPE}</span>
+                <span class='notification-cell-padding'>🏁 Winner</span>
+                <span class='notification-cell-padding'>${TYPE}</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data race-winner'>
-                    <span class='name overflow padding'>${DRIVER}</span>
-                    <span class='padding'>+${GAP}s</span> <!-- gap to P2 -->
+                    <span class='name notification-overflow notification-cell-padding'>${DRIVER}</span>
+                    <span class='notification-cell-padding'>+${GAP}s</span> <!-- gap to P2 -->
                 </div>
             </div>
         </div>`;
@@ -241,19 +241,19 @@ class NotificationSystem
 
         return `<div class='notification-entry'>
             <div class='header'>
-                <span class='padding'>Qualifying</span>
-                <span class='padding'>On a flyer</span>
+                <span class='notification-cell-padding'>Qualifying</span>
+                <span class='notification-cell-padding'>On a flyer</span>
             </div>
             <div class='info'>
-                <div class='${CLASS} class-type padding overflow'>
+                <div class='${CLASS} class-type notification-cell-padding notification-overflow'>
                     ${CLASS}
                 </div>
-                <div class='vehicle-number padding overflow'>
+                <div class='vehicle-number notification-cell-padding notification-overflow'>
                     #${VEHICLE_NUMBER}
                 </div>
                 <div class='vehicle-data possible-best-lap'>
-                    <span class='name overflow padding'>${NAME}</span>
-                    <span class='padding'>${TIME}</span>
+                    <span class='name notification-overflow notification-cell-padding'>${NAME}</span>
+                    <span class='notification-cell-padding'>${TIME}</span>
                 </div>
             </div>
         </div>`;

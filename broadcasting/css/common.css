@@ -1,11 +1,53 @@
 
 :root
 {
+    /** Shared design tokens */
+    --text-color-primary: white;                                                        /** Primary text color for panels */
+    --text-color-secondary: whitesmoke;                                                 /** Secondary text color (notices, labels) */
+    --text-color-dark: black;                                                           /** Text on light/colored backgrounds */
+    --panel-dark-bg: rgba(33, 37, 41, 0.9);                                             /** Reusable dark background for panels and notifications */
+
+    --cell-padding-x: 5px;                                                              /** Horizontal padding for table cells */
+    --panel-padding: 10px;                                                              /** General panel padding */
+
+    --transition-speed: 0.3s ease;                                                      /** Standard transition for animations */
+
+    --z-index-gradient: -1;                                                             /** Background gradient layer */
+    --z-index-panel: 10;                                                                /** Default panel layer */
+    --z-index-notification: 100;                                                        /** Notifications above all panels */
+
+    /** Timing colors (shared across tower, telemetry, driver) */
+    --timing-green: #2ed573;                                                            /** Personal best / faster sector */
+    --timing-purple: #a29bfe;                                                           /** Overall best sector */
+    --timing-yellow: #eccc68;                                                           /** Yellow flag / yellow sector */
+    --timing-text-dark: #000;                                                           /** Text on colored timing backgrounds */
+    --timing-bg: #1e1e1e;                                                               /** Default timing background */
+    --timing-bg-inactive: #1a1a1a;                                                      /** Inactive timing cell background */
+    --timing-inactive: #444;                                                            /** Inactive timing text color */
+
+    /** Telemetry input colors */
+    --throttle-color: #00ff88;                                                          /** Throttle bar fill */
+    --brake-color: #ff3b3b;                                                             /** Brake bar fill */
+
+    /** Driver status colors */
+    --best-lap-color: rgb(0, 200, 83);                                                  /** Best lap time indicator */
+    --class-leader-color: rgb(200, 155, 255);                                           /** Class leader indicator */
+
+    /** Winner / notification accent */
+    --winner-color: gold;                                                               /** Race winner highlight color */
+
+    /** Weather progress bar */
+    --progress-bar-color: #2b7cff;                                                      /** Weather forecast progress fill */
+
+    /** Penalty / pit colors */
+    --penalty-color: rgb(246, 26, 54);                                                  /** Penalty background */
+    --pit-color: rgb(249, 199, 79);                                                     /** Pit stop indicator background */
+
     /** Standings panel variables */
     --standings-panel-position-left: 1.0rem;                                            /** Position from the left of the screen */
     --standings-panel-position-top: 1.0rem;                                             /** Position from the top of the screen */
 
-    --standings-panel-font-weight: 550;                                                 /** How bold the font will be seen */
+    --standings-panel-font-weight: 600;                                                 /** How bold the font will be seen */
     --standings-panel-font-size: 1em;                                                   /** General font size of the panel */
 
     --standings-panel-primary-color: rgba(0, 0, 0, 0.6);                                /** Vehicle position, driver/team, number, icon */
@@ -20,7 +62,7 @@
     --standings-panel-sector-inactive-color: rgb(100, 100, 100);                        /** Color for the a vehicle has not been on that sector yet */
     --standings-panel-sector-1-color: rgb(255, 209, 102);                               /** Color for when vehicle is or has been on the sector */
     --standings-panel-sector-2-color: rgb(  6, 214, 160);                               /** Color for when vehicle is or has been on the sector */
-    --standings-panel-sector-3-color: rgb(162, 155, 2540);                               /** Color for when vehicle is or has been on the sector */
+    --standings-panel-sector-3-color: rgb(162, 155, 240);                               /** Color for when vehicle is or has been on the sector */
 
     --standings-panel-col-01-width:  24px;                                              /** Fast lap and exclamation icons */
     --standings-panel-col-02-width:  32px;                                              /** Vehicle position */
@@ -46,7 +88,7 @@
     --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);         /** Vehicle position background */
 
     /** Weather forecast panel */
-    --weather-panel-header-background-color: rgba(33, 37, 41, 0.9);                     /** Background color for the table header */
+    --weather-panel-header-background-color: var(--panel-dark-bg);                      /** Background color for the table header */
     --weather-panel-body-background-color: rgba(0, 0, 0, 0.4);                          /** Background color for the table body */
     --weather-panel-text-color: rgb(240, 240, 240);                                     /** Header and body text color */
     --weather-panel-position-right: 1.0rem;                                             /** Position from the right of the screen */
@@ -65,9 +107,10 @@
     /** Battle panel */
     --battle-panel-position-bottom: 1rem;                                               /** Position from the bottom of the screen */
     --battle-panel-position-left: 45rem;                                                /** Position from the left of the screen */
-    --battle-panel-font-weight: 550;                                                    /** How bold the font will be seen */
+    --battle-panel-font-weight: 600;                                                    /** How bold the font will be seen */
     --battle-panel-font-size: 1em;                                                      /** General font size of the panel */
     --battle-panel-width: 500px;                                                        /** Width of the panel in pixels */
+    --battle-panel-logo-min-width: 24px;                                                /** Min width for the logo column */
 
     /** Notification */
     --notification-panel-position-left: 50rem;                                          /** Position from the left of the screen */
@@ -95,7 +138,7 @@ img
 body
 {
     font-family: 'Titillium Web', 'FiraCode Nerd Font', 'sans-serif';
-    font-size: 1.0em;
+    font-size: 1em;
 
     padding: 0;
     margin: 0;
@@ -105,7 +148,7 @@ body
 
 #gradient-background
 {
-    z-index: -1;
+    z-index: var(--z-index-gradient);
     top: 0; left: 0;
 
     width: 40%;
@@ -119,10 +162,10 @@ body
 
 #replay-banner
 {
-    margin-left: var(--replay-banner-position-left);
-    margin-top: var(--replay-banner-position-top);
+    left: var(--replay-banner-position-left);
+    top: var(--replay-banner-position-top);
 
-    position: absolute;
+    position: fixed;
     display: none;
 }
 

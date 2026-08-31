@@ -1,6 +1,6 @@
 #telemetry-panel
 {
-    padding-left: 5px; padding-right: 5px;
+    padding-left: var(--cell-padding-x); padding-right: var(--cell-padding-x);
     background-color: rgba(0, 0, 0, 0.7);
 
     flex-direction: row;
@@ -13,16 +13,15 @@
     align-items: center;
 
     display: flex;
-    gap: 10px;
+    gap: var(--panel-padding);
 }
 
 #telemetry-panel #gauges
 {
     display: flex;
-    gap: 10px;
+    gap: var(--panel-padding);
 }
 
-/* GAUGE BOX */
 #telemetry-panel .gauge
 {
     width: var(--telemetry-gauge-size);
@@ -38,14 +37,12 @@
     gap: calc(var(--telemetry-gauge-size) * 0.05);
 }
 
-/* CANVAS FIT */
 #telemetry-panel canvas
 {
     width: 100% !important;
     height: 100% !important;
 }
 
-/* SPEED LABEL */
 #telemetry-panel .speed-label
 {
     transform: translate(-50%, -35%);
@@ -92,14 +89,13 @@
     font-weight: bold;
     line-height: 1;
 
-    color: white;
+    color: var(--text-color-primary);
     opacity: 0.9;
 }
 
-/* INPUTS */
 #telemetry-panel #inputs
 {
-    width: calc(var(--telemetry-gauge-size) * 2 + 20px);
+    width: calc(var(--telemetry-gauge-size) * 2 + var(--panel-padding) * 2);
     flex-direction: column;
     display: flex;
     gap: 6px;
@@ -119,23 +115,22 @@
     width: 0;
 }
 
-#telemetry-panel #throttleFill { background: #00ff88; }
-#telemetry-panel #brakeFill { background: #ff3b3b; }
+#telemetry-panel #throttleFill { background: var(--throttle-color); }
+#telemetry-panel #brakeFill { background: var(--brake-color); }
 
 /**********************************************************************************************************************/
 
-/* Main Overlay */
 #telemetry-panel #timing-tower
 {
     display: flex;
     flex-direction: row;
-    padding: 10px 0 10px 0;
+    padding: var(--panel-padding) 0;
 
     align-items: center;
     justify-content: center;
 
     color: #e0e0e0;
-    font-size: 14px;
+    font-size: 0.875rem;
 
     width: fit-content;
     height: 100%;
@@ -153,7 +148,7 @@
     display: flex;
     flex-direction: column;
     gap: 0;
-    margin: 0 10px;
+    margin: 0 var(--panel-padding);
     justify-content: space-between;
     height: 100%;
     padding: 2px 0;
@@ -180,104 +175,111 @@
     font-family: monospace;
     font-weight: bold;
     font-size: 1.1rem;
-    background: #1e1e1e;
-    padding: 0 6px;
-    border-radius: 0;
-    min-width: 80px;
+
+    background: var(--timing-bg);
     text-align: center;
+
+    min-width: 80px;
+    padding: 0 6px;
 }
 
 #timing-tower .time-val.bg-green
 {
-    background-color: #2ed573;
-    color: #000;
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .time-val.bg-purple
 {
-    background-color: #a29bfe;
-    color: #000;
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .time-label
 {
     font-size: 0.7rem;
+    text-align: right;
+
     color: #888;
     width: 25px;
-    text-align: right;
 }
 
 #timing-tower .sectors-section
 {
-    display: flex;
     flex-direction: row;
-    gap: 12px;
     align-items: stretch;
-    height: 100%;
+
+    display: flex;
+    gap: 12px;
+
     padding: 2px 0;
+    height: 100%;
 }
 
 #timing-tower .sector-column
 {
-    display: flex;
+    justify-content: space-between;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
-    gap: 2px;
+    display: flex;
+
     min-width: 52px;
+    gap: 2px;
 }
 
 #timing-tower .sector-time
 {
     font-family: monospace;
     font-size: 0.85rem;
-    min-width: 48px;
-    background: #1e1e1e;
-    padding: 0 4px;
-    border-radius: 0;
+
+    background: var(--timing-bg);
     text-align: center;
+    padding: 0 4px;
+
     line-height: 1.5;
+    min-width: 48px;
+
 }
 
 #timing-tower .sector-time.inactive
 {
-    background: #1a1a1a;
-    color: #444;
+    background: var(--timing-bg-inactive);
+    color: var(--timing-inactive);
     opacity: 0.5;
 }
 
 #timing-tower .sector-time.green
 {
-    background-color: #2ed573;
-    color: #000;
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .sector-time.purple
 {
-    background-color: #a29bfe;
-    color: #000;
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .sector-time.yellow
 {
-    background-color: #eccc68;
-    color: #000;
+    background-color: var(--timing-yellow);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .mini-sectors
 {
     display: flex;
-    gap: 2px;
     align-items: center;
+
     flex-wrap: nowrap;
+    gap: 2px;
 }
 
 #timing-tower .mini-block
 {
-    width: 6px;
+    background-color: var(--timing-inactive);
     height: 10px;
-    border-radius: 0;
-    background-color: #444;
+    width: 6px;
 }
 
 #timing-tower .mini-block.inactive
@@ -288,63 +290,71 @@
 
 #timing-tower .mini-block.green
 {
-    background-color: #2ed573;
+    background-color: var(--timing-green);
 }
 
 #timing-tower .mini-block.purple
 {
-    background-color: #a29bfe;
+    background-color: var(--timing-purple);
 }
 
 #timing-tower .mini-block.yellow
 {
-    background-color: #eccc68;
+    background-color: var(--timing-yellow);
 }
 
 
 #timing-tower .best-time
 {
+    background: var(--timing-bg-inactive);
+    text-align: center;
+
     font-family: monospace;
     font-size: 0.85rem;
+
     min-width: 44px;
-    background: #1a1a1a;
     padding: 0 3px;
-    border-radius: 0;
-    text-align: center;
-    color: #bbb;
+
     line-height: 1.4;
+    color: #bbb;
 }
 
 #timing-tower .best-time.purple
 {
-    background-color: #a29bfe;
-    color: #000;
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .best-time.green
 {
-    background-color: #2ed573;
-    color: #000;
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
 }
 
 #timing-tower .tyre-box
 {
-    display: flex;
     flex-direction: column;
-    align-items: center;
+    display: flex;
+
     justify-content: center;
-    min-width: 40px;
+    align-items: center;
+
+    transition: opacity var(--transition-speed), transform var(--transition-speed);
     cursor: pointer;
+    min-width: 40px;
 }
 
 #timing-tower .tyre-icon
 {
-    width: 24px;
-    height: 24px;
+    justify-content: center;
+    display: flex;
+
     border-radius: 50%;
     border: 2px solid #555;
-    display: flex;
-    justify-content: center;
+
+    height: 24px;
+    width: 24px;
+
     align-items: center;
     font-weight: bold;
     font-size: 0.8rem;
@@ -389,7 +399,7 @@
 
 #timing-tower .sector-divider
 {
-    color: #444;
+    color: var(--timing-inactive);
     font-size: 0.6rem;
     line-height: 1;
 }
