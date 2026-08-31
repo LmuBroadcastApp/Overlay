@@ -3,12 +3,49 @@
  */
 
 /**
+ * Tracks whether each driving panel is enabled.
+ * @type {Object<string, boolean>}
+ */
+const g_PanelEnabled =
+{
+    pitstop: true,
+    telemetry: true,
+    weather: true,
+    damage: true,
+    trackMap: true,
+    laptime: false
+};
+
+/**
+ * Applies the current panel visibility state.
+ */
+function ApplyPanelVisibility()
+{
+    const panels =
+    {
+        telemetry: document.getElementById('telemetry-input-chart'),
+        pitstop: document.getElementById('pit-stop-estimation'),
+        trackMap: document.getElementById('track-map-panel'),
+        weather: document.getElementById('weather-panel'),
+        laptime: document.getElementById('laptime-log'),
+        damage: document.getElementById('damage-panel')
+    };
+
+    Object.entries(panels).forEach(([key, panel]) =>
+    {
+        if (!panel) return;
+        panel.style.display = g_PanelEnabled[key] ? '' : 'none';
+    });
+}
+
+/**
  * Applies persisted overlay settings to the driving panel CSS variables.
  * @param {Object} settings Overlay settings payload from the backend.
  */
 function UpdateOverlaySettings(settings)
 {
     const root = document.documentElement;
+    ApplyPanelVisibility();
 
     // pit stop estimation panel
     root.style.setProperty('--pit-stop-estimation-left', settings.driving_pitstop.position_left);
@@ -26,8 +63,8 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--damage-left', settings.driving_damage.position_left);
     root.style.setProperty('--damage-top', settings.driving_damage.position_top);
 
-    //root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
-    //root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
+    root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
+    root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
 
     root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
     root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
