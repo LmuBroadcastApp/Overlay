@@ -252,8 +252,8 @@
 
             tire_compound: cfg.tires || ['Medium', 'Medium', 'Medium', 'Medium'],
 
-            overtake_highligh_gain_until: 0,
-            overtake_highligh_lost_until: 0,
+            overtake_highlight_gain_until: 0,
+            overtake_highlight_lost_until: 0,
 
             best_lap_sectors: { sector1: -1, sector2: -1, sector3: -1 },
             current_lap_sectors: { sector1: -1, sector2: -1, sector3: -1 },
@@ -414,8 +414,8 @@
 
                     if (prevClassPos > 0 && prevClassPos !== car.race_position_class)
                     {
-                        if (car.race_position_class < prevClassPos) car.overtake_highligh_gain_until = Date.now() + 2000;
-                        else car.overtake_highligh_lost_until = Date.now() + 2000;
+                        if (car.race_position_class < prevClassPos) car.overtake_highlight_gain_until = Date.now() + 2000;
+                        else car.overtake_highlight_lost_until = Date.now() + 2000;
                     }
 
                     car.delta_to_class_leader = (leader._progress - car._progress) * car._lapTime;

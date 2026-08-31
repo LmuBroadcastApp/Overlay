@@ -609,7 +609,7 @@ class TowerPanel
      */
     _getRowStyle(vehicle)
     {
-        if (Date.now() >= vehicle.overtake_highligh_lost_until && Date.now() >= vehicle.overtake_highligh_gain_until)
+        if (Date.now() >= vehicle.overtake_highlight_lost_until && Date.now() >= vehicle.overtake_highlight_gain_until)
         {
             return null;
         }
@@ -617,15 +617,15 @@ class TowerPanel
         let startTime = 0;
         let color = 'rgba(0, 0, 0, 0)';
 
-        if (vehicle.overtake_highligh_lost_until > vehicle.overtake_highligh_gain_until)
+        if (vehicle.overtake_highlight_lost_until > vehicle.overtake_highlight_gain_until)
         {
             color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-lost-position-color').trim();
-            startTime = vehicle.overtake_highligh_lost_until;
+            startTime = vehicle.overtake_highlight_lost_until;
         }
         else
         {
             color = getComputedStyle(document.documentElement).getPropertyValue('--standings-panel-gain-position-color').trim();
-            startTime = vehicle.overtake_highligh_gain_until;
+            startTime = vehicle.overtake_highlight_gain_until;
         }
 
         let elapsed = startTime - Date.now();
