@@ -71,7 +71,7 @@
             standings:
             {
                 enabled: true,
-                position_left: '1.0rem', position_top: '1.0rem',
+                position_left: '1.0rem', position_top: '8.0rem',
                 font_weight: 550, font_size: '1em',
                 primary_color: 'rgba(14, 17, 24, 0.86)', secondary_color: 'rgba(14, 17, 24, 0.64)',
                 gap_less_1_color: 'rgb(242, 92, 84)', gap_less_2_color: 'rgb(247, 178, 103)',

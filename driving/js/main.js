@@ -63,11 +63,13 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--damage-left', settings.driving_damage.position_left);
     root.style.setProperty('--damage-top', settings.driving_damage.position_top);
 
-    root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
-    root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
-
+    // track map panel
     root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
     root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
+
+    //
+    //root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
+    //root.style.setProperty('--laptime-log-top', settings.driving_laptime_log.position_top);
 }
 
 /**

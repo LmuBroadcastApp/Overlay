@@ -44,8 +44,27 @@ class TrackMapPanel
         else if (key === 'map')
         {
             this.map = value;
-            this.splineOffset = null; // track changed, offset must be recomputed
+            this.splineOffset = null;
         }
+    }
+
+    /**
+     * Returns a dark-theme color palette for canvas drawing.
+     * @returns {Object} Canvas color palette.
+     */
+    _palette()
+    {
+        return {
+            glow:       'rgba(240, 241, 245, 0.18)',
+            casing:     '#0a0a12',
+            surface:    '#565b69',
+            centerline: 'rgba(240, 241, 245, 0.55)',
+            pit:        'rgba(150, 155, 170, 0.85)',
+            labelBg:    'rgba(0, 0, 0, 0.65)',
+            labelText:  '#f0f1f5',
+            ring:       '#f0f1f5',
+            warning:    'rgb(249, 199, 79)'
+        };
     }
 
     /**
@@ -56,239 +75,262 @@ class TrackMapPanel
         let canvas = this.element;
         let ctx = canvas.getContext("2d");
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        const dpr = window.devicePixelRatio || 1;
-
         if (this.map == null || this.map.track_map.length === 0 || this.standings == null)
         {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             return;
         }
 
-        if (canvas.width !== this.map.size.width * dpr || canvas.height !== this.map.size.height * dpr)
+        const dpr = window.devicePixelRatio || 1;
+        const w = this.map.size.width;
+        const h = this.map.size.height;
+
+        if (canvas.width !== w * dpr || canvas.height !== h * dpr)
         {
-            canvas.height = this.map.size.height * dpr;
-            canvas.width = this.map.size.width * dpr;
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = w + 'px';
+            canvas.style.height = h + 'px';
         }
 
-        this._drawPitLane(ctx, this.map.pit_lane, 3, "rgba(30, 30, 30, 1)");
-        this._drawPitLane(ctx, this.map.pit_lane, 1, "rgba(240, 240, 240, 1)");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, w, h);
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
 
-        this._drawTrackMap(ctx, this.map.track_map, 6, "rgba(30, 30, 30, 1)");
-        this._drawTrackMap(ctx, this.map.track_map, 3, "rgba(240, 240, 240, 1)");
+        const colors = this._palette();
+
+        this._drawPitLane(ctx, this.map.pit_lane, colors);
+        this._drawTrack(ctx, this.map.track_map, colors);
 
         this._drawWarningZones(ctx);
-        this._drawVehicles(ctx, Array.from(this.standings).reverse());
+        this._drawVehicles(ctx, Array.from(this.standings).reverse(), colors);
     }
 
     /**
-     * Draws a filled vehicle marker circle.
+     * Traces a smooth quadratic Bézier path through the given points.
      * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {number} x Marker center X coordinate.
-     * @param {number} y Marker center Y coordinate.
-     * @param {number} radius Marker radius.
-     * @param {string} color Fill color.
+     * @param {Array<Object>} points Ordered path points.
+     * @param {boolean} closed Whether the path should be closed.
      */
-    _drawCircle(ctx, x, y, radius, color)
+    _tracePath(ctx, points, closed)
     {
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = color;
-        ctx.lineWidth = 0.5;
+        const n = points.length;
+        const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
 
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        ctx.beginPath();
 
-        ctx.stroke();
-        ctx.fill();
-    }
-
-    /**
-     * Draws a triangular marker for the leading car.
-     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {number} cx Marker center X coordinate.
-     * @param {number} cy Marker center Y coordinate.
-     * @param {number} sideLength Triangle side length.
-     * @param {string} color Fill color.
-     * @param {number} [boderSize=0.5] Unused legacy border size parameter.
-     * @param {number} [rotationDeg=180] Rotation angle in degrees.
-     */
-    _drawTriangle(ctx, cx, cy, sideLength, color, boderSize = 0.5, rotationDeg = 180,)
-    {
-        ctx.strokeStyle = "black";
-        ctx.fillStyle = color;
-        ctx.lineWidth = 0.5;
-
-        const h = (Math.sqrt(3) / 2) * sideLength;
-        const rot = (rotationDeg * Math.PI) / 180;
-
-        const verts = [
-            { x:               0, y: -2 * h / 3 }, // top vertex
-            { x: -sideLength / 2, y:      h / 3 }, // bottom‑left
-            { x:  sideLength / 2, y:      h / 3 }, // bottom‑right
-        ];
-
-        verts.forEach((v, i) =>
+        if (closed)
         {
-            const xr = v.x * Math.cos(rot) - v.y * Math.sin(rot);
-            const yr = v.x * Math.sin(rot) + v.y * Math.cos(rot);
-            const px = cx + xr;
-            const py = cy + yr;
-            i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-        });
+            const start = mid(points[n - 1], points[0]);
+            ctx.moveTo(start.x, start.y);
 
-        ctx.fill();
-        ctx.stroke();
+            for (let i = 0; i < n; ++i)
+            {
+                const p = points[i];
+                const m = mid(p, points[(i + 1) % n]);
+                ctx.quadraticCurveTo(p.x, p.y, m.x, m.y);
+            }
+
+            ctx.closePath();
+        }
+        else
+        {
+            ctx.moveTo(points[0].x, points[0].y);
+
+            for (let i = 1; i < n - 1; ++i)
+            {
+                const m = mid(points[i], points[i + 1]);
+                ctx.quadraticCurveTo(points[i].x, points[i].y, m.x, m.y);
+            }
+
+            ctx.lineTo(points[n - 1].x, points[n - 1].y);
+        }
     }
 
     /**
-     * Draws the closed racing line path.
+     * Strokes the current path with optional dash styling.
      * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {Array<Object>} points Ordered track points.
-     * @param {number} size Stroke width.
+     * @param {number} width Stroke width.
      * @param {string} color Stroke color.
+     * @param {Array<number>} [dash=[]] Dash pattern.
      */
-    _drawTrackMap(ctx, points, size, color)
+    _stroke(ctx, width, color, dash = [])
+    {
+        ctx.setLineDash(dash);
+        ctx.lineWidth = width;
+        ctx.strokeStyle = color;
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    /**
+     * Draws the main track surface with layered strokes.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Track points.
+     * @param {Object} colors Theme palette.
+     */
+    _drawTrack(ctx, points, colors)
+    {
+        if (!points || points.length < 2) return;
+
+        this._tracePath(ctx, points, true);
+
+        this._stroke(ctx, 10, colors.glow);
+        this._stroke(ctx, 7, colors.casing);
+        this._stroke(ctx, 5, colors.surface);
+        this._stroke(ctx, 1, colors.centerline, [4, 6]);
+    }
+
+    /**
+     * Draws the pit lane overlay with dashed styling.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Pit lane points.
+     * @param {Object} colors Theme palette.
+     */
+    _drawPitLane(ctx, points, colors)
+    {
+        if (!points || points.length < 2) return;
+
+        this._tracePath(ctx, points, false);
+        this._stroke(ctx, 2, colors.pit, [3, 3]);
+    }
+
+    /**
+     * Builds a rounded rectangle path for number labels.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {number} x Left coordinate.
+     * @param {number} y Top coordinate.
+     * @param {number} w Width.
+     * @param {number} h Height.
+     * @param {number} r Corner radius.
+     */
+    _roundRect(ctx, x, y, w, h, r)
     {
         ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; ++i)
-        {
-            ctx.lineTo(points[i].x, points[i].y);
-        }
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
         ctx.closePath();
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = size;
-        ctx.stroke();
-    }
-
-    /**
-     * Draws the pit-lane path.
-     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {Array<Object>} points Ordered pit-lane points.
-     * @param {number} size Stroke width.
-     * @param {string} color Stroke color.
-     */
-    _drawPitLane(ctx, points, size, color)
-    {
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        for (let i = 1; i < points.length; ++i)
-        {
-            ctx.lineTo(points[i].x, points[i].y);
-        }
-
-        ctx.strokeStyle = color;
-        ctx.lineWidth = size;
-        ctx.stroke();
-    }
-
-    /**
-     * Draws a start/finish line across the first track segment.
-     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {{points: Array<Object>}} map Track map payload with point data.
-     */
-    _drawStartLine(ctx, map)
-    {
-        const A = map.points[  0];
-        const B = map.points[100];
-
-        const dx = B.x - A.x;
-        const dy = B.y - A.y;
-
-        const len = Math.hypot(dx, dy);
-
-        const ux = dx / len;
-        const uy = dy / len;
-
-        const px =  uy;   // swap and change sign
-        const py = -ux;
-
-        const perpLength = 15;          // adjust as you like
-        const half = perpLength / 2;    // we will go ±half from the midpoint
-
-        const mx = map.points[0].x;
-        const my = map.points[0].y;
-
-        const P1 = { x: mx + px * half, y: my + py * half };
-        const P2 = { x: mx - px * half, y: my - py * half };
-
-        ctx.strokeStyle = 'rgb(250, 150, 150)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(P1.x, P1.y);
-        ctx.lineTo(P2.x, P2.y);
-        ctx.stroke();
     }
 
     /**
      * Draws a single vehicle marker and its number label.
      * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
-     * @param {Object} vehicles Vehicle data.
+     * @param {Object} v Vehicle data.
+     * @param {Object} colors Theme palette.
      */
-    _drawVehicle(ctx, vehicles)
+    _drawStar(ctx, cx, cy, outerR, innerR, points)
     {
-        let v = vehicles;
+        ctx.beginPath();
 
+        for (let i = 0; i < points * 2; ++i)
+        {
+            const r = i % 2 === 0 ? outerR : innerR;
+            const angle = (i * Math.PI) / points - Math.PI / 2;
+
+            if (i === 0)
+            {
+                ctx.moveTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+            }
+            else
+            {
+                ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+            }
+        }
+
+        ctx.closePath();
+    }
+
+    _drawVehicle(ctx, v, colors)
+    {
         let x = v.world_pos.x;
         let y = v.world_pos.y;
 
-        let metrics = ctx.measureText(v.vehicle_number);
         let c = ColorFromVehicleClass(v.vehicle_class);
-
-        let rect_extra = 5;
-        let point_size = 7;
-
-        let textWidth = metrics.width + rect_extra;
-        let textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent + rect_extra;
-
-        let rect_start_x = x - textWidth / 2 - rect_extra * 0.5;
-        let rect_start_y = y - textHeight * 2 + rect_extra * 0.5;
-
-        let text_start_x = x - textWidth / 2;
-        let text_start_y = y - textHeight;
+        let radius = 5.5;
+        const isLeader = v.race_position_class === 1;
 
         if (v.focus)
         {
-            c = "rgb(240, 240, 240)";
-            point_size += 3;
+            c = colors.ring;
+            radius += 2;
         }
 
         if (v.in_pits)
         {
-            point_size *= 0.6;
-            let rgb = c.replace(/[^\d,]/g, "").split(",");
-            c = `rgba(${rgb[0] - 50}, ${rgb[1] - 50}, ${rgb[2] - 50}, 0.8)`;
+            radius *= 0.65;
+            ctx.globalAlpha = 0.45;
         }
 
-        ctx.beginPath();
+        ctx.save();
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+        ctx.shadowBlur = 4;
+        ctx.shadowOffsetY = 1;
 
-        if (v.race_position > 1)
+        if (isLeader)
         {
-            this._drawCircle(ctx, v.world_pos.x, v.world_pos.y, point_size, c);
+            this._drawStar(ctx, x, y, radius + 1, (radius + 1) * 0.45, 5);
+            ctx.fillStyle = c;
+            ctx.fill();
+
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
         }
         else
         {
-            this._drawTriangle(ctx, v.world_pos.x, v.world_pos.y, point_size * 2, c,);
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = c;
+            ctx.fill();
+        }
+
+        ctx.restore();
+
+        if (!isLeader)
+        {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 1.25;
+            ctx.strokeStyle = colors.ring;
+            ctx.stroke();
         }
 
         if (!v.in_pits)
         {
-            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-            ctx.fillRect(rect_start_x, rect_start_y, textWidth, textHeight);
+            ctx.font = 'bold 9px Titillium Web, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
 
-            ctx.font = "bold";
-            ctx.fillStyle = "rgb(255, 255, 255)";
-            ctx.fillText(v.vehicle_number, text_start_x, text_start_y);
+            const text = String(v.vehicle_number);
+            const tw = ctx.measureText(text).width;
+
+            const pw = tw + 8;
+            const ph = 13;
+            const pxr = x - pw / 2;
+            const pyr = y - radius - ph - 4;
+
+            this._roundRect(ctx, pxr, pyr, pw, ph, 4);
+            ctx.fillStyle = colors.labelBg;
+            ctx.fill();
+
+            ctx.fillStyle = colors.labelText;
+            ctx.fillText(text, x, pyr + ph / 2 + 0.5);
         }
+
+        ctx.globalAlpha = 1.0;
     }
 
     /**
      * Draws all vehicles while ensuring the focused car is rendered last.
      * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
      * @param {Array<Object>} vehicles Vehicles to draw.
+     * @param {Object} colors Theme palette.
      */
-    _drawVehicles(ctx, vehicles)
+    _drawVehicles(ctx, vehicles, colors)
     {
         vehicles.sort((a, b) => (b.in_pits - a.in_pits));
         let focus = null;
@@ -301,19 +343,18 @@ class TrackMapPanel
             }
             else
             {
-                this._drawVehicle(ctx, vehicles[idx]);
+                this._drawVehicle(ctx, vehicles[idx], colors);
             }
         }
 
         if (focus)
         {
-            this._drawVehicle(ctx, focus);
+            this._drawVehicle(ctx, focus, colors);
         }
     }
 
     /**
      * Returns the index of the track point closest to a world position.
-     * Needed because spline 0 does not coincide with index 0 of the track map array.
      * @param {Array<Object>} points Track points.
      * @param {{x: number, y: number}} pos Vehicle world position.
      * @returns {number} Closest track-point index.
@@ -341,8 +382,6 @@ class TrackMapPanel
 
     /**
      * Computes and caches the spline-to-track-point offset for the active track.
-     * The offset is derived from a real car position because spline 0 does not align
-     * with track-map index 0.
      * @param {Array<Object>} points Track points.
      * @returns {number} Cached spline-to-index offset.
      */
@@ -368,11 +407,11 @@ class TrackMapPanel
             return this.splineOffset;
         }
 
-        return 0; // no usable vehicle yet, retry next frame (cache stays empty)
+        return 0;
     }
 
     /**
-     * Strokes a highlighted arc centered around a given track index.
+     * Strokes a highlighted arc centered around a given track index with glow.
      * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
      * @param {Array<Object>} points Track points.
      * @param {number} center Center point index.
@@ -386,6 +425,10 @@ class TrackMapPanel
         const start = ((center - half) % n + n) % n;
         const count = half * 2;
 
+        ctx.save();
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+
         ctx.beginPath();
         ctx.moveTo(points[start].x, points[start].y);
 
@@ -398,6 +441,7 @@ class TrackMapPanel
         ctx.strokeStyle = color;
         ctx.lineWidth = size;
         ctx.stroke();
+        ctx.restore();
     }
 
     /**
@@ -439,12 +483,13 @@ class TrackMapPanel
      */
     _drawWarningZones(ctx)
     {
+        const colors = this._palette();
+
         for (const vehicle of this.standings)
         {
             if (vehicle.show_warning_icon && !vehicle.in_pits && vehicle.world_pos)
             {
-                this._drawWarningZone(ctx, this.map.track_map, vehicle.world_pos, 3, "rgb(249, 199, 79)");
-                // Alternative: this._drawWarningZoneBySpline(ctx, this.map.track_map, vehicle.spline, 3, "rgb(249, 199, 79)");
+                this._drawWarningZone(ctx, this.map.track_map, vehicle.world_pos, 4, colors.warning);
             }
         }
     }

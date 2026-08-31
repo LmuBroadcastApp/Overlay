@@ -45,7 +45,7 @@
 
     /** Standings panel variables */
     --standings-panel-position-left: 1.0rem;                                            /** Position from the left of the screen */
-    --standings-panel-position-top: 1.0rem;                                             /** Position from the top of the screen */
+    --standings-panel-position-top: 8.0rem;                                             /** Position from the top of the screen */
 
     --standings-panel-font-weight: 600;                                                 /** How bold the font will be seen */
     --standings-panel-font-size: 1em;                                                   /** General font size of the panel */

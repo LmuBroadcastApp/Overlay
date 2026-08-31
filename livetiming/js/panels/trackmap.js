@@ -302,6 +302,28 @@ class WorldMapPanel
      * @param {Object} v Vehicle standings row.
      * @param {Object} colors Theme palette.
      */
+    _drawStar(ctx, cx, cy, outerR, innerR, points)
+    {
+        ctx.beginPath();
+
+        for (let i = 0; i < points * 2; ++i)
+        {
+            const r = i % 2 === 0 ? outerR : innerR;
+            const angle = (i * Math.PI) / points - Math.PI / 2;
+
+            if (i === 0)
+            {
+                ctx.moveTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+            }
+            else
+            {
+                ctx.lineTo(cx + r * Math.cos(angle), cy + r * Math.sin(angle));
+            }
+        }
+
+        ctx.closePath();
+    }
+
     _drawVehicle(ctx, v, colors)
     {
         const x = v.world_pos.x;
@@ -309,6 +331,7 @@ class WorldMapPanel
 
         let c = ColorFromVehicleClass(v.vehicle_class);
         let radius = 5.5;
+        const isLeader = v.race_position_class === 1;
 
         if (v.in_pits)
         {
@@ -322,18 +345,36 @@ class WorldMapPanel
         ctx.shadowBlur = 4;
         ctx.shadowOffsetY = 1;
 
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.fillStyle = c;
-        ctx.fill();
+        if (isLeader)
+        {
+            this._drawStar(ctx, x, y, radius + 1, (radius + 1) * 0.45, 5);
+            ctx.fillStyle = c;
+            ctx.fill();
+        }
+        else
+        {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            ctx.fillStyle = c;
+            ctx.fill();
+        }
+
         ctx.restore();
 
-        // Ring: white for everyone, gold for the overall leader
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.lineWidth = v.race_position_class === 1 ? 2 : 1.25;
-        ctx.strokeStyle = v.race_position_class === 1 ? '#ffd166' : colors.ring;
-        ctx.stroke();
+        if (isLeader)
+        {
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+        else
+        {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+            ctx.lineWidth = 1.25;
+            ctx.strokeStyle = colors.ring;
+            ctx.stroke();
+        }
 
         if (!v.in_pits)
         {
