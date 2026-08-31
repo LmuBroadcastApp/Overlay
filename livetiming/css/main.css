@@ -228,9 +228,14 @@ body.theme-light
     grid-column: 1 / -1;
 }
 
-#live-timing-standings .standings-table:nth-child(-n+2)
+#live-timing-standings .standings-table:first-child
 {
     grid-column: 1;
+}
+
+#live-timing-standings .standings-table:not(:first-child)
+{
+    margin-top: 1.25em;
 }
 
 #track-map-panel
