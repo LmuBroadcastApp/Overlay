@@ -115,6 +115,7 @@ return {
             show_warning_icon: cfg.warning === true,
             laps: cfg.laps || 0,
             qualy_position_class: cfg.qualy_position_class || 0,
+            qualy_best_lap: cfg.lapTime,
             pit_stops: cfg.pit_stops || 0,
             pitstops: cfg.pitstops || [],
             tire_compound: cfg.tires || ['Medium', 'Medium', 'Medium', 'Medium'],
@@ -135,7 +136,13 @@ return {
             {
                 speed: 0,
                 ve: cfg.ve || 0,
-                fuel: cfg.fuel || 0
+                fuel: cfg.fuel || 0,
+                max_fuel: cfg.max_fuel || 75
+            },
+            fuel_monitor:
+            {
+                ve_per_lap: cfg.ve_per_lap || (cfg.ve ? 3.2 : 0),
+                fl_per_lap: cfg.fl_per_lap || (cfg.fuel ? 2.8 : 0)
             },
             penalties: { drive_through: 0, stop_and_go: 0, time_penalty: cfg.time_penalty || 0 },
             damage: cfg.damage || 0,
@@ -225,6 +232,19 @@ return {
                         }
 
                         car.current_lap_sectors = { sector1: -1, sector2: -1, sector3: -1 };
+
+                        // Consume energy/fuel each lap, "refuel" when nearly empty
+                        if (car.fuel_monitor.ve_per_lap > 0)
+                        {
+                            car.telemetry.ve -= car.fuel_monitor.ve_per_lap;
+                            if (car.telemetry.ve <= car.fuel_monitor.ve_per_lap) car.telemetry.ve = 100;
+                        }
+
+                        if (car.fuel_monitor.fl_per_lap > 0)
+                        {
+                            car.telemetry.fuel -= car.fuel_monitor.fl_per_lap;
+                            if (car.telemetry.fuel <= car.fuel_monitor.fl_per_lap) car.telemetry.fuel = car.telemetry.max_fuel;
+                        }
                     }
 
                     // Current sector times as the lap progresses
