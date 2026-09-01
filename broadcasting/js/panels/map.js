@@ -219,15 +219,14 @@ class TrackMapPanel
         const colors = this._palette();
         const staves =
         [
-            { pos: sectors.sector1?.position, color: colors.sector1 },
-            { pos: sectors.sector2?.position, color: colors.sector2 },
-            { pos: sectors.sector3?.position, color: colors.sector3 }
+            { pos: sectors.sector1?.position, distance: sectors.sector1?.distance, color: colors.sector1 },
+            { pos: sectors.sector2?.position, distance: sectors.sector2?.distance, color: colors.sector2 },
+            { pos: sectors.sector3?.position, distance: sectors.sector3?.distance, color: colors.sector3 }
         ];
 
-        for (const { pos, color } of staves)
+        for (const { pos, distance, color } of staves)
         {
-            if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') continue;
-
+            if (!pos || distance < 0 || typeof pos.x !== 'number' || typeof pos.y !== 'number') continue;
             const idx = this._nearestTrackPointIndex(points, pos);
 
             const a = points[(idx - 1 + n) % n];
@@ -301,14 +300,35 @@ class TrackMapPanel
         ctx.closePath();
     }
 
+    /**
+     * Draws an oriented triangle centered on (cx, cy), pointing along `angle`.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {number} cx Center x.
+     * @param {number} cy Center y.
+     * @param {number} r Half-length (tip distance) of the triangle.
+     * @param {number} angle Heading in radians.
+     */
+    _drawTriangle(ctx, cx, cy, r, angle)
+    {
+        const tip = angle;
+        const backA = angle + Math.PI - 0.6;
+        const backB = angle + Math.PI + 0.6;
+
+        ctx.beginPath();
+        ctx.moveTo(cx + r * Math.cos(tip), cy + r * Math.sin(tip));
+        ctx.lineTo(cx + r * Math.cos(backA), cy + r * Math.sin(backA));
+        ctx.lineTo(cx + r * Math.cos(backB), cy + r * Math.sin(backB));
+        ctx.closePath();
+    }
+
     _drawVehicle(ctx, v, colors)
     {
         let x = v.world_pos.x;
         let y = v.world_pos.y;
 
         let c = ColorFromVehicleClass(v.vehicle_class);
-        let radius = 5.5;
         const isLeader = v.race_position_class === 1;
+        let radius = 5.5;
 
         if (v.focus)
         {
@@ -329,7 +349,7 @@ class TrackMapPanel
 
         if (isLeader)
         {
-            this._drawStar(ctx, x, y, radius + 1, (radius + 1) * 0.45, 5);
+            this._drawTriangle(ctx, x, y, radius + 2, v.orientation);
             ctx.fillStyle = c;
             ctx.fill();
 
