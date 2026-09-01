@@ -56,7 +56,27 @@
             track_map: track_map,
             pit_lane: pit_lane,
             size: MAP_SIZE,
-            sectors: { sector1: 0, sector2: TRACK_DISTANCE / 3, sector3: (TRACK_DISTANCE / 3) * 2 }
+            sectors:
+            {
+                sector1:
+                {
+                    spline: 0,
+                    distance: 0,
+                    position: trackPoint(0)
+                },
+                sector2:
+                {
+                    spline: 1 / 3,
+                    distance: TRACK_DISTANCE / 3,
+                    position: trackPoint(1 / 3)
+                },
+                sector3:
+                {
+                    spline: 2 / 3,
+                    distance: (TRACK_DISTANCE / 3) * 2,
+                    position: trackPoint(2 / 3)
+                }
+            }
         };
     }
 

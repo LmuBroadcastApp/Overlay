@@ -63,7 +63,10 @@ class TrackMapPanel
             labelBg:    'rgba(0, 0, 0, 0.65)',
             labelText:  '#f0f1f5',
             ring:       '#f0f1f5',
-            warning:    'rgb(249, 199, 79)'
+            warning:    'rgb(249, 199, 79)',
+            sector1:    'rgb(200, 200, 200)',
+            sector2:    'rgb(200, 200, 200)',
+            sector3:    'rgb(200, 200, 200)'
         };
     }
 
@@ -102,6 +105,7 @@ class TrackMapPanel
 
         this._drawPitLane(ctx, this.map.pit_lane, colors);
         this._drawTrack(ctx, this.map.track_map, colors);
+        this._drawSectors(ctx, this.map.sectors);
 
         this._drawWarningZones(ctx);
         this._drawVehicles(ctx, Array.from(this.standings).reverse(), colors);
@@ -176,10 +180,10 @@ class TrackMapPanel
 
         this._tracePath(ctx, points, true);
 
-        this._stroke(ctx, 10, colors.glow);
-        this._stroke(ctx, 7, colors.casing);
-        this._stroke(ctx, 5, colors.surface);
-        this._stroke(ctx, 1, colors.centerline, [4, 6]);
+        this._stroke(ctx, 10, colors.glow);                 // wide halo
+        this._stroke(ctx, 7, colors.casing);                // dark border/outline
+        this._stroke(ctx, 5, colors.surface);               // surface, interior fill
+        this._stroke(ctx, 1, colors.centerline, [4, 6]);    // dash center line
     }
 
     /**
@@ -194,6 +198,59 @@ class TrackMapPanel
 
         this._tracePath(ctx, points, false);
         this._stroke(ctx, 2, colors.pit, [3, 3]);
+    }
+
+    /**
+     * Draws a perpendicular start marker at each sector boundary.
+     * Each sector exposes a position (x, y world coords) for where the sector
+     * starts; the nearest point on the track is found and a line is drawn
+     * across the track, perpendicular to the local track direction.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Object} sectors Sector definition payload.
+     */
+    _drawSectors(ctx, sectors)
+    {
+        if (!sectors || !this.map.track_map) return;
+
+        const points = this.map.track_map;
+        const n = points.length;
+        if (n < 2) return;
+
+        const colors = this._palette();
+        const staves =
+        [
+            { pos: sectors.sector1?.position, color: colors.sector1 },
+            { pos: sectors.sector2?.position, color: colors.sector2 },
+            { pos: sectors.sector3?.position, color: colors.sector3 }
+        ];
+
+        for (const { pos, color } of staves)
+        {
+            if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') continue;
+
+            const idx = this._nearestTrackPointIndex(points, pos);
+
+            const a = points[(idx - 1 + n) % n];
+            const b = points[(idx + 1) % n];
+
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const len = Math.hypot(dx, dy) || 1;
+
+            const px = -dy / len;
+            const py = dx / len;
+            const half = 6;
+
+            ctx.beginPath();
+            ctx.moveTo(points[idx].x + px * half, points[idx].y + py * half);
+            ctx.lineTo(points[idx].x - px * half, points[idx].y - py * half);
+            this._stroke(ctx, 3, color);
+
+            ctx.beginPath();
+            ctx.arc(points[idx].x, points[idx].y, 2.5, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
     }
 
     /**
