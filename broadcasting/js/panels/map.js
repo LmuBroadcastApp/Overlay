@@ -57,16 +57,16 @@ class TrackMapPanel
         return {
             glow:       'rgba(240, 241, 245, 0.18)',
             casing:     '#0a0a12',
-            surface:    '#565b69',
-            centerline: 'rgba(240, 241, 245, 0.55)',
+            surface:    'rgba(240, 241, 245, 0.85)',
+            centerline: 'rgba(40, 41, 45, 0.35)',
             pit:        'rgba(150, 155, 170, 0.85)',
             labelBg:    'rgba(0, 0, 0, 0.65)',
             labelText:  '#f0f1f5',
             ring:       '#f0f1f5',
             warning:    'rgb(249, 199, 79)',
-            sector1:    'rgb(200, 200, 200)',
-            sector2:    'rgb(200, 200, 200)',
-            sector3:    'rgb(200, 200, 200)'
+            sector1:    'rgb(100, 100, 100)',
+            sector2:    'rgb(100, 100, 100)',
+            sector3:    'rgb(100, 100, 100)'
         };
     }
 

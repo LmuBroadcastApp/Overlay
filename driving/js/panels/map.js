@@ -55,37 +55,22 @@ class WorldMapPanel
     }
 
     /**
-     * Builds a theme-aware palette for canvas drawing.
-     *
+     * Returns a dark-theme color palette for canvas drawing.
      * @returns {Object} Canvas color palette.
      */
     _palette()
     {
-        const light = document.body.classList.contains('theme-light');
-
-        return light
-            ? {
-                glow:       'rgba(23, 25, 34, 0.10)',
-                casing:     '#9aa0ad',
-                surface:    '#ccd0d9',
-                centerline: 'rgba(255, 255, 255, 0.9)',
-                pit:        'rgba(115, 122, 140, 0.8)',
-                labelBg:    'rgba(23, 25, 34, 0.78)',
-                labelText:  '#ffffff',
-                ring:       '#ffffff',
-                start:      '#e10600'
-            }
-            : {
-                glow:       'rgba(240, 241, 245, 0.08)',
-                casing:     '#05050a',
-                surface:    '#3a3d47',
-                centerline: 'rgba(240, 241, 245, 0.35)',
-                pit:        'rgba(124, 128, 144, 0.8)',
-                labelBg:    'rgba(0, 0, 0, 0.65)',
-                labelText:  '#f0f1f5',
-                ring:       '#f0f1f5',
-                start:      '#ff4d4d'
-            };
+        return {
+            glow:       'rgba(240, 241, 245, 0.08)',
+            casing:     '#05050a',
+            surface:    'rgba(240, 241, 245, 0.85)',
+            centerline: 'rgba(40, 41, 45, 0.35)',
+            pit:        'rgba(124, 128, 144, 0.8)',
+            labelBg:    'rgba(0, 0, 0, 0.65)',
+            labelText:  '#f0f1f5',
+            ring:       '#f0f1f5',
+            start:      '#ff4d4d'
+        };
     }
 
     /**

@@ -255,8 +255,8 @@
          * a lap only takes a few seconds), telemetry follows the track position,
          * and completed laps feed the laptime log.
          */
-        const TIME_SCALE = 20;    /** 1 real second = 20 simulated seconds */
-        const TICK = 1 / 180;     /** update interval in seconds */
+        const TIME_SCALE = 1;       /** 1 real second = 20 simulated seconds */
+        const TICK = 1 / 60;        /** update interval in seconds */
 
         setInterval(() =>
         {
