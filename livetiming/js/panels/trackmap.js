@@ -39,6 +39,24 @@ class WorldMapPanel
             this.checkbox.addEventListener('change', this.checkboxHandler);
             this.applyVisibility(this.checkbox.checked);
         }
+
+        this.scale = 1;
+        this.scaleInput = document.querySelector('#track-map-scale');
+        this.scaleValue = document.querySelector('#track-map-scale-value');
+
+        if (this.scaleInput)
+        {
+            this.scaleHandler = () =>
+            {
+                this.scale = this.scaleInput.valueAsNumber / 100;
+                if (this.scaleValue)
+                {
+                    this.scaleValue.textContent = this.scaleInput.value + '%';
+                }
+            };
+            this.scaleHandler();
+            this.scaleInput.addEventListener('input', this.scaleHandler);
+        }
     }
 
     /**
@@ -125,20 +143,23 @@ class WorldMapPanel
             return;
         }
 
-        // Crisp rendering on high-DPI displays
+        // Crisp rendering on high-DPI displays; scale scales the whole map uniformly
         const dpr = window.devicePixelRatio || 1;
+        const scale = this.scale || 1;
         const w = this.map.size.width;
         const h = this.map.size.height;
+        const sw = w * scale;
+        const sh = h * scale;
 
-        if (canvas.width !== w * dpr || canvas.height !== h * dpr)
+        if (canvas.width !== sw * dpr || canvas.height !== sh * dpr)
         {
-            canvas.width = w * dpr;
-            canvas.height = h * dpr;
-            canvas.style.width = w + 'px';
-            canvas.style.height = h + 'px';
+            canvas.width = sw * dpr;
+            canvas.height = sh * dpr;
+            canvas.style.width = sw + 'px';
+            canvas.style.height = sh + 'px';
         }
 
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
         ctx.clearRect(0, 0, w, h);
         ctx.lineJoin = 'round';
         ctx.lineCap = 'round';
@@ -651,6 +672,11 @@ class WorldMapPanel
         if (this.checkbox && this.checkboxHandler)
         {
             this.checkbox.removeEventListener('change', this.checkboxHandler);
+        }
+
+        if (this.scaleInput && this.scaleHandler)
+        {
+            this.scaleInput.removeEventListener('input', this.scaleHandler);
         }
     }
 }

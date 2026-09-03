@@ -303,6 +303,30 @@ body.theme-light
     width: 1.05em;
 }
 
+#standings-options label.map-scale
+{
+    cursor: default;
+}
+
+#standings-options input[type="range"]
+{
+    accent-color: var(--accent);
+    cursor: pointer;
+
+    width: 7em;
+    height: 1em;
+
+    margin: 0;
+}
+
+#standings-options label.map-scale .map-scale-value
+{
+    min-width: 2.5em;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-0);
+}
+
 #live-timing-standings .standings-table
 {
     width: 100%;
