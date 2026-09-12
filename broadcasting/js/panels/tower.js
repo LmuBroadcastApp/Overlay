@@ -99,11 +99,11 @@ const EXTRA_COLUMNS =
             }
             return vdom.h('td',
                 { className: 'vehicle-extra-column standings-secondary-color', style: { fontSize: '0.5em' } },
-                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[0]) } }),
-                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[1]) } }),
+                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[0]) } }, ''),
+                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[1]) } }, ''),
                 vdom.h('br'),
-                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[2]) } }),
-                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[3]) } }));
+                vdom.h('span', { style: { color: TireCompoundColor(v.tire_compound[2]) } }, ''),
+                vdom.h('span', { style: { marginLeft: '5px', color: TireCompoundColor(v.tire_compound[3]) } }, ''));
         }
     }
 ];
