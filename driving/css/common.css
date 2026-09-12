@@ -60,6 +60,7 @@ body
 {
     font-family: 'Titillium Web', 'FiraCode Nerd Font', 'sans-serif';
     margin: 0; padding: 0;
+    overflow: hidden;
 }
 
 /** Apply to all elements (padding is taken from the inner bounds) */

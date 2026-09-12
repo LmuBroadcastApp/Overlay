@@ -44,13 +44,13 @@ class WorldMapPanel
 
         window.addEventListener('keydown', (e) =>
         {
-            if (e.key== '+')
+            if (e.key == '+')
             {
                 this.scale += 0.1;
             }
-            else if (e.key== '-')
+            else if (e.key == '-')
             {
-                this.scale = Math.max(1,  this.scale -0.1);
+                this.scale = Math.max(1,  this.scale - 0.1);
             }
         });
     }
