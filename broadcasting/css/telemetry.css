@@ -1,0 +1,405 @@
+#telemetry-panel
+{
+    padding-left: var(--cell-padding-x); padding-right: var(--cell-padding-x);
+    background-color: rgba(0, 0, 0, 0.7);
+
+    flex-direction: row;
+    display: flex;
+}
+
+#telemetry-panel #gauges-panel
+{
+    flex-direction: column;
+    align-items: center;
+
+    display: flex;
+    gap: var(--panel-padding);
+}
+
+#telemetry-panel #gauges
+{
+    display: flex;
+    gap: var(--panel-padding);
+}
+
+#telemetry-panel .gauge
+{
+    width: var(--telemetry-gauge-size);
+    height: var(--telemetry-gauge-size);
+    position: relative;
+}
+
+#telemetry-panel .gauge-wrapper
+{
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: calc(var(--telemetry-gauge-size) * 0.05);
+}
+
+#telemetry-panel canvas
+{
+    width: 100% !important;
+    height: 100% !important;
+}
+
+#telemetry-panel .speed-label
+{
+    transform: translate(-50%, -35%);
+
+    position: absolute;
+    text-align: center;
+
+    left: 50%;
+    top: 50%;
+}
+
+#telemetry-panel #speedValue
+{
+    font-size: var(--telemetry-text-scale);
+    font-weight: bold;
+    line-height: 1;
+}
+
+#telemetry-panel #speedUnit
+{
+    font-size: var(--telemetry-unit-scale);
+    opacity: 0.7;
+}
+
+/* RPM LABEL */
+#telemetry-panel .rpm-label
+{
+    font-size: var(--telemetry-text-scale);
+    transform: translate(-50%, -45%);
+    font-weight: bold;
+
+    position: absolute;
+    left: 50%;
+    top: 50%;
+}
+
+#telemetry-panel .rpm-bottom
+{
+    font-size: calc(var(--telemetry-gauge-size) * 0.20);
+    transform: translate(0%, -100%);
+
+    text-align: center;
+
+    font-weight: bold;
+    line-height: 1;
+
+    color: var(--text-color-primary);
+    opacity: 0.9;
+}
+
+#telemetry-panel #inputs
+{
+    width: calc(var(--telemetry-gauge-size) * 2 + var(--panel-padding) * 2);
+    flex-direction: column;
+    display: flex;
+    gap: 6px;
+}
+
+#telemetry-panel .bar
+{
+    height: calc(var(--telemetry-gauge-size) * 0.04);
+    background: rgba(255,255,255,0.1);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+#telemetry-panel .fill
+{
+    height: 100%;
+    width: 0;
+}
+
+#telemetry-panel #throttleFill { background: var(--throttle-color); }
+#telemetry-panel #brakeFill { background: var(--brake-color); }
+
+/**********************************************************************************************************************/
+
+#telemetry-panel #timing-tower
+{
+    display: flex;
+    flex-direction: row;
+    padding: var(--panel-padding) 0;
+
+    align-items: center;
+    justify-content: center;
+
+    color: #e0e0e0;
+    font-size: 0.875rem;
+
+    width: fit-content;
+    height: 100%;
+}
+
+#timing-tower .position-row
+{
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+#timing-tower .times-section
+{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 0 var(--panel-padding);
+    justify-content: space-between;
+    height: 100%;
+    padding: 2px 0;
+    width: fit-content;
+}
+
+#timing-tower .time-row
+{
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 8px;
+}
+
+#timing-tower .time-block
+{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#timing-tower .time-val
+{
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1.1rem;
+
+    background: var(--timing-bg);
+    text-align: center;
+
+    min-width: 80px;
+    padding: 0 6px;
+}
+
+#timing-tower .time-val.bg-green
+{
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .time-val.bg-purple
+{
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .time-label
+{
+    font-size: 0.7rem;
+    text-align: right;
+
+    color: #888;
+    width: 25px;
+}
+
+#timing-tower .sectors-section
+{
+    flex-direction: row;
+    align-items: stretch;
+
+    display: flex;
+    gap: 12px;
+
+    padding: 2px 0;
+    height: 100%;
+}
+
+#timing-tower .sector-column
+{
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: center;
+    display: flex;
+
+    min-width: 52px;
+    gap: 2px;
+}
+
+#timing-tower .sector-time
+{
+    font-family: monospace;
+    font-size: 0.85rem;
+
+    background: var(--timing-bg);
+    text-align: center;
+    padding: 0 4px;
+
+    line-height: 1.5;
+    min-width: 48px;
+
+}
+
+#timing-tower .sector-time.inactive
+{
+    background: var(--timing-bg-inactive);
+    color: var(--timing-inactive);
+    opacity: 0.5;
+}
+
+#timing-tower .sector-time.green
+{
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .sector-time.purple
+{
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .sector-time.yellow
+{
+    background-color: var(--timing-yellow);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .mini-sectors
+{
+    display: flex;
+    align-items: center;
+
+    flex-wrap: nowrap;
+    gap: 2px;
+}
+
+#timing-tower .mini-block
+{
+    background-color: var(--timing-inactive);
+    height: 10px;
+    width: 6px;
+}
+
+#timing-tower .mini-block.inactive
+{
+    background-color: #2a2a2a;
+    opacity: 0.4;
+}
+
+#timing-tower .mini-block.green
+{
+    background-color: var(--timing-green);
+}
+
+#timing-tower .mini-block.purple
+{
+    background-color: var(--timing-purple);
+}
+
+#timing-tower .mini-block.yellow
+{
+    background-color: var(--timing-yellow);
+}
+
+
+#timing-tower .best-time
+{
+    background: var(--timing-bg-inactive);
+    text-align: center;
+
+    font-family: monospace;
+    font-size: 0.85rem;
+
+    min-width: 44px;
+    padding: 0 3px;
+
+    line-height: 1.4;
+    color: #bbb;
+}
+
+#timing-tower .best-time.purple
+{
+    background-color: var(--timing-purple);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .best-time.green
+{
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .tyre-box
+{
+    flex-direction: column;
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    transition: opacity var(--transition-speed), transform var(--transition-speed);
+    cursor: pointer;
+    min-width: 40px;
+}
+
+#timing-tower .tyre-icon
+{
+    justify-content: center;
+    display: flex;
+
+    border-radius: 50%;
+    border: 2px solid #555;
+
+    height: 24px;
+    width: 24px;
+
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+#timing-tower .tyre-icon.soft
+{
+    border-color: #fff;
+    color: #fff;
+}
+
+#timing-tower .tyre-icon.medium
+{
+    border-color: #f1c40f;
+    color: #f1c40f;
+}
+
+#timing-tower .tyre-icon.hard
+{
+    border-color: #ff4757;
+    color: #ff4757;
+}
+
+#timing-tower .tyre-icon.wet
+{
+    border-color: #3498db;
+    color: #3498db;
+}
+
+#timing-tower .tyre-age
+{
+    font-size: 1.0rem;
+    color: #aaa;
+    margin-top: 2px;
+}
+
+#timing-tower .tyre-box:hover
+{
+    opacity: 0.8;
+    transform: scale(0.95);
+}
+
+#timing-tower .sector-divider
+{
+    color: var(--timing-inactive);
+    font-size: 0.6rem;
+    line-height: 1;
+}

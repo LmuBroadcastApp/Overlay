@@ -1,0 +1,7 @@
+#track-map-panel
+{
+    left: var(--track-map-left);
+    top: var(--track-map-top);
+    position: absolute;
+}
+

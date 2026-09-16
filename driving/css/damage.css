@@ -1,0 +1,12 @@
+#damage-panel
+{
+    padding: var(--panel-padding);
+    min-width: 160px;
+
+    left: var(--damage-left);
+    top: var(--damage-top);
+}
+
+#damage-panel .pit-stop-value.damage-ok   { color: var(--status-ok); }
+#damage-panel .pit-stop-value.damage-warn { color: var(--status-warn); }
+#damage-panel .pit-stop-value.damage-crit { color: var(--status-crit); text-shadow: 0 0 8px rgba(255, 107, 107, 0.4); }
