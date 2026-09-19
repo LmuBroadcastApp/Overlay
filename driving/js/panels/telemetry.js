@@ -79,6 +79,22 @@ class CircularQueue
 
         return result;
     }
+
+    /**
+     * Copies the queue contents into a caller-provided array (avoids per-frame allocation).
+     * The target array must have at least as many slots as the queue has items.
+     * @param {Array<*>} target Destination array.
+     * @returns {Array<*>} The target array, for chaining.
+     */
+    copyTo(target)
+    {
+        for (let i = 0; i < this.count; i++)
+        {
+            target[i] = this.buffer[(this.head + i) % this.capacity];
+        }
+
+        return target;
+    }
 }
 
 /**
@@ -107,6 +123,20 @@ class TelemetryChart
 
         this.queueCapacity = 512;
         this.lineWidth = 2;
+        this.scale = 1;
+
+        // reused per-frame scratch buffer for chart traces
+        this.chartBuffer = new Array(this.queueCapacity);
+
+        // cached style/dpr values and redraw bookkeeping
+        this._frameCount = 0;
+        this._dirty = false;
+
+        this._cssHeight = undefined;
+        this._cssWidth = undefined;
+
+        this._scale = undefined;
+        this._dpr = undefined;
 
         this.canvas = document.getElementById(selector.slice(1));
         this.ctx = this.canvas.getContext('2d');
@@ -146,6 +176,8 @@ class TelemetryChart
             this.steering.enqueue((this.vehicle.telemetry.steering + 1) * 0.5);
             this.throttle.enqueue(this.vehicle.telemetry.throttle);
             this.brake.enqueue(this.vehicle.telemetry.brake);
+
+            this._dirty = true;
         }
     }
 
@@ -154,27 +186,53 @@ class TelemetryChart
      */
     update()
     {
-        const style = getComputedStyle(document.documentElement);
-        const cssHeight = parseInt(style.getPropertyValue('--telemetry-input-chart-height'));
-        const cssWidth = parseInt(style.getPropertyValue('--telemetry-input-chart-width'));
+        const dpr = window.devicePixelRatio || 1;
+        const scale = this.scale;
 
-        // Only resize when needed: resizing clears the canvas and resets context state
-        if (this.canvas.height !== cssHeight || this.canvas.width !== cssWidth)
+        // Cache chart CSS size/dpr; only re-read when scale or dpr change, the buffer
+        // falls out of sync, or once a second as a safety net for external CSS changes.
+        if (this._dpr !== dpr || this._scale !== scale || this._cssWidth === undefined || ++this._frameCount % 60 === 0 || this.canvas.width !== Math.round(this._cssWidth * this._dpr) || this.canvas.height !== Math.round(this._cssHeight * this._dpr))
         {
-            this.canvas.height = cssHeight;
-            this.canvas.width = cssWidth;
+            const style = getComputedStyle(document.documentElement);
 
-            this.ctx.lineCap = 'round';
-            this.ctx.lineJoin = 'round';
+            this._cssHeight = parseInt(style.getPropertyValue('--telemetry-input-chart-height')) * scale;
+            this._cssWidth = parseInt(style.getPropertyValue('--telemetry-input-chart-width')) * scale;
+
+            this._scale = scale;
+            this._dpr = dpr;
         }
 
-        let { width, height } = this.canvas;
-        this.ctx.clearRect(0, 0, width, height);
+        const cssHeight = this._cssHeight;
+        const cssWidth = this._cssWidth;
 
-        if (this.vehicle == null)
+        const pixelHeight = Math.round(cssHeight * dpr);
+        const pixelWidth = Math.round(cssWidth * dpr);
+
+        // Only resize when needed: resizing clears the canvas and resets context state
+        if (this.canvas.height !== pixelHeight || this.canvas.width !== pixelWidth)
+        {
+            this.canvas.height = pixelHeight;
+            this.canvas.width = pixelWidth;
+
+            this.canvas.style.height = cssHeight + 'px';
+            this.canvas.style.width = cssWidth + 'px';
+
+            this._dirty = true;
+        }
+
+        // Skip redraw while nothing changed (no new sample and no resize).
+        if (this.vehicle == null || !this._dirty)
         {
             return;
         }
+
+        this._dirty = false;
+
+        let width = cssWidth;
+        let height = cssHeight;
+
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.ctx.clearRect(0, 0, width, height);
 
         // padding
         const pad = 0;
@@ -188,7 +246,7 @@ class TelemetryChart
             const cx = width - r - gaugeRadius - pad - 4;
             const cy = drawY + r + gaugeRadius + 4;
 
-            this._drawSteering(cx, cy, r, (this.vehicle.telemetry.steering + 1) * 0.5);
+            this._drawSteering(cx, cy, r, (this.vehicle.telemetry.steering + 1) * 0.5, scale);
             width -= (r * 2 + gaugeRadius * 2 + pad + 12);
         }
 
@@ -210,9 +268,14 @@ class TelemetryChart
 
             this._drawGrid(chartX, drawY, chartW, height);
 
-            this._drawLine(this.steering.toArray(), this.colors.steering.line, this.colors.steering.fill, chartX, drawY, chartW, height);
-            this._drawLine(this.brake.toArray(), this.colors.brake.line, this.colors.brake.fill, chartX, drawY, chartW, height);
-            this._drawLine(this.throttle.toArray(), this.colors.throttle.line, this.colors.throttle.fill, chartX, drawY, chartW, height);
+            this.steering.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.steering.line, this.colors.steering.fill, chartX, drawY, chartW, height);
+
+            this.brake.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.brake.line, this.colors.brake.fill, chartX, drawY, chartW, height);
+
+            this.throttle.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.throttle.line, this.colors.throttle.fill, chartX, drawY, chartW, height);
         }
     }
 
@@ -342,8 +405,9 @@ class TelemetryChart
      * @param {number} y Widget center Y coordinate.
      * @param {number} radius Steering ring radius.
      * @param {number} value Normalized steering value in the [0, 1] range.
+     * @param {number} scale UI scale factor applied to text sizes.
      */
-    _drawSteering(x, y, radius, value)
+    _drawSteering(x, y, radius, value, scale = 1)
     {
         value = value * 2 - 1;
         this.ctx.save();
@@ -384,22 +448,22 @@ class TelemetryChart
 
         // speed
         const kmh = this.vehicle.telemetry.speed.toFixed(0);
-        this.ctx.font = 'bold 20px Titillium Web, sans-serif';
+        this.ctx.font = `bold ${20 * scale}px Titillium Web, sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(kmh, x, y - 10);
+        this.ctx.fillText(kmh, x, y - 10 * scale);
 
         // "km/h" label
-        this.ctx.font = '9px Titillium Web, sans-serif';
+        this.ctx.font = `${9 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        this.ctx.fillText('km/h', x, y + 4);
+        this.ctx.fillText('km/h', x, y + 4 * scale);
 
         // gear
         const gear = this.vehicle.telemetry.gear;
-        this.ctx.font = 'bold 14px Titillium Web, sans-serif';
+        this.ctx.font = `bold ${14 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#6ee7ff';
-        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 20);
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 20 * scale);
 
         this.ctx.restore();
     }
@@ -431,16 +495,24 @@ class TelemetryChart
         {
             const fy = y + (h - filled);
 
-            // glow behind bar
-            this.ctx.shadowColor = glowColor;
-            this.ctx.shadowBlur = 10;
+            // fake glow: stacked translucent fills (cheaper than shadowBlur)
+            this.ctx.beginPath();
+            this.ctx.roundRect(x - 3, fy, w + 6, filled, radius);
+            this.ctx.fillStyle = glowColor;
+            this.ctx.globalAlpha = 0.2;
+            this.ctx.fill();
+
+            this.ctx.beginPath();
+            this.ctx.roundRect(x - 1, fy, w + 2, filled, radius);
+            this.ctx.globalAlpha = 0.35;
+            this.ctx.fill();
+
+            this.ctx.globalAlpha = 1;
 
             this.ctx.beginPath();
             this.ctx.roundRect(x, fy, w, filled, radius);
             this.ctx.fillStyle = color;
             this.ctx.fill();
-
-            this.ctx.shadowBlur = 0;
 
             // bright top cap
             this.ctx.beginPath();

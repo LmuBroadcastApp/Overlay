@@ -142,23 +142,27 @@ class WorldMapPanel
         // Crisp rendering on high-DPI displays; scale scales the whole map uniformly
         const dpr = window.devicePixelRatio || 1;
         const scale = this.scale || 1;
-        const w = this.map.size.width;
+
         const h = this.map.size.height;
-        const sw = w * scale;
+        const w = this.map.size.width;
+
         const sh = h * scale;
+        const sw = w * scale;
 
         if (canvas.width !== sw * dpr || canvas.height !== sh * dpr)
         {
-            canvas.width = sw * dpr;
-            canvas.height = sh * dpr;
             canvas.style.width = sw + 'px';
             canvas.style.height = sh + 'px';
+
+            canvas.height = sh * dpr;
+            canvas.width = sw * dpr;
+
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
         }
 
         ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
 
         const colors = this._palette();
 

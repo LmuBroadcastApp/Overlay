@@ -28,7 +28,9 @@ class WorldMapPanel
         this.standings = this.stateManager.getState('standings');
         this.session = this.stateManager.getState('session');
         this.map = this.stateManager.getState('map');
+
         this.splineOffset = null;
+        this.scale = 1;
     }
 
     /**
@@ -89,21 +91,25 @@ class WorldMapPanel
 
         // Crisp rendering on high-DPI displays
         const dpr = window.devicePixelRatio || 1;
-        const w = this.map.size.width;
-        const h = this.map.size.height;
+        const scale = this.scale;
+
+        const w = this.map.size.width  * scale;
+        const h = this.map.size.height * scale;
 
         if (canvas.width !== w * dpr || canvas.height !== h * dpr)
         {
-            canvas.width = w * dpr;
-            canvas.height = h * dpr;
-            canvas.style.width = w + 'px';
             canvas.style.height = h + 'px';
+            canvas.style.width = w + 'px';
+
+            canvas.height = h * dpr;
+            canvas.width = w * dpr;
+
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
         }
 
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
 
         const colors = this._palette();
 

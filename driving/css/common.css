@@ -16,6 +16,10 @@
     --laptime-log-left: 1%;                     /** Position from the left of the screen */
     --laptime-log-top: 1%;                      /** Position from the top of the screen */
 
+    --pit-stop-estimation-scale: 1;             /** Scale factor of the panel (1 - 5) */
+    --weather-forecast-scale: 1;                /** Scale factor of the panel (1 - 5) */
+    --damage-scale: 1;                          /** Scale factor of the panel (1 - 5) */
+
     --telemetry-input-chart-height: 100px;
     --telemetry-input-chart-width: 530px;
 
@@ -52,6 +56,26 @@
 
     position: absolute;
     color: var(--text-secondary);
+}
+
+/** Scale panels from their top-left corner so the anchored position stays fixed.
+ *  The input telemetry and track map panels are scaled in JavaScript (this.scale). */
+#pit-stop-estimation
+{
+    transform-origin: top left;
+    transform: scale(var(--pit-stop-estimation-scale, 1));
+}
+
+#weather-panel
+{
+    transform-origin: top left;
+    transform: scale(var(--weather-forecast-scale, 1));
+}
+
+#damage-panel
+{
+    transform-origin: top left;
+    transform: scale(var(--damage-scale, 1));
 }
 
 /**********************************************************************************************************************/

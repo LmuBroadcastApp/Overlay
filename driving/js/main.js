@@ -57,22 +57,31 @@ function UpdateOverlaySettings(settings)
     // pit stop estimation panel
     root.style.setProperty('--pit-stop-estimation-left', settings.driving_pitstop.position_left);
     root.style.setProperty('--pit-stop-estimation-top', settings.driving_pitstop.position_top);
+    root.style.setProperty('--pit-stop-estimation-scale', settings.driving_pitstop.scale ?? 1);
 
-    // input telemetry panel
+    // input telemetry panel (scaled through the panel's own this.scale)
     root.style.setProperty('--telemetry-input-chart-left', settings.driving_telemetry.position_left);
     root.style.setProperty('--telemetry-input-chart-top', settings.driving_telemetry.position_top);
+
+    const telemetry = panelRegistry.get('TelemetryChart');
+    if (telemetry) telemetry.scale = settings.driving_telemetry?.scale ?? 1;
 
     // weather forecast panel
     root.style.setProperty('--weather-forecast-left', settings.driving_weather.position_left);
     root.style.setProperty('--weather-forecast-top', settings.driving_weather.position_top);
+    root.style.setProperty('--weather-forecast-scale', settings.driving_weather.scale ?? 1);
 
     // damage panel
     root.style.setProperty('--damage-left', settings.driving_damage.position_left);
     root.style.setProperty('--damage-top', settings.driving_damage.position_top);
+    root.style.setProperty('--damage-scale', settings.driving_damage.scale ?? 1);
 
-    // track map panel
+    // track map panel (scaled through the panel's own this.scale)
     root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
     root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
+
+    const trackMap = panelRegistry.get('WorldMap');
+    if (trackMap) trackMap.scale = settings.driving_track_map?.scale ?? 1;
 
     //
     //root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
