@@ -44,6 +44,13 @@ function ApplyPanelVisibility()
  */
 function UpdateOverlaySettings(settings)
 {
+    // enable / disable panels based on the persisted settings
+    g_PanelEnabled.pitstop   = settings.driving_pitstop?.enabled   ?? g_PanelEnabled.pitstop;
+    g_PanelEnabled.telemetry = settings.driving_telemetry?.enabled ?? g_PanelEnabled.telemetry;
+    g_PanelEnabled.weather   = settings.driving_weather?.enabled   ?? g_PanelEnabled.weather;
+    g_PanelEnabled.damage    = settings.driving_damage?.enabled    ?? g_PanelEnabled.damage;
+    g_PanelEnabled.trackMap  = settings.driving_track_map?.enabled ?? g_PanelEnabled.trackMap;
+
     const root = document.documentElement;
     ApplyPanelVisibility();
 
