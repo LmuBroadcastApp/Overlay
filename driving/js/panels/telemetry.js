@@ -311,7 +311,9 @@ class TelemetryChart
     }
 
     /**
-     * Draws an F1-style segmented shift-light bar above the steering widget.
+     * Draws an LMU-style segmented shift-light bar above the steering widget.
+     * LEDs stay dark until RPM enters the upper rev range, fill green-to-red,
+     * and flash once the shift point is reached.
      * @param {number} x Gauge center X coordinate.
      * @param {number} y Bar top coordinate.
      * @param {number} width Shift-light bar width.
@@ -329,14 +331,28 @@ class TelemetryChart
         const segmentHeight = 5 * scale;
 
         const ratio = Math.min(Math.max(this.vehicle.telemetry.rpm / maxRpm, 0), 1);
+
+        // Fraction of max RPM where the first LED lights, the bar is fully lit,
+        // and the flashing (shift point) zone begins.
+        const first = 0.65;
+        const full = 0.98;
+        const blink = 0.95;
+
+        const t = Math.min(Math.max((ratio - first) / (full - first), 0), 1);
+        const litSegments = Math.round(t * segments);
+
+        // Flash the whole bar at 8 Hz once past the shift point. Redraws only fire
+        // on new telemetry samples, so plain Date/performance time works as the phase.
+        const showBar = ratio < blink || Math.floor(performance.now() / 125) % 2 === 0;
+
         this.ctx.save();
 
-        const yellow = Math.round(0.8 * segments);
-        const red = Math.round(0.9 * segments);
+        const yellow = Math.round(0.6 * segments);
+        const red = Math.round(0.82 * segments);
 
         for (let i = 0; i < segments; i++)
         {
-            const active = ratio >= (i + 1) / segments - 0.04;
+            const active = i < litSegments && showBar;
             const color = i < yellow ? '#51cf66' : (i < red ? '#ffd43b' : '#ff6b6b');
             const segmentX = x - width * 0.5 + i * (segmentWidth + gap);
 
