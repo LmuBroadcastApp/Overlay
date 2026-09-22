@@ -236,15 +236,21 @@ class TelemetryChart
 
         // padding
         const pad = 0;
-        height -= pad * 2;
-        let drawY = pad;
+        const shiftLightHeight = 12 * scale;
+        height -= pad * 2 + shiftLightHeight;
+        let drawY = pad + shiftLightHeight;
+
+        // Full-width shift lights keep the RPM signal visible across the entire panel.
+        this._drawShiftLightBar(width * 0.5, pad, width, scale);
 
         // steering wheel (right side)
         {
-            const gaugeRadius = 15;
+            // Keep a compact outer margin while allowing the steering dial to use
+            // more of the available telemetry height.
+            const gaugeRadius = 1;
             const r = (height - gaugeRadius * 2) * 0.5 - this.lineWidth;
             const cx = width - r - gaugeRadius - pad - 4;
-            const cy = drawY + r + gaugeRadius + 4;
+            const cy = drawY + height * 0.5 - 2 * scale;
 
             this._drawSteering(cx, cy, r, (this.vehicle.telemetry.steering + 1) * 0.5, scale);
             width -= (r * 2 + gaugeRadius * 2 + pad + 12);
@@ -305,94 +311,40 @@ class TelemetryChart
     }
 
     /**
-     * Draws the outer RPM arc around the steering widget.
+     * Draws an F1-style segmented shift-light bar above the steering widget.
      * @param {number} x Gauge center X coordinate.
-     * @param {number} y Gauge center Y coordinate.
-     * @param {number} radius Gauge radius.
+     * @param {number} y Bar top coordinate.
+     * @param {number} width Shift-light bar width.
+     * @param {number} scale UI scale factor applied to dimensions.
      */
-    _drawRpmGauge(x, y, radius)
+    _drawShiftLightBar(x, y, width, scale)
     {
-        if (this.vehicle.telemetry.max_rpm <= 0) return;
+        const maxRpm = this.vehicle.telemetry.max_rpm;
+        if (maxRpm <= 0) return;
+
+        const gap = 2 * scale;
+        const segments = 24;
+
+        const segmentWidth = (width - gap * (segments - 1)) / segments;
+        const segmentHeight = 5 * scale;
+
+        const ratio = Math.min(Math.max(this.vehicle.telemetry.rpm / maxRpm, 0), 1);
         this.ctx.save();
 
-        const rpmRatio = Math.min(this.vehicle.telemetry.rpm / this.vehicle.telemetry.max_rpm, 1);
-        const startAngle = Math.PI * 0.75;
-        const endAngle = Math.PI * 0.25;
-        const totalSweep = (2 * Math.PI) - (startAngle - endAngle);
-        const segments = 60;
+        const yellow = Math.round(0.8 * segments);
+        const red = Math.round(0.9 * segments);
 
-        // background arc
-        this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, startAngle, 2 * Math.PI + endAngle);
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-        this.ctx.lineWidth = 5;
-        this.ctx.stroke();
-
-        // colored segments up to current RPM
-        const filledSweep = totalSweep * rpmRatio;
-        const segmentSweep = totalSweep / segments;
-        const filledSegments = Math.floor(filledSweep / segmentSweep);
-
-        for (let i = 0; i < filledSegments; i++)
+        for (let i = 0; i < segments; i++)
         {
-            const t = i / segments;
-            const segStart = startAngle + i * segmentSweep;
-            const segEnd = segStart + segmentSweep + 0.005;
-
-            let r = 255;
-            let g = 255;
-            let b = 0;
-
-            if (t < 0.6)
-            {
-                // green to yellow
-                const lt = t / 0.6;
-                r = Math.round(81 + (255 - 81) * lt);
-                g = Math.round(207 + (212 - 207) * lt);
-                b = Math.round(102 + (59 - 102) * lt);
-            }
-            else
-            {
-                // yellow to red
-                const lt = (t - 0.6) / 0.4;
-                g = Math.round(212 - 105 * lt);
-                b = Math.round(59 - 59 * lt);
-            }
+            const active = ratio >= (i + 1) / segments - 0.04;
+            const color = i < yellow ? '#51cf66' : (i < red ? '#ffd43b' : '#ff6b6b');
+            const segmentX = x - width * 0.5 + i * (segmentWidth + gap);
 
             this.ctx.beginPath();
-            this.ctx.arc(x, y, radius, segStart, segEnd);
-            this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-            this.ctx.lineCap = 'round';
-            this.ctx.lineWidth = 5;
-            this.ctx.stroke();
-        }
-
-        // glow on leading edge
-        if (filledSegments > 0)
-        {
-            const glowT = filledSegments / segments;
-            let gr = 255, gg = 255, gb = 0;
-
-            if (glowT < 0.6)
-            {
-                const lt = glowT / 0.6;
-                gr = Math.round(81 + (255 - 81) * lt);
-                gg = Math.round(207 + (212 - 207) * lt);
-                gb = Math.round(102 + (59 - 102) * lt);
-            }
-            else
-            {
-                gg = Math.round(212 - 105 * ((glowT - 0.6) / 0.4));
-                gb = Math.round(59 - 59 * ((glowT - 0.6) / 0.4));
-            }
-
-            const glowAngle = startAngle + filledSweep;
-            const gx = x + Math.cos(glowAngle) * radius;
-            const gy = y + Math.sin(glowAngle) * radius;
-
-            this.ctx.beginPath();
-            this.ctx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, 0.4)`;
-            this.ctx.arc(gx, gy, 6, 0, Math.PI * 2);
+                this.ctx.roundRect(segmentX, y, segmentWidth, segmentHeight, 1.5 * scale);
+                this.ctx.fillStyle = active ? color : 'rgba(255, 255, 255, 0.08)';
+                this.ctx.shadowColor = active ? color : 'transparent';
+                this.ctx.shadowBlur = active ? 6 * scale : 0;
             this.ctx.fill();
         }
 
@@ -411,9 +363,6 @@ class TelemetryChart
     {
         value = value * 2 - 1;
         this.ctx.save();
-
-        // RPM gauge — outermost ring
-        this._drawRpmGauge(x, y, radius + 10);
 
         // outer ring — subtle glow
         this.ctx.beginPath();
@@ -434,12 +383,6 @@ class TelemetryChart
         const indicatorX = x + Math.sin(angle) * radius;
         const indicatorY = y - Math.cos(angle) * radius;
 
-        // glow
-        this.ctx.beginPath();
-        this.ctx.fillStyle = 'rgba(110, 231, 255, 0.3)';
-        this.ctx.arc(indicatorX, indicatorY, 8, 0, Math.PI * 2);
-        this.ctx.fill();
-
         // dot
         this.ctx.beginPath();
         this.ctx.fillStyle = '#6ee7ff';
@@ -448,22 +391,22 @@ class TelemetryChart
 
         // speed
         const kmh = this.vehicle.telemetry.speed.toFixed(0);
-        this.ctx.font = `bold ${20 * scale}px Titillium Web, sans-serif`;
+        this.ctx.font = `bold ${18 * scale}px Titillium Web, sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(kmh, x, y - 10 * scale);
+        this.ctx.fillText(kmh, x, y - 12 * scale);
 
         // "km/h" label
         this.ctx.font = `${9 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        this.ctx.fillText('km/h', x, y + 4 * scale);
+        this.ctx.fillText('km/h', x, y + 1 * scale);
 
         // gear
         const gear = this.vehicle.telemetry.gear;
-        this.ctx.font = `bold ${14 * scale}px Titillium Web, sans-serif`;
-        this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#6ee7ff';
-        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 20 * scale);
+        this.ctx.font = `bold ${24 * scale}px Titillium Web, sans-serif`;
+        this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#71e2d0';
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 17 * scale);
 
         this.ctx.restore();
     }
