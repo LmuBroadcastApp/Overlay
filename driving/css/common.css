@@ -23,7 +23,7 @@
     --telemetry-input-chart-height: 100px;
     --telemetry-input-chart-width: 530px;
 
-    --panel-bg: linear-gradient(135deg, rgba(15, 15, 25, 0.85), rgba(30, 30, 50, 0.75));
+    --panel-bg: linear-gradient(135deg, rgba(10, 10, 18, 0.9), rgba(20, 20, 36, 0.85));
     --panel-border: 1px solid rgba(255, 255, 255, 0.08);
     --panel-radius: 0;
     --panel-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
