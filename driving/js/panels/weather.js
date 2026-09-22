@@ -71,11 +71,6 @@ class WeatherPanel
             }
         }
 
-        if (idx < this.session.weatherForecast.length)
-        {
-            wind_speed = this.session.weatherForecast[idx].wind_speed;
-        }
-
         let header = "";
         let body = "";
 
