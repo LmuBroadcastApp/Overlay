@@ -50,56 +50,64 @@ class WeatherPanel
             return;
         }
 
-        let when = "󰔛";
-        let idx = this.session.weatherForecast.length;
-        let perc = this.session.currentEventTime / this.session.endEventTime;
+        const forecast = this.session.weatherForecast;
+        const perc = this.session.currentEventTime / this.session.endEventTime;
 
-        let wind_speed = this.session.windSpeed;
-        let raining = this.session.raining * 100;
-        let sky = this.session.cloudCoverage;
+        // Index of the forecast interval containing "now". Falls back to the last
+        // interval when the session time is past every interval boundary.
+        let idx = forecast.length - 1;
 
-
-        for (let i = 0; i < this.session.weatherForecast.length - 1; ++i)
+        for (let i = 0; i < forecast.length - 1; i++)
         {
-            let p0 = this.session.weatherForecast[i + 0].idx;
-            let p1 = this.session.weatherForecast[i + 1].idx;
-
-            if (p0 < perc && perc < p1)
+            if (forecast[i].idx < perc && perc < forecast[i + 1].idx)
             {
                 idx = i;
                 break;
             }
         }
 
-        let header = "";
-        let body = "";
+        // First column always shows current conditions; remaining columns show
+        // the upcoming forecast slots (the final slot is a boundary marker, not shown).
+        let header = '<th>󰔛</th>';
+        let body = this._forecastCell(this.session.cloudCoverage, this.session.raining * 100);
 
-        for (let i = idx; i < this.session.weatherForecast.length - 1; i++)
+        for (let i = idx + 1; i < forecast.length - 1; i++)
         {
-            if (i > idx)
-            {
-                let timeSlot = this.session.weatherForecast[i].idx * this.session.endEventTime;
-                let remainingTime = timeSlot - this.session.currentEventTime;
-
-                let div = 1.0 / 60.0;
-                sky = this.session.weatherForecast[i].sky;
-                when = Math.floor(remainingTime * div) + "'";
-                raining = this.session.weatherForecast[i].rainChance;
-            }
-
-            let icon = `<img src="../shared/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
-            let time = `${when}`;
-
-            body += `<td class="progress-cell" style="--progress: ${raining}%;width: var(--weather-panel-img-width);">${icon}</td>`;
-            header += `<th>${time}</th>`;
+            header += `<th>${this._forecastTimeLabel(forecast[i])}</th>`;
+            body += this._forecastCell(forecast[i].sky, forecast[i].rainChance);
         }
 
         this.element.querySelector('.weather-panel-track-body').textContent = this._gripLevel2String(this.session.gripLevel, this.session.averagePathWetness);
-        this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
-        this.element.querySelector('.weather-panel-wind-body').innerHTML = `${wind_speed.toFixed(1)}&nbsp;Km/h`;
+        this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
+        this.element.querySelector('.weather-panel-wind-body').innerHTML = `${this.session.windSpeed.toFixed(1)}&nbsp;Km/h`;
 
         this.element.querySelector('.weather-panel-forecast-header').innerHTML = header;
         this.element.querySelector('.weather-panel-forecast-body').innerHTML = body;
+    }
+
+    /**
+     * Builds one forecast table cell (rain-chance progress bar + weather icon).
+     * @param {number} sky Sky-state identifier.
+     * @param {number} rainChance Rain chance percentage (0-100).
+     * @returns {string} Table cell markup.
+     */
+    _forecastCell(sky, rainChance)
+    {
+        const icon = `<img src="../shared/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
+        return `<td class="progress-cell" style="--progress: ${rainChance}%;width: var(--weather-panel-img-width);">${icon}</td>`;
+    }
+
+    /**
+     * Formats the remaining-time label for a future forecast slot.
+     * @param {Object} slot Forecast slot with an `idx` fraction of the session.
+     * @returns {string} Minutes-remaining label, e.g. "12'".
+     */
+    _forecastTimeLabel(slot)
+    {
+        const timeSlot = slot.idx * this.session.endEventTime;
+        const remainingTime = timeSlot - this.session.currentEventTime;
+
+        return Math.floor(remainingTime / 60) + "'";
     }
 
     /**
