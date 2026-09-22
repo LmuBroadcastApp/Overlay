@@ -16,16 +16,26 @@
     top: var(--pit-stop-estimation-top);
 }
 
+/** Broadcast-style header tab: white block with an angled right edge,
+ *  bleeding into the panel's top-left corner. */
 .pit-stop-header
 {
-    font-size: 0.6em;
-    font-weight: 600;
+    display: inline-block;
+
+    background: #ffffff;
+    color: #0a0a0a;
+
+    font-size: 0.62em;
+    font-weight: 700;
+    font-style: italic;
 
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 0.5px;
 
-    color: var(--text-muted);
-    margin-bottom: 8px;
+    margin: -10px 0 8px -14px;
+    padding: 4px 18px 4px 14px;
+
+    clip-path: polygon(0 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
 }
 
 .pit-stop-row
