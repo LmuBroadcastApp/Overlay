@@ -63,9 +63,6 @@ function UpdateOverlaySettings(settings)
     root.style.setProperty('--telemetry-input-chart-left', settings.driving_telemetry.position_left);
     root.style.setProperty('--telemetry-input-chart-top', settings.driving_telemetry.position_top);
 
-    const telemetry = panelRegistry.get('TelemetryChart');
-    if (telemetry) telemetry.scale = settings.driving_telemetry?.scale ?? 1;
-
     // weather forecast panel
     root.style.setProperty('--weather-forecast-left', settings.driving_weather.position_left);
     root.style.setProperty('--weather-forecast-top', settings.driving_weather.position_top);
@@ -79,9 +76,6 @@ function UpdateOverlaySettings(settings)
     // track map panel (scaled through the panel's own this.scale)
     root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
     root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
-
-    const trackMap = panelRegistry.get('WorldMap');
-    if (trackMap) trackMap.scale = settings.driving_track_map?.scale ?? 1;
 
     //
     //root.style.setProperty('--laptime-log-left', settings.driving_laptime_log.position_left);
@@ -152,7 +146,7 @@ panelRegistry.register('PitStopEstimation', PitStopEstimation, '#pit-stop-estima
 panelRegistry.register('TelemetryChart', TelemetryChart, '#telemetry-input-chart');
 panelRegistry.register('WorldMap', WorldMapPanel, '#track-map-panel');
 panelRegistry.register('Weather', WeatherPanel, '#weather-panel');
-panelRegistry.register('LaptimeLog', LaptimeLog, '#laptime-log');
+//panelRegistry.register('LaptimeLog', LaptimeLog, '#laptime-log');
 panelRegistry.register('Damage', DamagePanel, '#damage-panel');
 
 // Make panels draggable

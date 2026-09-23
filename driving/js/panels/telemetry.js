@@ -311,10 +311,10 @@ class TelemetryChart
     }
 
     /**
-     * Draws an LMU-style segmented shift-light bar above the steering widget.
-     * LEDs stay dark until RPM enters the upper rev range, fill green-to-red,
-     * and flash once the shift point is reached.
-     * @param {number} x Gauge center X coordinate.
+     * Draws a continuous shift-light bar above the steering widget.
+     * The bar fills with RPM (as a fraction of max RPM) and colors shift from
+     * green (0-75%) through yellow-to-red (75-90%) and red-to-blue (90-100%).
+     * @param {number} x Bar center X coordinate.
      * @param {number} y Bar top coordinate.
      * @param {number} width Shift-light bar width.
      * @param {number} scale UI scale factor applied to dimensions.
@@ -324,45 +324,48 @@ class TelemetryChart
         const maxRpm = this.vehicle.telemetry.max_rpm;
         if (maxRpm <= 0) return;
 
-        const gap = 2 * scale;
-        const segments = 24;
-
-        const segmentWidth = (width - gap * (segments - 1)) / segments;
-        const segmentHeight = 5 * scale;
-
         const ratio = Math.min(Math.max(this.vehicle.telemetry.rpm / maxRpm, 0), 1);
 
-        // Fraction of max RPM where the first LED lights, the bar is fully lit,
-        // and the flashing (shift point) zone begins.
-        const first = 0.65;
-        const full = 0.98;
-        const blink = 0.95;
-
-        const t = Math.min(Math.max((ratio - first) / (full - first), 0), 1);
-        const litSegments = Math.round(t * segments);
-
-        // Flash the whole bar at 8 Hz once past the shift point. Redraws only fire
-        // on new telemetry samples, so plain Date/performance time works as the phase.
-        const showBar = ratio < blink || Math.floor(performance.now() / 125) % 2 === 0;
+        const barHeight = 8 * scale;
+        const radius = 3 * scale;
+        const barX = x - width * 0.5;
 
         this.ctx.save();
 
-        const yellow = Math.round(0.6 * segments);
-        const red = Math.round(0.82 * segments);
+        // background track
+        this.ctx.beginPath();
+        this.ctx.roundRect(barX, y, width, barHeight, radius);
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        this.ctx.fill();
 
-        for (let i = 0; i < segments; i++)
+        if (ratio <= 0)
         {
-            const active = i < litSegments && showBar;
-            const color = i < yellow ? '#51cf66' : (i < red ? '#ffd43b' : '#ff6b6b');
-            const segmentX = x - width * 0.5 + i * (segmentWidth + gap);
-
-            this.ctx.beginPath();
-                this.ctx.roundRect(segmentX, y, segmentWidth, segmentHeight, 1.5 * scale);
-                this.ctx.fillStyle = active ? color : 'rgba(255, 255, 255, 0.08)';
-                this.ctx.shadowColor = active ? color : 'transparent';
-                this.ctx.shadowBlur = active ? 6 * scale : 0;
-            this.ctx.fill();
+            this.ctx.restore();
+            return;
         }
+
+        // color zones across the full bar: green -> yellow -> red -> blue
+        const gradient = this.ctx.createLinearGradient(barX, 0, barX + width, 0);
+        gradient.addColorStop(0.0, '#51cf66')
+        gradient.addColorStop(0.7, '#51cf66');
+        gradient.addColorStop(0.8, '#ffd43b');
+        gradient.addColorStop(0.9, '#ff6b6b');
+        gradient.addColorStop(1.0, '#339af0');
+
+        const fillWidth = width * ratio;
+
+        // soft glow behind the filled portion
+        this.ctx.globalAlpha = 0.3;
+        this.ctx.beginPath();
+        this.ctx.roundRect(barX - 2, y - 2, fillWidth + 4, barHeight + 4, radius + 2);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fill();
+
+        this.ctx.globalAlpha = 1;
+        this.ctx.beginPath();
+        this.ctx.roundRect(barX, y, fillWidth, barHeight, radius);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fill();
 
         this.ctx.restore();
     }
@@ -407,22 +410,22 @@ class TelemetryChart
 
         // speed
         const kmh = this.vehicle.telemetry.speed.toFixed(0);
-        this.ctx.font = `bold ${18 * scale}px Titillium Web, sans-serif`;
+        this.ctx.font = `bold ${25 * scale}px Titillium Web, sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#ffffff';
         this.ctx.fillText(kmh, x, y - 12 * scale);
 
         // "km/h" label
-        this.ctx.font = `${9 * scale}px Titillium Web, sans-serif`;
+        this.ctx.font = `${12 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        this.ctx.fillText('km/h', x, y + 1 * scale);
+        this.ctx.fillText('km/h', x, y + 5 * scale);
 
         // gear
         const gear = this.vehicle.telemetry.gear;
         this.ctx.font = `bold ${24 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#71e2d0';
-        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 17 * scale);
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 25 * scale);
 
         this.ctx.restore();
     }
