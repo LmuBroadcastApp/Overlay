@@ -179,6 +179,10 @@ class TelemetryChart
 
             this._dirty = true;
         }
+        else if (key === 'overlay_settings')
+        {
+            this.scale = value.driving_telemetry.scale;
+        }
     }
 
     /**
