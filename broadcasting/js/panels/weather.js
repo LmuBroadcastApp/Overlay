@@ -78,7 +78,7 @@ class WeatherPanel
         }
 
         this.element.querySelector('.weather-panel-track-body').textContent = this._gripLevel2String(this.session.gripLevel, this.session.averagePathWetness);
-        this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
+        this.element.querySelector('.weather-panel-temp-body').innerHTML = `&nbsp;&nbsp;&nbsp;${this.session.trackTemp.toFixed(1)}ºC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;${this.session.ambientTemp.toFixed(1)}ºC`;
         this.element.querySelector('.weather-panel-wind-body').innerHTML = `${this.session.windSpeed.toFixed(1)}&nbsp;Km/h`;
 
         this.element.querySelector('.weather-panel-forecast-header').innerHTML = header;
