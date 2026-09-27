@@ -1,0 +1,281 @@
+#starting-grid-panel
+{
+    /* Tokens with no shared equivalent in common.css, scoped here so they stay local to the grid. */
+    --grid-border-color: #f4f4f6;
+    --grid-tick-color: #ffe500;
+    --grid-divider-color: #38383f;
+
+    /* Card internals scale off the entry height, so a slot can be resized in one place. */
+    --grid-head-height: calc(var(--starting-grid-entry-height) * 0.30);
+    --grid-meta-height: calc(var(--starting-grid-entry-height) * 0.12);
+
+    /* Clear space above a card for the car number, which is drawn outside the card box. */
+    --grid-number-headroom: 20px;
+
+    /* Card frame, and the inset between that frame and the card content. */
+    --grid-card-border: 5px;
+    --grid-card-gutter: 10px;
+
+    /* Where the number and the tick start, measured out from the card border they hang off. */
+    --grid-number-offset: calc(var(--grid-card-gutter) + var(--grid-card-border) + 6px);
+
+    /* Both slots, the column gap, and the number block each slot hangs into that gap. */
+    width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap)
+        + 2 * (var(--grid-number-offset) + var(--starting-grid-number-width)));
+    height: 100vh;
+    margin: auto;
+
+    /* The grid is taller than the window, so the panel is the viewport the sweep scrolls. */
+    scrollbar-width: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    z-index: var(--z-index-grid);
+    display: none;
+
+    background: var(--starting-grid-background-color);
+    font-size: var(--starting-grid-font-size);
+    color: var(--starting-grid-text-color);
+}
+
+#starting-grid-panel::-webkit-scrollbar
+{
+    display: none;
+}
+
+#starting-grid-panel .grid
+{
+    display: flex;
+    flex-direction: column;
+}
+
+#starting-grid-panel .row-label
+{
+    color: var(--starting-grid-text-color);
+
+    align-items: flex-end;
+    display: flex;
+
+    padding-left: 2vh;
+    height: 4vh;
+
+    letter-spacing: .4px;
+    font-style: bold;
+    font-size: 40px;
+
+    /* Rows are spaced by the label margins, so a label can sit tight above its own row. */
+    margin-top: var(--starting-grid-row-gap);
+    margin-bottom: 6px;
+
+    /* Dark stroke keeps the text readable over a background of a similar color. */
+    -webkit-text-stroke: 1px #000;
+    paint-order: stroke fill;
+}
+
+#starting-grid-panel .grid-row
+{
+    position: relative;
+    height: calc(var(--grid-number-headroom) + var(--starting-grid-entry-height) + var(--starting-grid-stagger));
+}
+
+#starting-grid-panel .driver-card
+{
+    position: absolute;
+    top: var(--grid-number-headroom);
+
+    flex-direction: column;
+    display: flex;
+    flex: 1;
+
+    width: var(--starting-grid-entry-width);
+    height: var(--starting-grid-entry-height);
+
+    /* Head and car area carry the card color, so the margin gutter shows the feed behind. */
+    background: transparent;
+}
+
+#starting-grid-panel .driver-card.left
+{
+    left: var(--starting-grid-column-gap);
+}
+
+#starting-grid-panel .driver-card.right
+{
+    right: var(--starting-grid-column-gap);
+    top: calc(var(--grid-number-headroom) + var(--starting-grid-stagger));
+}
+
+/* Name, badge and portrait sit in one row; the number and tick hang out of the card. */
+#starting-grid-panel .driver-head
+{
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: none;
+    gap: 16px;
+
+    height: var(--grid-head-height);
+    padding: 0 14px 0 22px;
+
+    background: var(--starting-grid-card-color);
+    border-bottom: 1px solid var(--grid-divider-color);
+}
+
+/* Tick that leaves the card towards the centre gap, sharing the number block width. */
+#starting-grid-panel .driver-head:after {
+    left: calc(100% + var(--grid-number-offset));
+    top: 24px;
+
+    width: var(--starting-grid-number-width);
+    height: 6px;
+
+    background: var(--grid-tick-color);
+    position: absolute;
+    content: "";
+}
+
+/* The right card faces the other way, so its tick hangs left, into the same gap. */
+#starting-grid-panel .driver-card.right .driver-head:after
+{
+    right: calc(100% + var(--grid-number-offset));
+    left: auto;
+}
+
+#starting-grid-panel .card-number
+{
+    position: absolute;
+    left: calc(100% + var(--grid-number-offset));
+    top: calc(-1 * (var(--grid-number-headroom) + var(--grid-card-border)));
+
+    /* The box starts past the card border, so a wide number can never reach back into the card. */
+    width: var(--starting-grid-number-width);
+    white-space: nowrap;
+    text-align: right;
+
+    color: var(--starting-grid-text-color);
+    font-weight: 700;
+    font-size: 40px;
+
+    /* Dark stroke keeps the text readable over a background of a similar color. */
+    -webkit-text-stroke: 1px #000;
+    paint-order: stroke fill;
+}
+
+/* Mirrored number, so both cards read their number out of the centre gap. */
+#starting-grid-panel .driver-card.right .card-number
+{
+    right: calc(100% + var(--grid-number-offset));
+    text-align: left;
+    left: auto;
+}
+
+#starting-grid-panel .driver-head:before
+{
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 16px;
+
+    width: 6px;
+    height: 34px;
+    background: var(--class-color, var(--starting-grid-accent-color));
+}
+
+#starting-grid-panel .driver-name
+{
+    line-height: 1.05;
+    margin-right: auto;
+}
+
+#starting-grid-panel .driver-name small
+{
+    display: block;
+    font-size: 14px;
+    color: var(--starting-grid-secondary-color);
+}
+
+#starting-grid-panel .driver-name strong
+{
+    display: block;
+    font-size: 28px;
+    letter-spacing: .3px;
+}
+
+#starting-grid-panel .team-badge
+{
+    background: var(--class-color, var(--starting-grid-accent-color));
+    transform: skew(-25deg);
+
+    opacity: .8;
+    flex: none;
+
+    height: 34px;
+    width: 48px;
+}
+
+#starting-grid-panel .portrait
+{
+    flex: none;
+
+    width: var(--starting-grid-logo-height);
+    height: var(--starting-grid-logo-height);
+}
+
+#starting-grid-panel .car-area
+{
+    position: relative;
+    min-height: 0;
+    flex: 1;
+
+    background: #25252c;
+    overflow: hidden;
+}
+
+#starting-grid-panel .car-area img {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    height: calc(100% - var(--grid-meta-height));
+    max-width: 100%;
+}
+
+#starting-grid-panel .lap {
+    position: absolute;
+    right: 14px;
+    top: 12px;
+
+    font-size: 20px;
+    font-weight: 800;
+    text-align: right;
+    color: var(--starting-grid-text-color);
+}
+
+#starting-grid-panel .lap small {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--starting-grid-secondary-color);
+}
+
+#starting-grid-panel .meta {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    height: var(--grid-meta-height);
+    padding: 0 1.2vh;
+    line-height: var(--grid-meta-height);
+
+    background: #191920;
+    color: var(--starting-grid-text-color);
+
+    font-size: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+#starting-grid-panel .meta span {
+    float: right;
+}

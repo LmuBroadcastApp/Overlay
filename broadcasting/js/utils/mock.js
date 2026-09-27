@@ -129,7 +129,26 @@
                 race_winner: true, track_limits: false, possible_fast_lap: false,
                 duration_sec: 5, impact_threshold: 500
             },
-            telemetry: { enabled: true, gauge_size: '60px' }
+            telemetry: { enabled: true, gauge_size: '60px' },
+            grid:
+            {
+                enabled: true,
+                font_size: '1.4em',
+                entry_width: '512px',
+                entry_height: '300px',
+                number_width: '70px',
+                row_gap: '32px',
+                column_gap: '32px',
+                row_label_width: '112px',
+                logo_height: '48px',
+                vehicle_width: '40%',
+                stagger: '24px',
+                background_color: 'transparent',
+                card_color: 'rgb(21, 21, 30)',
+                accent_color: 'rgb(177, 209, 239)',
+                secondary_color: 'rgb(121, 138, 155)',
+                text_color: 'white'
+            }
         };
     }
 
@@ -148,11 +167,14 @@
             overlay_animation_speed: 0,
             gap_mode: 'leader',
             name_source: 'driver',
-            driver_name: 'short',
+            driver_name: 'full',
             vehicle_class: 'multiclass',
             sector_bars: true,
             show_telemetry: true,
             show_last_pitstop: true,
+            show_starting_grid: !window.location.search.includes('nogrid'),
+            grid_scroll_duration_sec: window.location.search.includes('allgrid') ? 0 : 8,
+            grid_scroll_delay_sec: 1,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }
@@ -328,8 +350,11 @@
         let eventTime = 1800;
         let t = 0;
 
+        const controls = mockControls();
+
+        stateManager.setState('overlay_controls', controls);
+        SetGridSweepTiming(document.documentElement, controls);
         UpdateOverlaySettings(mockOverlaySettings());
-        stateManager.setState('overlay_controls', mockControls());
         stateManager.setState('overlay_settings', mockOverlaySettings());
         stateManager.setState('session', mockSession(eventTime));
         stateManager.setState('map', map);

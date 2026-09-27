@@ -15,6 +15,7 @@
     --z-index-gradient: -1;                                                             /** Background gradient layer */
     --z-index-panel: 10;                                                                /** Default panel layer */
     --z-index-notification: 100;                                                        /** Notifications above all panels */
+    --z-index-grid: 200;                                                                /** Fullscreen starting grid above everything else */
 
     /** Timing colors (shared across tower, telemetry, driver) */
     --timing-green: #2ed573;                                                            /** Personal best / faster sector */
@@ -122,6 +123,25 @@
     --telemetry-gauge-size: 60px;                                                       /** Width and height of the gauges */
     --telemetry-text-scale: calc(var(--telemetry-gauge-size) * 0.35);                   /** */
     --telemetry-unit-scale: calc(var(--telemetry-gauge-size) * 0.15);                   /** */
+
+    /** Starting grid (fullscreen) */
+    --starting-grid-font-size: 1.4rem;                                                  /** General font size of the panel */
+    --starting-grid-entry-width: 512px;                                                 /** Width of one grid slot, 40% of the screen width */
+    --starting-grid-entry-height: 300px;                                                /** Height of one grid slot, grows with the viewport so the vehicle image fits */
+    --starting-grid-number-width: 70px;
+    --starting-grid-row-gap: 32px;                                                      /** Vertical gap between grid slots */
+    --starting-grid-column-gap: 32px;                                                   /** Horizontal gap between the row gutter and the two columns */
+    --starting-grid-row-label-width: 112px;                                             /** Width of the row number gutter */
+    --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
+    --starting-grid-vehicle-width: 40%;                                                 /** Lateral vehicle image width, relative to the slot */
+    --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
+    --starting-grid-scroll-duration: 40s;                                               /** Total time the grid takes to scroll from the top to the bottom */
+    --starting-grid-scroll-delay: 5s;                                                   /** Time the grid waits at the top before the scroll starts */
+    --starting-grid-background-color: transparent;                                      /** Panel background, transparent so the feed behind shows through */
+    --starting-grid-card-color: rgb(21, 21, 30);                                        /** Slot background */
+    --starting-grid-accent-color: rgb(177, 209, 239);                                   /** Driver code and headings */
+    --starting-grid-secondary-color: rgb(121, 138, 155);                                /** Driver name and team labels */
+    --starting-grid-text-color: white;                                                  /** Position and car number */
 }
 
 /**********************************************************************************************************************/
@@ -180,45 +200,54 @@ body
 
 .GT3
 {
-    background-color: rgba(0, 143, 55, 1.0);
+    --class-color: rgba(0, 143, 55, 1.0);
+    background-color: var(--class-color);
 }
 
 .GTE
 {
-    background-color: rgba(240, 140, 0, 1.0);
+    --class-color: rgba(240, 140, 0, 1.0);
+    background-color: var(--class-color);
 }
 
 .P2
 {
-    background-color: rgba(6, 75, 145, 1.0);
+    --class-color: rgba(6, 75, 145, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP2
 {
-    background-color: rgba(6, 75, 145, 1.0);
+    --class-color: rgba(6, 75, 145, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP3
 {
-    background-color: rgba(58, 25, 74, 1.0);
+    --class-color: rgba(58, 25, 74, 1.0);
+    background-color: var(--class-color);
 }
 
 .Hyper
 {
-    background-color: rgba(171, 24, 20, 1.0);
+    --class-color: rgba(171, 24, 20, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMDh
 {
-    background-color: rgba(171, 171, 171, 1.0);
+    --class-color: rgba(171, 171, 171, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP2_ELMS
 {
-    background-color: rgba(190, 74, 9, 1.0);
+    --class-color: rgba(190, 74, 9, 1.0);
+    background-color: var(--class-color);
 }
 
 .generic-class
 {
-    background-color: rgba(79, 93, 117, 1.0);
+    --class-color: rgba(79, 93, 117, 1.0);
+    background-color: var(--class-color);
 }
