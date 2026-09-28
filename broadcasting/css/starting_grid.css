@@ -370,7 +370,7 @@
     top: calc(var(--starting-grid-number-headroom) + var(--starting-grid-stagger));
 }
 
-/* Name, badge and portrait sit in one row; the number and tick hang out of the card. */
+/* Name, car tab and portrait sit in one row; the number and tick hang out of the card. */
 #starting-grid-panel .driver-head
 {
     /* Containing block for the number and the tick. It measures identical without this, because the
@@ -384,7 +384,15 @@
     height: var(--starting-grid-head-height);
     padding: 0 14px 0 22px;
 
-    border-bottom: 1px solid var(--starting-grid-divider-color);
+    /*
+     * Two layers on one surface: a scrim that darkens the top of the glass so the name keeps its
+     * contrast over a bright feed, and a hairline that fades at both ends so the head separates
+     * from the car area without a hard edge to catch the eye.
+     */
+    background-image: linear-gradient(to bottom, rgba(6, 8, 12, 0.45), rgba(6, 8, 12, 0)), linear-gradient(to right, transparent, var(--starting-grid-divider-color) 12%, var(--starting-grid-divider-color) 88%, transparent);
+    background-position: top left, bottom left;
+    background-size: 100% 100%, 100% 1px;
+    background-repeat: no-repeat;
 }
 
 /* Tick that leaves the card towards the centre gap, sharing the number block width. */
@@ -446,10 +454,8 @@
 }
 
 /*
- * Class colour bar, drawn on the name rather than the card so that it spans exactly the two lines
- * of driver text: it starts at the top of the first name and ends at the bottom of the last name,
- * instead of running the full height of the card. The name is the flex item that hugs its own
- * content, so a bar pinned to its top and bottom edges tracks the text whatever its length.
+ * Driver name block. The class colour now lives on the car tab beside it, so the name carries no
+ * bar of its own and the two lines hug their text with nothing else competing for the space.
  */
 #starting-grid-panel .driver-name
 {
@@ -457,20 +463,6 @@
 
     line-height: 1.05;
     margin-right: auto;
-
-    padding-left: 12px;
-}
-
-#starting-grid-panel .driver-name:before
-{
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-
-    background: var(--class-color, var(--starting-grid-accent-color));
 }
 
 #starting-grid-panel .driver-name small
@@ -487,15 +479,38 @@
     letter-spacing: .3px;
 }
 
-#starting-grid-panel .team-badge
+/*
+ * Car number tab. The large number that hangs in the centre gap is the grid position; this is the
+ * car's own number, worn on a class coloured tab so the head carries an identity that is not just
+ * the driver name. The tab is skewed for a motorsport edge, and the number inside is counter
+ * skewed so the digits stay upright inside it.
+ */
+#starting-grid-panel .car-tab
 {
-    background: var(--class-color, var(--starting-grid-accent-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 52px;
+    height: 34px;
+    padding: 0 12px;
+
     transform: skew(-25deg);
 
-    opacity: .8;
+    background: var(--class-color, var(--starting-grid-accent-color));
+    color: var(--starting-grid-text-color);
 
-    height: 34px;
-    width: 48px;
+    font-weight: 650;
+    font-size: 20px;
+    letter-spacing: .04em;
+
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+#starting-grid-panel .car-tab > span
+{
+    display: block;
+    transform: skew(25deg);
 }
 
 #starting-grid-panel .portrait
@@ -536,7 +551,7 @@
     top: 12px;
 
     font-size: 20px;
-    font-weight: 800;
+    font-weight: 700;
     text-align: right;
     color: var(--starting-grid-text-color);
     text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);

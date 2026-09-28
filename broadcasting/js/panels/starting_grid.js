@@ -504,7 +504,9 @@ class StartingGridPanel
                     <small>${HtmlEscape(name.first)}</small>
                     <strong>${HtmlEscape(name.last)}</strong>
                 </div>
-                <div class='team-badge'></div>
+                <div class='car-tab'>
+                    <span>#${HtmlEscape(vehicle.vehicle_number)}</span>
+                </div>
                 <img class='portrait' src='${HtmlEscape(logoImage)}' alt='${HtmlEscape(driver)} driver'/>
             </div>
             <div class='car-area'>
