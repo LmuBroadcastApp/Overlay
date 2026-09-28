@@ -135,10 +135,10 @@
     --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
     --starting-grid-scroll-duration: 40s;                                               /** Total time the grid takes to scroll from the top to the bottom */
     --starting-grid-scroll-delay: 5s;                                                   /** Time the grid waits at the top before the scroll starts */
-    --starting-grid-card-color: rgb(21, 21, 30);                                        /** Slot background */
-    --starting-grid-accent-color: rgb(177, 209, 239);                                   /** Driver code and headings */
-    --starting-grid-secondary-color: #f0f1f5;                                           /** Driver name and team labels, matched to the live timing standings primary text */
-    --starting-grid-text-color: white;                                                  /** Position and car number */
+    --starting-grid-card-color: #1e1e1e;                                                /** Slot background, the neutral dark shared by the timing cells */
+    --starting-grid-accent-color: #555;                                                 /** Fallback accent when a vehicle carries no class colour */
+    --starting-grid-secondary-color: var(--text-color-secondary);                       /** Driver name and team labels, the shared secondary text */
+    --starting-grid-text-color: var(--text-color-primary);                              /** Position and car number, the shared primary text */
 
     /** Starting grid, card metrics. These scale off the entry height, so a slot resizes in one place. */
     --starting-grid-head-height: calc(var(--starting-grid-entry-height) * 0.30);        /** Height of the driver head band */
@@ -156,17 +156,17 @@
     --starting-grid-header-icon-size: 30px;                                             /** Forecast icon size */
 
     /** Starting grid, surface recipe, shared by every glass surface in the panel. */
-    --starting-grid-scrim-color: rgba(6, 8, 12, 0.20);                                  /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */
+    --starting-grid-scrim-color: rgba(0, 0, 0, 0.20);                                   /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */
     --starting-grid-glass-blur: 18px;                                                    /** Backdrop blur radius, unused while the card and header fills stay opaque */
     --starting-grid-glass-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.30); /** Wide soft lift plus a tight layer to define the edge */
-    --starting-grid-row-label-fill: rgba(12, 14, 20, 0.55);                             /** Backing chip behind each row label */
+    --starting-grid-row-label-fill: rgba(0, 0, 0, 0.55);                                /** Backing chip behind each row label */
     --starting-grid-row-label-blur: 10px;                                               /** Backdrop blur on the row label, the one surface translucent enough to show it */
-    --starting-grid-meta-fill: rgba(10, 12, 18, 0.72);                                  /** Fill of the meta bar under the vehicle */
+    --starting-grid-meta-fill: rgba(0, 0, 0, 0.72);                                     /** Fill of the meta bar under the vehicle */
 
     /** Starting grid, accents and dividers. */
-    --starting-grid-tick-color: #ffe500;                                                /** Tick that leaves each card towards the centre gap */
-    --starting-grid-tick-fade: rgba(255, 229, 0, 0.25);                                 /** Far end of the tick gradient, the alpha it fades to at the number */
-    --starting-grid-tick-glow: 0 0 12px rgba(255, 229, 0, 0.35);                        /** Glow around the tick, so it reads over a bright feed */
+    --starting-grid-tick-color: var(--timing-yellow);                                   /** Tick that leaves each card towards the centre gap */
+    --starting-grid-tick-fade: rgba(236, 204, 104, 0.25);                               /** Far end of the tick gradient, the alpha it fades to at the number */
+    --starting-grid-tick-glow: 0 0 12px rgba(236, 204, 104, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
     --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
     --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
 }

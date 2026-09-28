@@ -141,9 +141,9 @@
                 column_gap: '32px',
                 logo_height: '48px',
                 stagger: '24px',
-                card_color: 'rgb(21, 21, 30)',
-                accent_color: 'rgb(177, 209, 239)',
-                secondary_color: '#f0f1f5',
+                card_color: '#1e1e1e',
+                accent_color: '#555',
+                secondary_color: 'whitesmoke',
                 text_color: 'white'
             }
         };

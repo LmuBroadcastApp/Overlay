@@ -244,7 +244,6 @@ class StartingGridPanel
     _renderHeader()
     {
         this.headerDirty = false;
-
         let html = this.session === null ? '' : this._buildHeaderHTML();
 
         // A new session arrives every second while most of the header stays the same, so the
@@ -267,17 +266,19 @@ class StartingGridPanel
     _buildHeaderHTML()
     {
         return `<div class='grid-header-block'>
-                <span class='grid-header-label'>Track</span>
                 <strong class='grid-header-value'>${HtmlEscape(this.session.trackName)}</strong>
-                <span class='grid-header-sub'>${this._getTrackSummary(this.session)}</span>
+                <span class='grid-header-sub'>${this._getTrackSummary(this.session, this.standings)}</span>
             </div>
-            <div class='grid-header-block'>
-                <span class='grid-header-label'>Weather</span>
-                ${this._buildWeatherHTML(this.session)}
-            </div>
-            <div class='grid-header-block grid-header-forecast'>
-                <span class='grid-header-label'>Forecast</span>
-                <div class='grid-forecast'>${this._buildForecastHTML(this.session)}</div>
+            <div class='grid-header-group'>
+                <div class='grid-header-block'>
+                    <span class='grid-header-label'>Weather</span>
+                    ${this._buildWeatherHTML(this.session)}
+                </div>
+                <div class='grid-header-divider'></div>
+                <div class='grid-header-block grid-header-forecast'>
+                    <span class='grid-header-label'>Forecast</span>
+                    <div class='grid-forecast'>${this._buildForecastHTML(this.session)}</div>
+                </div>
             </div>`;
     }
 
@@ -285,17 +286,26 @@ class StartingGridPanel
      * Summarizes the circuit and the session, showing the track length only when the backend
      * reports a usable one.
      * @param {Object} session Session payload.
+     * @param {Attay<Object>} standings Standings payload.
      * @returns {string} Session name and track length.
      */
-    _getTrackSummary(session)
+    _getTrackSummary(session, standings)
     {
         let parts = [];
 
-        if (session.name) parts.push(session.name);
+        if (session.name)
+        {
+            parts.push(session.name);
+        }
 
         if (Number.isFinite(session.trackDistance) && session.trackDistance > 0)
         {
             parts.push(`${(session.trackDistance / 1000).toFixed(3)} km`);
+        }
+
+        if (standings && standings.length > 0)
+        {
+            parts.push(`󰶓 ${standings.length}`);
         }
 
         return parts.map(part => HtmlEscape(part)).join(' &middot; ');
@@ -312,16 +322,16 @@ class StartingGridPanel
      */
     _buildWeatherHTML(session)
     {
-        return `<div class='grid-weather'>
-                <span class='grid-weather-cell' title='Track temperature'>${GRID_WEATHER_GLYPHS.track}`
-            + `<b>${StartingGridPanel.FormatReading(session.trackTemp)}°C</b></span>
-                <span class='grid-weather-cell' title='Air temperature'><span class='glyph-air'>${GRID_WEATHER_GLYPHS.air}</span>`
-            + `<b>${StartingGridPanel.FormatReading(session.ambientTemp)}°C</b></span>
-                <span class='grid-weather-cell' title='Rain'><span class='glyph-rain'>${GRID_WEATHER_GLYPHS.rain}</span>`
-            + `<b>${StartingGridPanel.PercentReading(session.raining)}</b></span>
-                <span class='grid-weather-cell' title='Track wetness'>${GRID_WEATHER_GLYPHS.wet}`
-            + `<b>${StartingGridPanel.PercentReading(session.averagePathWetness)}</b></span>
-            </div>`;
+        return `<table class='grid-weather'>
+            <tr>
+                <td class='grid-weather-cell'>${GRID_WEATHER_GLYPHS.track}</td><td class='grid-weather-cell'><b>${StartingGridPanel.FormatReading(session.trackTemp)}°C</b></td>
+                <td class='grid-weather-cell'>${GRID_WEATHER_GLYPHS.air}</td><td class='grid-weather-cell'><b>${StartingGridPanel.FormatReading(session.ambientTemp)}°C</b></td>
+            </tr>
+            <tr>
+                <td class='grid-weather-cell'>${GRID_WEATHER_GLYPHS.rain}</td><td class='grid-weather-cell'><b>${StartingGridPanel.PercentReading(session.raining)}</b></td>
+                <td class='grid-weather-cell'>${GRID_WEATHER_GLYPHS.wet}</td><td class='grid-weather-cell'><b>${StartingGridPanel.PercentReading(session.averagePathWetness)}</b></td>
+            </tr>
+        </table>`;
     }
 
     /**
@@ -406,12 +416,12 @@ class StartingGridPanel
     }
 
     /**
-     * Returns the grid order, which follows the qualy position assigned by the session.
+     * Returns the grid order, which follows the race position assigned by the session.
      * @returns {Array<Object>} Vehicles sorted by starting position.
      */
     _getGridOrder()
     {
-        return [...this.standings].sort((a, b) => a.qualy_position - b.qualy_position);
+        return [...this.standings].sort((a, b) => a.race_position - b.race_position);
     }
 
     /**
@@ -485,13 +495,13 @@ class StartingGridPanel
         const name = DriverToNameParts(vehicle.driver);
         const driver = (vehicle.driver ?? '').trim();
 
-        let pos = vehicle.qualy_position_class;
+        let pos = vehicle.race_position_class;
         const lap = LaptimeToString(vehicle.qualy_best_lap);
         const delta = this._getLapDelta(vehicle.qualy_best_lap, best_lap_time);
 
         if (pos < 1)
         {
-            pos = vehicle.qualy_position;
+            pos = vehicle.race_position;
         }
 
         const carImage = StartingGridPanel.GetSlotImage(vehicle, false);
@@ -529,13 +539,6 @@ class StartingGridPanel
         }
 
         let html = '';
-
-        /**
-         * Rows are numbered across the whole field rather than per class. A class block that
-         * restarted at Row 1 read as a second grid, and nothing on screen said why. Each row also
-         * carries its own number within its class, so the field wide one has something to sit
-         * beside rather than being the only reading on offer.
-         */
         let row = 1;
 
         let order = this._getGridOrder();
@@ -543,12 +546,8 @@ class StartingGridPanel
 
         perClass.forEach((value, key) =>
         {
-            /** Each class is named once above its own block of rows, since it is drawn as one. */
             html += `<div class='class-label ${CSSClassFromVehicleClass(key)}'>${HtmlEscape(key)}</div>`;
-
             let best_lap_time = this._getClassBestLap(value);
-
-            /** Row number within this class, which restarts at every class block. */
             let class_row = 1;
 
             for (let i = 0; i < value.length; i += 2)
