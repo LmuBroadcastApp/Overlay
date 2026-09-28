@@ -8,6 +8,14 @@ const STARTING_GRID_SCROLL_FALLBACK = 40000;
 const STARTING_GRID_SCROLL_DELAY_FALLBACK = 0;
 
 /**
+ * @brief Origin the backend serves the per car slot images on. Built from the host serving this
+ * page rather than a fixed localhost, so the images resolve on a machine that is not the backend,
+ * the same way the overlay reaches the rest of the backend. The host falls back to localhost for
+ * a page opened straight off disk, where there is no hostname to read.
+ */
+const STARTING_GRID_IMAGE_ORIGIN = `http://${window.location.hostname || 'localhost'}:6397`;
+
+/**
  * @brief Nerd Font glyphs for the current conditions, matching the icons the driving weather
  * panel already shows, so the two overlays read the same way. Every codepoint is taken from the
  * FiraCode Nerd Font the overlay loads, which is the fallback behind Titillium Web in the font
@@ -418,11 +426,48 @@ class StartingGridPanel
         if(logo === false)
         {
             let image = vehicle.image_name?.trim();
-            if (image) return `http://localhost:6397/start/images/cars/${image}_frontAngle.webp`;
+            if (image) return `${STARTING_GRID_IMAGE_ORIGIN}/start/images/cars/${image}_frontAngle.webp`;
         }
 
         let manufacturer = vehicle.manufacturer?.trim() || 'Default';
         return `../shared/img/brandlogo/${manufacturer}.png`;
+    }
+
+    /**
+     * Returns the fastest qualifying lap in a class, which is what every car in that class is
+     * measured against. The baseline is taken from the cars that actually set a time rather than
+     * from the class pole, because a pole that never set a lap would otherwise turn every gap in
+     * the class into that car's own lap time. The floor matches the one LaptimeToString uses, so a
+     * placeholder lap is never treated as a real one here either.
+     *
+     * @param {Array<Object>} value Vehicles in one class.
+     * @returns {?number} Fastest lap in seconds, or null when no car in the class set one.
+     */
+    _getClassBestLap(value)
+    {
+        const laps = value
+            .map(vehicle => vehicle.qualy_best_lap)
+            .filter(laptime => Number.isFinite(laptime) && laptime > 0.1);
+
+        return laps.length === 0 ? null : Math.min(...laps);
+    }
+
+    /**
+     * Returns a car's gap to the class best lap. The gap is empty when either time is missing, so
+     * a car that never set a lap shows nothing rather than a number measured against zero.
+     *
+     * @param {*} laptime Car qualifying lap in seconds.
+     * @param {?number} best_lap_time Fastest lap in the class.
+     * @returns {string} Gap to the class best, or an empty string when there is nothing to compare.
+     */
+    _getLapDelta(laptime, best_lap_time)
+    {
+        if (!Number.isFinite(laptime) || !Number.isFinite(best_lap_time)) return '';
+
+        const gap = laptime - best_lap_time;
+        if (gap < 0.001) return 'Pole position';
+
+        return `+${gap.toFixed(3)}`;
     }
 
     /**
@@ -442,21 +487,15 @@ class StartingGridPanel
 
         let pos = vehicle.qualy_position_class;
         const lap = LaptimeToString(vehicle.qualy_best_lap);
-        let delta = (vehicle.qualy_best_lap - best_lap_time).toFixed(3);
+        const delta = this._getLapDelta(vehicle.qualy_best_lap, best_lap_time);
 
         if (pos < 1)
         {
             pos = vehicle.qualy_position;
         }
 
-        if (delta < 0.001)
-        {
-            delta = 'Pole position';
-        }
-        else
-        {
-            delta = '+' + delta;
-        }
+        const carImage = StartingGridPanel.GetSlotImage(vehicle, false);
+        const logoImage = StartingGridPanel.GetSlotImage(vehicle, true);
 
         return `<div class='driver-card ${side} ${CSSClassFromVehicleClass(vehicle.vehicle_class)}'>
             <div class='driver-head'>
@@ -466,11 +505,11 @@ class StartingGridPanel
                     <strong>${HtmlEscape(name.last)}</strong>
                 </div>
                 <div class='team-badge'></div>
-                <img class='portrait' src='${HtmlEscape(StartingGridPanel.GetSlotImage(vehicle, true))}' alt='${HtmlEscape(driver)} driver'/>
+                <img class='portrait' src='${HtmlEscape(logoImage)}' alt='${HtmlEscape(driver)} driver'/>
             </div>
             <div class='car-area'>
-                <img src='${HtmlEscape(StartingGridPanel.GetSlotImage(vehicle, false))}' alt='${HtmlEscape(driver)} car'/>
-                <div class='lap'>${HtmlEscape(lap)}<small>${delta}</small></div>
+                <img src='${HtmlEscape(carImage)}' data-fallback='${HtmlEscape(logoImage)}' onerror='this.onerror=null;this.src=this.dataset.fallback' alt='${HtmlEscape(driver)} car'/>
+                <div class='lap'>${HtmlEscape(lap)}<small>${HtmlEscape(delta)}</small></div>
                 <div class='meta'>${HtmlEscape(vehicle.vehicle_name)}<span>${HtmlEscape(vehicle.vehicle_class)}</span></div>
             </div>
         </div>`;
@@ -488,17 +527,34 @@ class StartingGridPanel
         }
 
         let html = '';
+
+        /**
+         * Rows are numbered across the whole field rather than per class. A class block that
+         * restarted at Row 1 read as a second grid, and nothing on screen said why. Each row also
+         * carries its own number within its class, so the field wide one has something to sit
+         * beside rather than being the only reading on offer.
+         */
+        let row = 1;
+
         let order = this._getGridOrder();
         const perClass = GetByClasses(order);
 
         perClass.forEach((value, key) =>
         {
-            let best_lap_time = value[0].qualy_best_lap;
-            let row = 1;
+            /** Each class is named once above its own block of rows, since it is drawn as one. */
+            html += `<div class='class-label ${CSSClassFromVehicleClass(key)}'>${HtmlEscape(key)}</div>`;
+
+            let best_lap_time = this._getClassBestLap(value);
+
+            /** Row number within this class, which restarts at every class block. */
+            let class_row = 1;
 
             for (let i = 0; i < value.length; i += 2)
             {
-                html += `<div class='row-label'>Row ${row++}</div>`;
+                html += `<div class='row-labels'>
+                    <div class='row-label row-label-class'>Row ${class_row++}</div>
+                    <div class='row-label'>Row ${row++}</div>
+                </div>`;
                 html += `<div class='grid-row'>${this._buildCard(value[i], 'left', best_lap_time)}`;
 
                 if (i + 1 <value.length)

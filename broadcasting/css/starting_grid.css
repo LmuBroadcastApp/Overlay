@@ -1,49 +1,31 @@
+/**
+ * Starting grid: a fullscreen broadcast panel that shows the grid as a staggered ladder over the
+ * live feed. A flat translucent scrim covers the whole window, so the game keeps playing behind the
+ * panel instead of being hidden by it, and the cards and header sit on top as solid blocks. The
+ * cards keep a backdrop blur for when the backend swaps in a translucent slot colour, but nothing
+ * here depends on blur working: the fill alone holds the layout together.
+ *
+ * Every token this panel draws on lives in common.css under the starting grid heading, so the grid
+ * has one place to be configured and the backend overrides in main.js land on the same names.
+ */
+
 #starting-grid-panel
 {
-    /* Tokens with no shared equivalent in common.css, scoped here so they stay local to the grid. */
-    --grid-border-color: #f4f4f6;
-    --grid-tick-color: #ffe500;
-    --grid-divider-color: #38383f;
-
-    /* Card internals scale off the entry height, so a slot can be resized in one place. */
-    --grid-head-height: calc(var(--starting-grid-entry-height) * 0.30);
-    --grid-meta-height: calc(var(--starting-grid-entry-height) * 0.12);
-
-    /* Clear space above a card for the car number, which is drawn outside the card box. */
-    --grid-number-headroom: 20px;
-
-    /* Card frame, and the inset between that frame and the card content. */
-    --grid-card-border: 5px;
-    --grid-card-gutter: 10px;
-
-    /* Where the number and the tick start, measured out from the card border they hang off. */
-    --grid-number-offset: calc(var(--grid-card-gutter) + var(--grid-card-border) + 6px);
-
-    /* Header padding and forecast icon size, both fixed because the header does not follow the card size. */
-    --grid-header-padding: 14px 22px;
-    --grid-header-icon-size: 30px;
-    --grid-header-height: 112px;
-
-    /* Clear space above the header, down to the screen top, and between the header and the grid. */
-    --grid-header-top: 1rem;
-    --grid-header-gap: 1rem;
-
-    /* Both slots, the column gap, and the number block each slot hangs into that gap. */
-    --grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap)
-        + 2 * (var(--grid-number-offset) + var(--starting-grid-number-width)));
-
-    width: var(--grid-panel-width);
+    /*
+     * The panel is the full window: the scrim covers all of it, and it never scrolls. The content
+     * inside is what stays narrow, because the cards hang off the column gaps and would slide to
+     * the window edges if this were left to fill the width.
+     */
     height: 100vh;
-    margin: auto;
 
-    /* The panel is the fixed window: it never scrolls, the body below the header is the viewport. */
     position: relative;
     overflow: hidden;
 
     z-index: var(--z-index-grid);
     display: none;
 
-    background: var(--starting-grid-background-color);
+    background: var(--starting-grid-scrim-color);
+
     font-size: var(--starting-grid-font-size);
     color: var(--starting-grid-text-color);
 }
@@ -53,10 +35,18 @@
     display: none;
 }
 
+/*
+ * The ladder keeps the content width and centres itself in the wider body. The cards are absolutely
+ * positioned against the column gaps, so this is what holds the two columns and the numbers that
+ * hang between them in place, whatever the window is doing.
+ */
 #starting-grid-panel .grid
 {
     display: flex;
     flex-direction: column;
+
+    width: var(--starting-grid-panel-width);
+    margin: 0 auto;
 }
 
 /*
@@ -67,7 +57,7 @@
 {
     /* The body starts under the header, clear of the space above it and the gap below it. */
     position: absolute;
-    top: calc(var(--grid-header-top) + var(--grid-header-height) + var(--grid-header-gap));
+    top: calc(var(--starting-grid-header-top) + var(--starting-grid-header-height) + var(--starting-grid-header-gap));
     left: 0;
     right: 0;
     bottom: 0;
@@ -84,22 +74,36 @@
 #starting-grid-header
 {
     position: absolute;
-    top: var(--grid-header-top);
-    left: 0;
-    right: 0;
+    top: var(--starting-grid-header-top);
+
+    /* Centred on the same content width as the grid, so the header lines up with the ladder
+     * instead of stretching across the whole window. */
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(var(--starting-grid-panel-width) - 2 * var(--starting-grid-header-inset));
+
     z-index: 1;
 
-    height: var(--grid-header-height);
+    height: var(--starting-grid-header-height);
 
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 2em;
 
-    padding: var(--grid-header-padding);
+    padding: var(--starting-grid-header-padding);
 
     background: var(--starting-grid-card-color);
-    border-bottom: 1px solid var(--grid-divider-color);
+    box-shadow: var(--starting-grid-glass-shadow);
+
+    /*
+     * The blur is off while the fill above stays opaque: it would be painted over anyway, and the
+     * sweep scrolls the body on every frame, so a live backdrop filter means re-blurring the whole
+     * window per frame for nothing. Re-enable it alongside --starting-grid-glass-blur if the card
+     * colour is ever made translucent.
+     *
+     * backdrop-filter: blur(var(--starting-grid-glass-blur)) saturate(140%);
+     */
 }
 
 #starting-grid-header .grid-header-block
@@ -202,8 +206,12 @@
 
 #starting-grid-header .grid-forecast-cell img
 {
-    width: var(--grid-header-icon-size);
-    height: var(--grid-header-icon-size);
+    width: var(--starting-grid-header-icon-size);
+    height: var(--starting-grid-header-icon-size);
+
+    /* The forecast icons are flat color art on transparency, so they need their own contrast
+     * floor rather than relying on the panel behind them. */
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
 
 #starting-grid-header .grid-forecast-rain
@@ -211,49 +219,144 @@
     color: var(--starting-grid-text-color);
 }
 
-#starting-grid-panel .row-label
+/*
+ * Class heading. The field is drawn as one block of rows per vehicle class, so the class is named
+ * once above its block rather than repeated on every card. It runs between the outer edges of the
+ * two columns rather than the full ladder width, so the heading and the cards it introduces share
+ * one left and one right edge, and it carries the same class colour bar as the cards below it.
+ */
+#starting-grid-panel .class-label
 {
+    position: relative;
+
+    display: flex;
+    align-items: center;
+
+    margin-top: var(--starting-grid-row-gap);
+    margin-bottom: 10px;
+
+    /* The column gap is what holds the cards off the content edge, so the band lands on them. */
+    margin-left: var(--starting-grid-column-gap);
+    margin-right: var(--starting-grid-column-gap);
+
+    padding: 0 14px 0 12px;
+    height: 30px;
+
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 13px;
+
     color: var(--starting-grid-text-color);
 
-    align-items: flex-end;
+    background: var(--starting-grid-row-label-fill);
+    border: 1px solid var(--starting-grid-divider-color);
+    backdrop-filter: blur(var(--starting-grid-row-label-blur));
+}
+
+#starting-grid-panel .class-label:before
+{
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+
+    background: var(--class-color, var(--starting-grid-accent-color));
+}
+
+/*
+ * Row label line. Every row carries two labels on one line: the position within the class on the
+ * left and the position in the whole field on the right, so either reading is available without
+ * counting. The line spans the ladder and pushes the chips out to the two card edges, which keeps
+ * them clear of the centre gap the car numbers hang into.
+ */
+#starting-grid-panel .row-labels
+{
     display: flex;
-
-    padding-left: 2vh;
-    height: 4vh;
-
-    letter-spacing: .4px;
-    font-style: bold;
-    font-size: 40px;
+    align-items: center;
+    justify-content: space-between;
 
     /* Rows are spaced by the label margins, so a label can sit tight above its own row. */
     margin-top: var(--starting-grid-row-gap);
     margin-bottom: 6px;
 
-    /* Dark stroke keeps the text readable over a background of a similar color. */
-    -webkit-text-stroke: 1px #000;
-    paint-order: stroke fill;
+    /* Out to the outer edges of the two columns, the same inset the class chip uses on the left. */
+    margin-left: var(--starting-grid-column-gap);
+    margin-right: var(--starting-grid-column-gap);
+}
+
+/*
+ * Row label is a chip rather than loose text. The number it carries hangs outside the cards, so it
+ * is backed by a small surface of its own, which keeps it readable over the feed without the heavy
+ * outline the text used to need.
+ */
+#starting-grid-panel .row-label
+{
+    color: var(--starting-grid-text-color);
+
+    align-items: center;
+    display: inline-flex;
+
+    padding: 0 14px;
+    height: 34px;
+
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 13px;
+
+    background: var(--starting-grid-row-label-fill);
+    border: 1px solid var(--starting-grid-divider-color);
+    backdrop-filter: blur(var(--starting-grid-row-label-blur));
+}
+
+/*
+ * The class relative row sits beside the field wide one and reads the same, so it is dimmed to mark
+ * it as the narrower of the two readings. Both carry the same words, so colour is the only thing
+ * telling a viewer which number belongs to the class and which to the grid.
+ */
+#starting-grid-panel .row-label-class
+{
+    color: var(--starting-grid-secondary-color);
 }
 
 #starting-grid-panel .grid-row
 {
     position: relative;
-    height: calc(var(--grid-number-headroom) + var(--starting-grid-entry-height) + var(--starting-grid-stagger));
+    height: calc(var(--starting-grid-number-headroom) + var(--starting-grid-entry-height) + var(--starting-grid-stagger));
 }
 
+/*
+ * The card is the glass surface: the head and the car area sit inside it and stay transparent, so
+ * the card has a single border, a single shadow and a single clip rather than a seam between two
+ * stacked fills. The class colour is a bar beside the driver name, see .driver-name.
+ */
 #starting-grid-panel .driver-card
 {
     position: absolute;
-    top: var(--grid-number-headroom);
+    top: var(--starting-grid-number-headroom);
 
     flex-direction: column;
     display: flex;
-    flex: 1;
 
     width: var(--starting-grid-entry-width);
     height: var(--starting-grid-entry-height);
 
-    /* Head and car area carry the card color, so the margin gutter shows the feed behind. */
-    background: transparent;
+    background: var(--starting-grid-card-color);
+    box-shadow: var(--starting-grid-glass-shadow);
+
+    /* Blur is off while the fill above is opaque, see the header for why. */
+    /*
+     * backdrop-filter: blur(var(--starting-grid-glass-blur)) saturate(140%);
+     */
+
+    /*
+     * The card deliberately does not clip its overflow. The number and the tick are its children
+     * but are drawn outside the card box, into the centre gap, and a hidden overflow would cut
+     * both off. The clip is left to the car area, which is the only child that needs one.
+     */
 }
 
 #starting-grid-panel .driver-card.left
@@ -264,34 +367,37 @@
 #starting-grid-panel .driver-card.right
 {
     right: var(--starting-grid-column-gap);
-    top: calc(var(--grid-number-headroom) + var(--starting-grid-stagger));
+    top: calc(var(--starting-grid-number-headroom) + var(--starting-grid-stagger));
 }
 
 /* Name, badge and portrait sit in one row; the number and tick hang out of the card. */
 #starting-grid-panel .driver-head
 {
+    /* Containing block for the number and the tick. It measures identical without this, because the
+     * head happens to span the full card width, but that is coincidence rather than redundancy. */
     position: relative;
+
     display: flex;
     align-items: center;
-    flex: none;
     gap: 16px;
 
-    height: var(--grid-head-height);
+    height: var(--starting-grid-head-height);
     padding: 0 14px 0 22px;
 
-    background: var(--starting-grid-card-color);
-    border-bottom: 1px solid var(--grid-divider-color);
+    border-bottom: 1px solid var(--starting-grid-divider-color);
 }
 
 /* Tick that leaves the card towards the centre gap, sharing the number block width. */
 #starting-grid-panel .driver-head:after {
-    left: calc(100% + var(--grid-number-offset));
+    left: calc(100% + var(--starting-grid-number-offset));
     top: 24px;
 
     width: var(--starting-grid-number-width);
     height: 6px;
 
-    background: var(--grid-tick-color);
+    /* A short gradient rather than a flat bar, bright at the card and fading towards the number. */
+    background: linear-gradient(to right, var(--starting-grid-tick-color), var(--starting-grid-tick-fade));
+    box-shadow: var(--starting-grid-tick-glow);
     position: absolute;
     content: "";
 }
@@ -299,54 +405,72 @@
 /* The right card faces the other way, so its tick hangs left, into the same gap. */
 #starting-grid-panel .driver-card.right .driver-head:after
 {
-    right: calc(100% + var(--grid-number-offset));
+    right: calc(100% + var(--starting-grid-number-offset));
     left: auto;
+    background: linear-gradient(to left, var(--starting-grid-tick-color), var(--starting-grid-tick-fade));
 }
 
 #starting-grid-panel .card-number
 {
     position: absolute;
-    left: calc(100% + var(--grid-number-offset));
-    top: calc(-1 * (var(--grid-number-headroom) + var(--grid-card-border)));
+    left: calc(100% + var(--starting-grid-number-offset));
+    /*
+     * The number sits its lift above the row. The head it is placed against is already the
+     * headroom down, so the headroom is added here to convert that row-relative position into the
+     * offset from the head, which is what this box is positioned against.
+     */
+    top: calc(-1 * (var(--starting-grid-number-headroom) + var(--starting-grid-number-lift)));
 
     /* The box starts past the card border, so a wide number can never reach back into the card. */
     width: var(--starting-grid-number-width);
     white-space: nowrap;
-    text-align: right;
+
+    /* Centred in the number block, which is the same width as the tick, so a one or two digit
+     * position sits in the middle of its own tick rather than leaning against the card. */
+    text-align: center;
 
     color: var(--starting-grid-text-color);
     font-weight: 700;
     font-size: 40px;
 
-    /* Dark stroke keeps the text readable over a background of a similar color. */
-    -webkit-text-stroke: 1px #000;
-    paint-order: stroke fill;
+    /* A soft shadow instead of the hard outline the number used to carry, which read as a sticker
+     * on the feed. Two shadows, one tight and one wide, hold the shape over a busy background. */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.75), 0 0 18px rgba(0, 0, 0, 0.55);
 }
 
 /* Mirrored number, so both cards read their number out of the centre gap. */
 #starting-grid-panel .driver-card.right .card-number
 {
-    right: calc(100% + var(--grid-number-offset));
-    text-align: left;
+    right: calc(100% + var(--starting-grid-number-offset));
     left: auto;
 }
 
-#starting-grid-panel .driver-head:before
+/*
+ * Class colour bar, drawn on the name rather than the card so that it spans exactly the two lines
+ * of driver text: it starts at the top of the first name and ends at the bottom of the last name,
+ * instead of running the full height of the card. The name is the flex item that hugs its own
+ * content, so a bar pinned to its top and bottom edges tracks the text whatever its length.
+ */
+#starting-grid-panel .driver-name
+{
+    position: relative;
+
+    line-height: 1.05;
+    margin-right: auto;
+
+    padding-left: 12px;
+}
+
+#starting-grid-panel .driver-name:before
 {
     content: "";
     position: absolute;
-    left: 7px;
-    top: 16px;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
 
-    width: 6px;
-    height: 55%;
     background: var(--class-color, var(--starting-grid-accent-color));
-}
-
-#starting-grid-panel .driver-name
-{
-    line-height: 1.05;
-    margin-right: auto;
 }
 
 #starting-grid-panel .driver-name small
@@ -369,7 +493,6 @@
     transform: skew(-25deg);
 
     opacity: .8;
-    flex: none;
 
     height: 34px;
     width: 48px;
@@ -377,19 +500,20 @@
 
 #starting-grid-panel .portrait
 {
-    flex: none;
-
     width: var(--starting-grid-logo-height);
     height: var(--starting-grid-logo-height);
+
+    /* The portrait is a cutout on transparency, so it needs a soft shadow to separate from the
+     * glass behind it without needing a box around it. */
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
 }
 
 #starting-grid-panel .car-area
 {
     position: relative;
-    min-height: 0;
     flex: 1;
 
-    background: #25252c;
+    /* The only clip on the card, which keeps the vehicle image inside the card surface. */
     overflow: hidden;
 }
 
@@ -398,8 +522,12 @@
     left: 0;
     top: 0;
 
-    height: calc(100% - var(--grid-meta-height));
+    height: calc(100% - var(--starting-grid-meta-height));
     max-width: 100%;
+
+    /* A floor under the vehicle image, so the car is not cut off by a hard edge where it meets
+     * the meta bar, and so it lifts away from whatever the feed is doing behind the glass. */
+    filter: drop-shadow(0 -8px 16px rgba(6, 8, 12, 0.5));
 }
 
 #starting-grid-panel .lap {
@@ -411,6 +539,7 @@
     font-weight: 800;
     text-align: right;
     color: var(--starting-grid-text-color);
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 #starting-grid-panel .lap small {
@@ -420,22 +549,41 @@
     color: var(--starting-grid-secondary-color);
 }
 
+/*
+ * Meta bar runs along the bottom of the car area. The class colour wash over it is a negative
+ * z-index layer rather than a mix into the fill, which keeps the effect on engines without color-mix
+ * and leaves a single knob for the tint strength. The bar establishes a stacking context, so the
+ * wash stays behind the text and never escapes the card.
+ */
 #starting-grid-panel .meta {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
 
-    height: var(--grid-meta-height);
+    height: var(--starting-grid-meta-height);
     padding: 0 1.2vh;
-    line-height: var(--grid-meta-height);
+    line-height: var(--starting-grid-meta-height);
 
-    background: #191920;
+    background: var(--starting-grid-meta-fill);
     color: var(--starting-grid-text-color);
 
     font-size: 14px;
     white-space: nowrap;
     overflow: hidden;
+
+    isolation: isolate;
+}
+
+#starting-grid-panel .meta:before
+{
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+
+    background: var(--class-color, var(--starting-grid-accent-color));
+    opacity: .22;
 }
 
 #starting-grid-panel .meta span {

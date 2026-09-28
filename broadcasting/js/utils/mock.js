@@ -139,14 +139,11 @@
                 number_width: '70px',
                 row_gap: '32px',
                 column_gap: '32px',
-                row_label_width: '112px',
                 logo_height: '48px',
-                vehicle_width: '40%',
                 stagger: '24px',
-                background_color: 'transparent',
                 card_color: 'rgb(21, 21, 30)',
                 accent_color: 'rgb(177, 209, 239)',
-                secondary_color: 'rgb(121, 138, 155)',
+                secondary_color: '#f0f1f5',
                 text_color: 'white'
             }
         };

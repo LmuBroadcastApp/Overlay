@@ -231,11 +231,8 @@ function UpdateOverlaySettings(settings)
     SetGridStyleVariable(root, '--starting-grid-number-width', settings.grid?.number_width);
     SetGridStyleVariable(root, '--starting-grid-row-gap', settings.grid?.row_gap);
     SetGridStyleVariable(root, '--starting-grid-column-gap', settings.grid?.column_gap);
-    SetGridStyleVariable(root, '--starting-grid-row-label-width', settings.grid?.row_label_width);
     SetGridStyleVariable(root, '--starting-grid-logo-height', settings.grid?.logo_height);
-    SetGridStyleVariable(root, '--starting-grid-vehicle-width', settings.grid?.vehicle_width);
     SetGridStyleVariable(root, '--starting-grid-stagger', settings.grid?.stagger);
-    SetGridStyleVariable(root, '--starting-grid-background-color', settings.grid?.background_color);
     SetGridStyleVariable(root, '--starting-grid-card-color', settings.grid?.card_color);
     SetGridStyleVariable(root, '--starting-grid-accent-color', settings.grid?.accent_color);
     SetGridStyleVariable(root, '--starting-grid-secondary-color', settings.grid?.secondary_color);

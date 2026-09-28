@@ -128,20 +128,47 @@
     --starting-grid-font-size: 1.4rem;                                                  /** General font size of the panel */
     --starting-grid-entry-width: 512px;                                                 /** Width of one grid slot, 40% of the screen width */
     --starting-grid-entry-height: 300px;                                                /** Height of one grid slot, grows with the viewport so the vehicle image fits */
-    --starting-grid-number-width: 70px;
+    --starting-grid-number-width: 70px;                                                 /** Width of the number block each slot hangs into the centre gap */
     --starting-grid-row-gap: 32px;                                                      /** Vertical gap between grid slots */
     --starting-grid-column-gap: 32px;                                                   /** Horizontal gap between the row gutter and the two columns */
-    --starting-grid-row-label-width: 112px;                                             /** Width of the row number gutter */
     --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
-    --starting-grid-vehicle-width: 40%;                                                 /** Lateral vehicle image width, relative to the slot */
     --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
     --starting-grid-scroll-duration: 40s;                                               /** Total time the grid takes to scroll from the top to the bottom */
     --starting-grid-scroll-delay: 5s;                                                   /** Time the grid waits at the top before the scroll starts */
-    --starting-grid-background-color: transparent;                                      /** Panel background, transparent so the feed behind shows through */
     --starting-grid-card-color: rgb(21, 21, 30);                                        /** Slot background */
     --starting-grid-accent-color: rgb(177, 209, 239);                                   /** Driver code and headings */
-    --starting-grid-secondary-color: rgb(121, 138, 155);                                /** Driver name and team labels */
+    --starting-grid-secondary-color: #f0f1f5;                                           /** Driver name and team labels, matched to the live timing standings primary text */
     --starting-grid-text-color: white;                                                  /** Position and car number */
+
+    /** Starting grid, card metrics. These scale off the entry height, so a slot resizes in one place. */
+    --starting-grid-head-height: calc(var(--starting-grid-entry-height) * 0.30);        /** Height of the driver head band */
+    --starting-grid-meta-height: calc(var(--starting-grid-entry-height) * 0.12);        /** Height of the meta bar under the vehicle */
+    --starting-grid-number-headroom: 20px;                                              /** Clear space above a card for the car number, drawn outside the card box */
+    --starting-grid-number-lift: 5px;                                                   /** How far the car number hangs above its own row, inside the headroom band */
+    --starting-grid-number-offset: 21px;                                                /** Clear space between the card edge and the number and tick that hang into the centre gap */
+
+    /** Starting grid, header. Fixed values, because the header does not follow the card size. */
+    --starting-grid-header-top: 1rem;                                                   /** Clear space above the header, down to the screen top */
+    --starting-grid-header-gap: 1rem;                                                   /** Gap between the header and the grid below it */
+    --starting-grid-header-inset: 18px;                                                 /** Horizontal inset from the panel edges, so the header reads as its own surface */
+    --starting-grid-header-height: 112px;                                               /** Height of the header band */
+    --starting-grid-header-padding: 14px 22px;                                          /** Padding inside the header */
+    --starting-grid-header-icon-size: 30px;                                             /** Forecast icon size */
+
+    /** Starting grid, surface recipe, shared by every glass surface in the panel. */
+    --starting-grid-scrim-color: rgba(6, 8, 12, 0.20);                                  /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */
+    --starting-grid-glass-blur: 18px;                                                    /** Backdrop blur radius, unused while the card and header fills stay opaque */
+    --starting-grid-glass-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.30); /** Wide soft lift plus a tight layer to define the edge */
+    --starting-grid-row-label-fill: rgba(12, 14, 20, 0.55);                             /** Backing chip behind each row label */
+    --starting-grid-row-label-blur: 10px;                                               /** Backdrop blur on the row label, the one surface translucent enough to show it */
+    --starting-grid-meta-fill: rgba(10, 12, 18, 0.72);                                  /** Fill of the meta bar under the vehicle */
+
+    /** Starting grid, accents and dividers. */
+    --starting-grid-tick-color: #ffe500;                                                /** Tick that leaves each card towards the centre gap */
+    --starting-grid-tick-fade: rgba(255, 229, 0, 0.25);                                 /** Far end of the tick gradient, the alpha it fades to at the number */
+    --starting-grid-tick-glow: 0 0 12px rgba(255, 229, 0, 0.35);                        /** Glow around the tick, so it reads over a bright feed */
+    --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
+    --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
 }
 
 /**********************************************************************************************************************/
