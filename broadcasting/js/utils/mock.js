@@ -170,8 +170,7 @@
             show_telemetry: true,
             show_last_pitstop: true,
             show_starting_grid: !window.location.search.includes('nogrid'),
-            grid_scroll_duration_sec: window.location.search.includes('allgrid') ? 0 : 8,
-            grid_scroll_delay_sec: 1,
+            grid_scroll_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }
@@ -350,7 +349,7 @@
         const controls = mockControls();
 
         stateManager.setState('overlay_controls', controls);
-        SetGridSweepTiming(document.documentElement, controls);
+        SetGridPagerTiming(document.documentElement, controls);
         UpdateOverlaySettings(mockOverlaySettings());
         stateManager.setState('overlay_settings', mockOverlaySettings());
         stateManager.setState('session', mockSession(eventTime));

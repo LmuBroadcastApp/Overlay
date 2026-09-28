@@ -133,8 +133,7 @@
     --starting-grid-column-gap: 32px;                                                   /** Horizontal gap between the row gutter and the two columns */
     --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
     --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
-    --starting-grid-scroll-duration: 40s;                                               /** Total time the grid takes to scroll from the top to the bottom */
-    --starting-grid-scroll-delay: 5s;                                                   /** Time the grid waits at the top before the scroll starts */
+    --starting-grid-page-duration: 5s;                                                  /** Seconds each page stays up before the pager turns to the next */
     --starting-grid-card-color: #1e1e1e;                                                /** Slot background, the neutral dark shared by the timing cells */
     --starting-grid-accent-color: #555;                                                 /** Fallback accent when a vehicle carries no class colour */
     --starting-grid-secondary-color: var(--text-color-secondary);                       /** Driver name and team labels, the shared secondary text */
@@ -154,6 +153,10 @@
     --starting-grid-header-height: 112px;                                               /** Height of the header band */
     --starting-grid-header-padding: 14px 22px;                                          /** Padding inside the header */
     --starting-grid-header-icon-size: 30px;                                             /** Forecast icon size */
+
+    /** Starting grid, pager. The page indicator mirrors the header at the bottom of the panel. */
+    --starting-grid-pager-bottom: 1rem;                                                 /** Clear space under the pager, down to the screen bottom */
+    --starting-grid-pager-height: 32px;                                                 /** Height of the pager band */
 
     /** Starting grid, surface recipe, shared by every glass surface in the panel. */
     --starting-grid-scrim-color: rgba(0, 0, 0, 0.20);                                   /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */

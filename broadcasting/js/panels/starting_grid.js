@@ -1,11 +1,8 @@
-/** @brief How many grid rows to draw. A full field is far taller than the overlay window. */
-const STARTING_GRID_MAX_ROWS = 3;
+/** @brief How many grid rows a page shows. Two rows put four cars on screen at once. */
+const STARTING_GRID_PAGE_ROWS = 2;
 
-/** @brief Total sweep time in milliseconds, used when the stylesheet defines no duration. */
-const STARTING_GRID_SCROLL_FALLBACK = 40000;
-
-/** @brief Wait before the sweep in milliseconds, used when the stylesheet defines no delay. */
-const STARTING_GRID_SCROLL_DELAY_FALLBACK = 0;
+/** @brief Page hold time in milliseconds when the stylesheet defines no duration (five seconds). */
+const STARTING_GRID_PAGE_FALLBACK = 5000;
 
 /**
  * @brief Origin the backend serves the per car slot images on. Built from the host serving this
@@ -55,6 +52,7 @@ class StartingGridPanel
         /** Header holds the circuit and weather context, the body holds the grid itself. */
         this.header = this.element.querySelector('#starting-grid-header');
         this.body = this.element.querySelector('#starting-grid-body');
+        this.footer = this.element.querySelector('#starting-grid-pager');
 
         this.tree = null;
         this.headerHTML = null;
@@ -69,15 +67,18 @@ class StartingGridPanel
         /** Session changes rebuild the header only, the grid waits for a new standings snapshot. */
         this.headerDirty = true;
 
-        /** Sweep state, driven on its own animation frame while the panel owns the window. */
-        this.scroll =
+        /** Pager state. Pages advance on their own timer while the panel owns the window. */
+        this.pager =
         {
             pending: false, /** Requested, waiting for the grid to be drawn before it can start. */
-            active: false,
-            duration: 0,
-            delay: 0,
-            start: 0
+            index: 0,       /** Current page, zero based. */
+            total: 0,       /** Number of pages in the current field. */
+            duration: 0,    /** Hold time per page in milliseconds. */
+            timer: null     /** Timeout that turns the next page. */
         };
+
+        /** Set when the page changes, so the grid is redrawn without a new standings snapshot. */
+        this.pageDirty = false;
 
         this.controls =
         {
@@ -114,29 +115,47 @@ class StartingGridPanel
         {
             if (value === 'grid')
             {
-                this._queueScroll();
+                this._queuePager();
+            }
+            else
+            {
+                this._stopPager();
             }
         }
     }
 
     /**
-     * Requests a sweep from the top of the grid to the bottom, applied as soon as the grid is
-     * drawn. A re-shown grid replays the sweep instead of staying where the last one stopped.
+     * Requests the pager from the first page, applied as soon as the grid is drawn. A re-shown
+     * grid starts again on page one instead of staying where the last run left it.
      */
-    _queueScroll()
+    _queuePager()
     {
-        this.scroll.pending = true;
-        this.scroll.active = false;
+        this.pager.pending = true;
     }
 
     /**
-     * Returns a scroll timing token in milliseconds, read from the variable the backend controls,
+     * Stops the pager and forgets the pending start, so the timer does not keep turning pages
+     * while another overlay owns the window.
+     */
+    _stopPager()
+    {
+        this.pager.pending = false;
+
+        if (this.pager.timer !== null)
+        {
+            clearTimeout(this.pager.timer);
+            this.pager.timer = null;
+        }
+    }
+
+    /**
+     * Returns a page timing token in milliseconds, read from the variable the backend controls,
      * accepting a plain number of seconds as well as the s and ms time units.
      * @param {string} name CSS custom property name.
      * @param {number} fallback Value used when the variable holds no valid time.
      * @returns {number} Time in milliseconds.
      */
-    _scrollTime(name, fallback)
+    _pageTime(name, fallback)
     {
         let value = getComputedStyle(this.element).getPropertyValue(name).trim();
 
@@ -149,45 +168,44 @@ class StartingGridPanel
     }
 
     /**
-     * Starts the sweep once the grid is drawn, so the travel distance can be measured. The wait
-     * keeps the grid on screen for a moment before it moves. Later frames run on their own
-     * animation frame, see _animateScroll. The body is the scroll viewport, the panel above it
-     * holds the header and never moves.
+     * Starts the pager once the grid is drawn. Page one is shown straight away, then the timer
+     * turns pages on the configured cadence until the overlay is hidden. Every page, including
+     * the first, stays up for the same number of seconds. A duration of zero turns the pager off
+     * and leaves the grid on page one.
      */
-    _beginScroll()
+    _beginPager()
     {
         if (this.tree === null) return;
 
-        this.scroll.pending = false;
-        this.scroll.duration = this._scrollTime('--starting-grid-scroll-duration', STARTING_GRID_SCROLL_FALLBACK);
-        this.scroll.delay = this._scrollTime('--starting-grid-scroll-delay', STARTING_GRID_SCROLL_DELAY_FALLBACK);
-        this.scroll.start = 0;
-        this.scroll.active = this.scroll.duration > 0;
+        this.pager.pending = false;
+        this.pager.index = 0;
+        this.pageDirty = true;
 
-        this.body.scrollTop = 0;
-        this._animateScroll();
+        this.pager.duration = this._pageTime('--starting-grid-page-duration', STARTING_GRID_PAGE_FALLBACK);
+
+        this._stopPager();
+
+        if (this.pager.duration <= 0) return;
+
+        this.pager.timer = setTimeout(() => this._advance(), this.pager.duration);
     }
 
     /**
-     * Walks the grid from the top to the bottom over the configured duration, after the
-     * configured wait. The sweep runs on its own animation frame rather than on the panel update,
-     * which is capped well below the display rate and would show as steps. The travel distance is
-     * measured every frame so the sweep still lands on the bottom when the grid resizes mid flight.
-     *
-     * @param {?(number)} now Frame timestamp in milliseconds, taken on the first frame.
+     * Turns to the next page, wrapping from the last page back to the first, and arms the timer
+     * for the following page. The grid and pager are redrawn on the next panel update, see update.
      */
-    _animateScroll(now)
+    _advance()
     {
-        if (!this.scroll.active) return;
+        if (this.pager.total > 1)
+        {
+            this.pager.index = (this.pager.index + 1) % this.pager.total;
+            this.pageDirty = true;
+        }
 
-        now = now ?? performance.now();
-        if (this.scroll.start === 0) this.scroll.start = now + this.scroll.delay;
-
-        let progress = Math.max(0, Math.min(1, (now - this.scroll.start) / this.scroll.duration));
-        this.body.scrollTop = Math.max(0, this.body.scrollHeight - this.body.clientHeight) * progress;
-        this.scroll.active = progress < 1;
-
-        if (this.scroll.active) requestAnimationFrame((timestamp) => this._animateScroll(timestamp));
+        if (this.pager.duration > 0)
+        {
+            this.pager.timer = setTimeout(() => this._advance(), this.pager.duration);
+        }
     }
 
     /**
@@ -197,9 +215,9 @@ class StartingGridPanel
      */
     update()
     {
-        if (this.scroll.pending)
+        if (this.pager.pending)
         {
-            this._beginScroll();
+            this._beginPager();
         }
 
         if (this.headerDirty)
@@ -215,15 +233,18 @@ class StartingGridPanel
                 this.vdom.render(this.vdom.h('div'), this.body);
             }
 
+            this.pager.total = 0;
+            if (this.footer) this.footer.innerHTML = '';
             return;
         }
 
-        if (this.counter_standings_curr === this.counter_standings_test)
+        if (this.counter_standings_curr === this.counter_standings_test && !this.pageDirty)
         {
             return;
         }
 
         this.counter_standings_test = this.counter_standings_curr;
+        this.pageDirty = false;
         let newTree = this._buildTree();
 
         if (this.tree === null)
@@ -234,6 +255,8 @@ class StartingGridPanel
         {
             this.tree = this.vdom.patch(this.tree, newTree, this.body);
         }
+
+        this._renderPager();
     }
 
     /**
@@ -270,7 +293,7 @@ class StartingGridPanel
                 <span class='grid-header-sub'>${this._getTrackSummary(this.session, this.standings)}</span>
             </div>
             <div class='grid-header-group'>
-                <div class='grid-header-block'>
+                <div class='grid-header-block grid-header-weather'>
                     <span class='grid-header-label'>Weather</span>
                     ${this._buildWeatherHTML(this.session)}
                 </div>
@@ -528,46 +551,111 @@ class StartingGridPanel
     }
 
     /**
-     * Builds the staggered pair of columns, odd positions on the left so pole leads the ladder.
-     * @returns {*} Virtual DOM grid node.
+     * Flattens the field into grid rows in draw order. Each row holds the one or two cars that
+     * share a pair of slots, plus the row and class labels and the class best lap those cars are
+     * measured against, so the pager can slice rows into pages without re-deriving them.
+     * @returns {Array<Object>} Grid rows in draw order.
      */
-    _buildGrid()
+    _buildRows()
     {
-        if (this.standings.length === 0)
-        {
-            return this.vdom.h('div', { className: 'grid' });
-        }
+        let rows = [];
+        let field_row = 1;
 
-        let html = '';
-        let row = 1;
-
-        let order = this._getGridOrder();
-        const perClass = GetByClasses(order);
+        const perClass = GetByClasses(this._getGridOrder());
 
         perClass.forEach((value, key) =>
         {
-            html += `<div class='class-label ${CSSClassFromVehicleClass(key)}'>${HtmlEscape(key)}</div>`;
             let best_lap_time = this._getClassBestLap(value);
             let class_row = 1;
 
             for (let i = 0; i < value.length; i += 2)
             {
-                html += `<div class='row-labels'>
-                    <div class='row-label row-label-class'>Row ${class_row++}</div>
-                    <div class='row-label'>Row ${row++}</div>
-                </div>`;
-                html += `<div class='grid-row'>${this._buildCard(value[i], 'left', best_lap_time)}`;
-
-                if (i + 1 <value.length)
-                {
-                    html += this._buildCard(value[i + 1], 'right', best_lap_time);
-                }
-                html += '</div>';
+                rows.push({
+                    className: key,
+                    class_row: class_row++,
+                    field_row: field_row++,
+                    best_lap_time: best_lap_time,
+                    left: value[i],
+                    right: (i + 1 < value.length) ? value[i + 1] : null
+                });
             }
         });
 
+        return rows;
+    }
+
+    /**
+     * Builds the staggered pair of columns for the current page, odd positions on the left so
+     * pole leads the ladder. A page shows two rows at a time, and a class label is drawn each
+     * time the page enters a new class, including at the top of the page for context.
+     * @returns {*} Virtual DOM grid node.
+     */
+    _buildGrid()
+    {
+        const rows = this._buildRows();
+
+        this.pager.total = Math.max(1, Math.ceil(rows.length / STARTING_GRID_PAGE_ROWS));
+        if (this.pager.index >= this.pager.total)
+        {
+            this.pager.index = 0;
+        }
+
+        const start = this.pager.index * STARTING_GRID_PAGE_ROWS;
+        const page = rows.slice(start, start + STARTING_GRID_PAGE_ROWS);
+
+        let html = '';
+        let lastClass = null;
+
+        page.forEach((row) =>
+        {
+            if (row.className !== lastClass)
+            {
+                html += `<div class='class-label ${CSSClassFromVehicleClass(row.className)}'>${HtmlEscape(row.className)}</div>`;
+                lastClass = row.className;
+            }
+
+            html += `<div class='row-labels'>
+                <div class='row-label row-label-class'>Row ${row.class_row}</div>
+                <div class='row-label'>Row ${row.field_row}</div>
+            </div>`;
+            html += `<div class='grid-row'>${this._buildCard(row.left, 'left', row.best_lap_time)}`;
+
+            if (row.right !== null)
+            {
+                html += this._buildCard(row.right, 'right', row.best_lap_time);
+            }
+            html += '</div>';
+        });
 
         return this.vdom.h('div', { className: 'grid', htmlContent: html });
+    }
+
+    /**
+     * Draws the page indicator under the grid: one dot per page with the current page filled, and
+     * the current page number beside the total. Written to innerHTML like the header, since the
+     * whole indicator is a flat block of markup rebuilt from scratch each time the page changes.
+     */
+    _renderPager()
+    {
+        if (!this.footer) return;
+
+        if (this.pager.total <= 0)
+        {
+            this.footer.innerHTML = '';
+            return;
+        }
+
+        let dots = '';
+
+        for (let i = 0; i < this.pager.total; i++)
+        {
+            dots += `<span class='pager-dot${i === this.pager.index ? ' active' : ''}'></span>`;
+        }
+
+        let html = `<div class='pager-dots'>${dots}</div>`
+            + `<span class='pager-count'>${this.pager.index + 1} / ${this.pager.total}</span>`;
+
+        this.footer.innerHTML = html;
     }
 
 

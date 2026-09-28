@@ -113,20 +113,18 @@ function SetGridStyleVariable(root, name, value)
 }
 
 /**
- * Applies the starting grid sweep timing the operator set in the overlay controls, so the grid
- * scrolls at the same speed as the other overlays. A duration of zero turns the sweep off and
- * leaves the grid on pole.
+ * Applies the starting grid pager timing the operator set in the overlay controls: the number of
+ * seconds each page stays up. A duration of zero turns the pager off and leaves the grid on page
+ * one.
  *
  * @param {CSSStyleDeclaration} root Document root element style.
  * @param {Object} controls Overlay controls payload.
  */
-function SetGridSweepTiming(root, controls)
+function SetGridPagerTiming(root, controls)
 {
     let duration = controls?.grid_scroll_duration_sec;
-    let delay = controls?.grid_scroll_delay_sec;
 
-    if (Number.isFinite(duration)) root.style.setProperty('--starting-grid-scroll-duration', `${duration}s`);
-    if (Number.isFinite(delay)) root.style.setProperty('--starting-grid-scroll-delay', `${delay}s`);
+    if (Number.isFinite(duration)) root.style.setProperty('--starting-grid-page-duration', `${duration}s`);
 }
 
 /**
@@ -263,7 +261,7 @@ const callBacks =
     onOverlayControlsUpdate: (data) =>
     {
         stateManager.setState('overlay_controls', data);
-        SetGridSweepTiming(document.documentElement, data);
+        SetGridPagerTiming(document.documentElement, data);
         ApplyPanelVisibility();
     },
     onOverlaySettingsUpdate: (data) =>

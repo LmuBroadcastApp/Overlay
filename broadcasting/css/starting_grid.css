@@ -30,11 +30,6 @@
     color: var(--starting-grid-text-color);
 }
 
-#starting-grid-body::-webkit-scrollbar
-{
-    display: none;
-}
-
 /*
  * The ladder keeps the content width and centres itself in the wider body. The cards are absolutely
  * positioned against the column gaps, so this is what holds the two columns and the numbers that
@@ -50,26 +45,25 @@
 }
 
 /*
- * Body is the scroll viewport the sweep walks: it fills the panel below the header, which is
- * taken out of the flow so the header can never travel with the grid.
+ * Body is the viewport the current page sits in: it fills the panel between the header and the
+ * pager, which are both taken out of the flow so they never travel with the grid.
  */
 #starting-grid-body
 {
-    /* The body starts under the header, clear of the space above it and the gap below it. */
+    /* The body starts under the header, clear of the space above it and the gap below it, and
+     * stops above the pager band at the bottom. */
     position: absolute;
     top: calc(var(--starting-grid-header-top) + var(--starting-grid-header-height) + var(--starting-grid-header-gap));
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: calc(var(--starting-grid-pager-bottom) + var(--starting-grid-pager-height));
 
-    scrollbar-width: none;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
 }
 
 /*
  * Header introduces the field with the circuit and the conditions it starts in. It is pinned to
- * the top of the panel, which never scrolls, so it stays put for the whole sweep.
+ * the top of the panel, so it stays put while the pages turn beneath it.
  */
 #starting-grid-header
 {
@@ -97,10 +91,10 @@
     box-shadow: var(--starting-grid-glass-shadow);
 
     /*
-     * The blur is off while the fill above stays opaque: it would be painted over anyway, and the
-     * sweep scrolls the body on every frame, so a live backdrop filter means re-blurring the whole
-     * window per frame for nothing. Re-enable it alongside --starting-grid-glass-blur if the card
-     * colour is ever made translucent.
+     * The blur is off while the fill above stays opaque: it would be painted over anyway, and a
+     * live backdrop filter over the translucent scrim means re-blurring the whole window for
+     * nothing. Re-enable it alongside --starting-grid-glass-blur if the card colour is ever made
+     * translucent.
      *
      * backdrop-filter: blur(var(--starting-grid-glass-blur)) saturate(140%);
      */
@@ -132,6 +126,12 @@
 #starting-grid-header .grid-header-forecast
 {
     align-items: flex-end;
+}
+
+/* The weather label sits at the end of its block, mirroring the forecast label across the divider. */
+#starting-grid-header .grid-header-weather .grid-header-label
+{
+    align-self: flex-end;
 }
 
 #starting-grid-header .grid-header-label
@@ -218,6 +218,58 @@
 #starting-grid-header .grid-forecast-rain
 {
     color: var(--starting-grid-text-color);
+}
+
+/*
+ * Pager indicator. A single band pinned to the bottom of the panel, mirroring the header: one dot
+ * per page with the current page filled, and the current page number beside the total.
+ */
+#starting-grid-pager
+{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: var(--starting-grid-pager-bottom);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+
+    height: var(--starting-grid-pager-height);
+    z-index: 1;
+}
+
+#starting-grid-pager .pager-dots
+{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#starting-grid-pager .pager-dot
+{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    background: var(--starting-grid-row-label-fill);
+    border: 1px solid var(--starting-grid-divider-color);
+}
+
+#starting-grid-pager .pager-dot.active
+{
+    background: var(--starting-grid-tick-color);
+    border-color: transparent;
+}
+
+#starting-grid-pager .pager-count
+{
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .16em;
+    color: var(--starting-grid-secondary-color);
+    font-variant-numeric: tabular-nums;
 }
 
 /*
