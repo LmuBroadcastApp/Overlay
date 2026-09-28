@@ -19,16 +19,26 @@
     /* Where the number and the tick start, measured out from the card border they hang off. */
     --grid-number-offset: calc(var(--grid-card-gutter) + var(--grid-card-border) + 6px);
 
+    /* Header padding and forecast icon size, both fixed because the header does not follow the card size. */
+    --grid-header-padding: 14px 22px;
+    --grid-header-icon-size: 30px;
+    --grid-header-height: 112px;
+
+    /* Clear space above the header, down to the screen top, and between the header and the grid. */
+    --grid-header-top: 1rem;
+    --grid-header-gap: 1rem;
+
     /* Both slots, the column gap, and the number block each slot hangs into that gap. */
-    width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap)
+    --grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap)
         + 2 * (var(--grid-number-offset) + var(--starting-grid-number-width)));
+
+    width: var(--grid-panel-width);
     height: 100vh;
     margin: auto;
 
-    /* The grid is taller than the window, so the panel is the viewport the sweep scrolls. */
-    scrollbar-width: none;
-    overflow-x: hidden;
-    overflow-y: auto;
+    /* The panel is the fixed window: it never scrolls, the body below the header is the viewport. */
+    position: relative;
+    overflow: hidden;
 
     z-index: var(--z-index-grid);
     display: none;
@@ -38,7 +48,7 @@
     color: var(--starting-grid-text-color);
 }
 
-#starting-grid-panel::-webkit-scrollbar
+#starting-grid-body::-webkit-scrollbar
 {
     display: none;
 }
@@ -47,6 +57,158 @@
 {
     display: flex;
     flex-direction: column;
+}
+
+/*
+ * Body is the scroll viewport the sweep walks: it fills the panel below the header, which is
+ * taken out of the flow so the header can never travel with the grid.
+ */
+#starting-grid-body
+{
+    /* The body starts under the header, clear of the space above it and the gap below it. */
+    position: absolute;
+    top: calc(var(--grid-header-top) + var(--grid-header-height) + var(--grid-header-gap));
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    scrollbar-width: none;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/*
+ * Header introduces the field with the circuit and the conditions it starts in. It is pinned to
+ * the top of the panel, which never scrolls, so it stays put for the whole sweep.
+ */
+#starting-grid-header
+{
+    position: absolute;
+    top: var(--grid-header-top);
+    left: 0;
+    right: 0;
+    z-index: 1;
+
+    height: var(--grid-header-height);
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2em;
+
+    padding: var(--grid-header-padding);
+
+    background: var(--starting-grid-card-color);
+    border-bottom: 1px solid var(--grid-divider-color);
+}
+
+#starting-grid-header .grid-header-block
+{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+#starting-grid-header .grid-header-forecast
+{
+    align-items: flex-end;
+}
+
+#starting-grid-header .grid-header-label
+{
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--starting-grid-secondary-color);
+}
+
+#starting-grid-header .grid-header-value
+{
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: var(--starting-grid-text-color);
+
+    /* A long circuit name is clipped rather than allowed to push the forecast off the header. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#starting-grid-header .grid-header-sub
+{
+    font-size: 14px;
+    color: var(--starting-grid-secondary-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+#starting-grid-header .grid-weather
+{
+    display: flex;
+    gap: 14px;
+}
+
+#starting-grid-header .grid-weather-cell
+{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 14px;
+    color: var(--starting-grid-secondary-color);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+#starting-grid-header .grid-weather-cell b
+{
+    font-weight: 600;
+    color: var(--starting-grid-text-color);
+}
+
+/*
+ * The four glyphs do not share a width, fa-road and fa-water are about twice as wide as the
+ * half thermometer and the raindrop, and the browser spaces the readings by that difference. These
+ * two cells pull their own icon back in so every reading sits the same distance from its icon,
+ * leaving the base gap alone for the two glyphs that already line up.
+ */
+#starting-grid-header .grid-weather-cell .glyph-air,
+#starting-grid-header .grid-weather-cell .glyph-rain
+{
+    margin-right: -5px;
+}
+
+#starting-grid-header .grid-forecast
+{
+    display: flex;
+    gap: 16px;
+}
+
+#starting-grid-header .grid-forecast-cell
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--starting-grid-secondary-color);
+    font-variant-numeric: tabular-nums;
+}
+
+#starting-grid-header .grid-forecast-cell img
+{
+    width: var(--grid-header-icon-size);
+    height: var(--grid-header-icon-size);
+}
+
+#starting-grid-header .grid-forecast-rain
+{
+    color: var(--starting-grid-text-color);
 }
 
 #starting-grid-panel .row-label
@@ -177,7 +339,7 @@
     top: 16px;
 
     width: 6px;
-    height: 34px;
+    height: 55%;
     background: var(--class-color, var(--starting-grid-accent-color));
 }
 
