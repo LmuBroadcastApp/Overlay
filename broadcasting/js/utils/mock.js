@@ -170,7 +170,7 @@
             show_telemetry: true,
             show_last_pitstop: true,
             show_starting_grid: !window.location.search.includes('nogrid'),
-            grid_scroll_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
+            grid_page_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }

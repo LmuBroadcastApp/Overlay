@@ -122,7 +122,7 @@ function SetGridStyleVariable(root, name, value)
  */
 function SetGridPagerTiming(root, controls)
 {
-    let duration = controls?.grid_scroll_duration_sec;
+    let duration = controls?.grid_page_duration_sec;
 
     if (Number.isFinite(duration)) root.style.setProperty('--starting-grid-page-duration', `${duration}s`);
 }
