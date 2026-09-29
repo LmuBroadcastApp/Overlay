@@ -1,8 +1,18 @@
-/** @brief How many grid rows a page shows. Two rows put four cars on screen at once. */
-const STARTING_GRID_PAGE_ROWS = 2;
+/** @brief Default number of grid rows per page. Three rows put six cars on screen at once. */
+const STARTING_GRID_PAGE_ROWS = 3;
+
+/** @brief Maximum configurable rows per page that remain readable after the page is fitted. */
+const STARTING_GRID_PAGE_ROWS_MAX = 4;
 
 /** @brief Page hold time in milliseconds when the stylesheet defines no duration (five seconds). */
 const STARTING_GRID_PAGE_FALLBACK = 5000;
+
+/**
+ * @brief Hold time in milliseconds for the last page when the stylesheet defines none. The field
+ * has been shown in full by then, so the last page stays up far longer than a page in the middle
+ * of the sweep before the pager wraps back to the first.
+ */
+const STARTING_GRID_LAST_PAGE_FALLBACK = 30000;
 
 /**
  * @brief Origin the backend serves the per car slot images on. Built from the host serving this
@@ -63,22 +73,27 @@ class StartingGridPanel
 
         this.standings = null;
         this.session = this.stateManager.getState('session');
+        this.map = this.stateManager.getState('map');
 
         /** Session changes rebuild the header only, the grid waits for a new standings snapshot. */
         this.headerDirty = true;
+        this.mapDirty = true;
 
         /** Pager state. Pages advance on their own timer while the panel owns the window. */
         this.pager =
         {
-            pending: false, /** Requested, waiting for the grid to be drawn before it can start. */
-            index: 0,       /** Current page, zero based. */
-            total: 0,       /** Number of pages in the current field. */
-            duration: 0,    /** Hold time per page in milliseconds. */
-            timer: null     /** Timeout that turns the next page. */
+            pending: false,       /** Requested, waiting for the grid to be drawn before it can start. */
+            index: 0,             /** Current page, zero based. */
+            total: 0,             /** Number of pages in the current field. */
+            duration: 0,          /** Hold time per page in milliseconds. */
+            lastDuration: 0,      /** Hold time for the last page in milliseconds, before wrapping to the first. */
+            started: 0,           /** When the current page timer was armed, from performance.now(). */
+            timer: null           /** Timeout that turns the next page. */
         };
 
         /** Set when the page changes, so the grid is redrawn without a new standings snapshot. */
         this.pageDirty = false;
+        this.pageRows = STARTING_GRID_PAGE_ROWS;
 
         this.controls =
         {
@@ -106,10 +121,22 @@ class StartingGridPanel
             this.session = value;
             this.headerDirty = true;
         }
+        else if (key === 'map')
+        {
+            this.map = value;
+            this.mapDirty = true;
+        }
         else if (key === 'overlay_controls')
         {
             this.controls = value;
 
+            const pageRows = this._getPageRows();
+            if (pageRows !== this.pageRows)
+            {
+                this.pageRows = pageRows;
+                this.pager.index = 0;
+                this.pageDirty = true;
+            }
         }
         else if (key === 'overlay_exclusive')
         {
@@ -122,6 +149,23 @@ class StartingGridPanel
                 this._stopPager();
             }
         }
+    }
+
+    /**
+     * Returns the configured number of rows per page. Invalid and missing values preserve the
+     * two-row default; large values are capped before the page becomes unreadably small.
+     * @returns {number} Number of grid rows to draw on one page.
+     */
+    _getPageRows()
+    {
+        const rows = Number(this.controls?.grid_page_rows);
+
+        if (!Number.isInteger(rows) || rows < 1)
+        {
+            return STARTING_GRID_PAGE_ROWS;
+        }
+
+        return Math.min(rows, STARTING_GRID_PAGE_ROWS_MAX);
     }
 
     /**
@@ -168,31 +212,49 @@ class StartingGridPanel
     }
 
     /**
+     * Returns how long the page currently on screen stays up. The last page holds for its own,
+     * longer, time, so the field has finished when the pager wraps back to the first page.
+     * @returns {number} Hold time in milliseconds.
+     */
+    _holdTime()
+    {
+        const onLastPage = this.pager.total > 1 && this.pager.index === this.pager.total - 1;
+        return onLastPage ? this.pager.lastDuration : this.pager.duration;
+    }
+
+    /**
      * Starts the pager once the grid is drawn. Page one is shown straight away, then the timer
-     * turns pages on the configured cadence until the overlay is hidden. Every page, including
-     * the first, stays up for the same number of seconds. A duration of zero turns the pager off
-     * and leaves the grid on page one.
+     * turns pages on the configured cadence until the overlay is hidden. Every page apart from the
+     * last stays up for the same number of seconds, the last one for its own longer hold before
+     * the sweep starts again from page one. A duration of zero turns the pager off and leaves the
+     * grid on page one.
      */
     _beginPager()
     {
-        if (this.tree === null) return;
+        if (this.tree === null)
+        {
+            return;
+        }
 
         this.pager.pending = false;
         this.pager.index = 0;
         this.pageDirty = true;
 
         this.pager.duration = this._pageTime('--starting-grid-page-duration', STARTING_GRID_PAGE_FALLBACK);
+        this.pager.lastDuration = this._pageTime('--starting-grid-last-page-duration', STARTING_GRID_LAST_PAGE_FALLBACK);
 
         this._stopPager();
-
         if (this.pager.duration <= 0) return;
 
-        this.pager.timer = setTimeout(() => this._advance(), this.pager.duration);
+        this.pager.started = performance.now();
+        this.pager.timer = setTimeout(() => this._advance(), this._holdTime());
     }
 
     /**
      * Turns to the next page, wrapping from the last page back to the first, and arms the timer
-     * for the following page. The grid and pager are redrawn on the next panel update, see update.
+     * for the following page. The page just turned to decides how long it stays up, so the last
+     * page holds before the sweep restarts. The grid and pager are redrawn on the next panel
+     * update, see update.
      */
     _advance()
     {
@@ -202,9 +264,12 @@ class StartingGridPanel
             this.pageDirty = true;
         }
 
-        if (this.pager.duration > 0)
+        const hold = this._holdTime();
+
+        if (hold > 0)
         {
-            this.pager.timer = setTimeout(() => this._advance(), this.pager.duration);
+            this.pager.started = performance.now();
+            this.pager.timer = setTimeout(() => this._advance(), hold);
         }
     }
 
@@ -223,6 +288,11 @@ class StartingGridPanel
         if (this.headerDirty)
         {
             this._renderHeader();
+        }
+
+        if (this.mapDirty)
+        {
+            this._renderTrackMap();
         }
 
         if (this.standings == null || this.standings.length === 0)
@@ -257,6 +327,38 @@ class StartingGridPanel
         }
 
         this._renderPager();
+        this._fitPage();
+    }
+
+    /**
+     * Scales the page down when it is larger than the body it sits in, so neither the sidebar nor
+     * the pager can force a row off screen. Scaling the whole ladder keeps the stagger and centre
+     * gap in proportion, where dropping a row would change what is on screen.
+     */
+    _fitPage()
+    {
+        const grid = this.body?.firstElementChild;
+        if (!grid) return;
+
+        // Measured unscaled, so the scale of the previous page cannot feed back into the next one.
+        grid.style.setProperty('--page-scale', 1);
+
+        const availableHeight = this.body.clientHeight;
+        const availableWidth = this.body.clientWidth;
+
+        const neededHeight = grid.scrollHeight;
+        const neededWidth = grid.scrollWidth;
+
+        const scale = Math.min(
+            1,
+            neededHeight > 0 ? availableHeight / neededHeight : 1,
+            neededWidth > 0 ? availableWidth / neededWidth : 1
+        );
+
+        if (scale < 1)
+        {
+            grid.style.setProperty('--page-scale', scale);
+        }
     }
 
     /**
@@ -274,6 +376,7 @@ class StartingGridPanel
         // being torn down and loaded again on every push.
         if (html === this.headerHTML) return;
 
+        this.mapDirty = true;
         this.headerHTML = html;
         this.header.innerHTML = html;
     }
@@ -293,6 +396,11 @@ class StartingGridPanel
                 <span class='grid-header-sub'>${this._getTrackSummary(this.session, this.standings)}</span>
             </div>
             <div class='grid-header-group'>
+                <div class='grid-header-map'>
+                    <span class='grid-header-label'>Circuit</span>
+                    <canvas class='grid-header-map-canvas' aria-label='Circuit map'></canvas>
+                </div>
+                <div class='grid-header-divider'></div>
                 <div class='grid-header-block grid-header-weather'>
                     <span class='grid-header-label'>Weather</span>
                     ${this._buildWeatherHTML(this.session)}
@@ -303,6 +411,149 @@ class StartingGridPanel
                     <div class='grid-forecast'>${this._buildForecastHTML(this.session)}</div>
                 </div>
             </div>`;
+    }
+
+    /**
+     * Draws a circuit-only miniature in the sidebar. The full map panel owns live vehicle markers
+     * and warnings; this view deliberately keeps only the track, pit lane and sector boundaries so
+     * it remains legible at the smaller size.
+     */
+    _renderTrackMap()
+    {
+        this.mapDirty = false;
+
+        const canvas = this.header?.querySelector('.grid-header-map-canvas');
+        const map = this.map;
+
+        if (!canvas || !map?.track_map || map.track_map.length < 2) return;
+        const points = [...map.track_map, ...(map.pit_lane || [])];
+
+        const xs = points.map(point => point.x);
+        const ys = points.map(point => point.y);
+        const minX = Math.min(...xs);
+
+        const maxX = Math.max(...xs);
+
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+
+        const sourceWidth = maxX - minX;
+        const sourceHeight = maxY - minY;
+
+        const width = canvas.clientWidth;
+        if (width <= 0 || sourceWidth <= 0 || sourceHeight <= 0) return;
+
+        // The sidebar's full usable width controls the scale. Height follows the circuit aspect
+        // ratio, so tracks with very different shapes neither leave unused side space nor stretch.
+        const padding = 14;
+        const scale = (width - padding * 2) / sourceWidth;
+        const height = Math.ceil(sourceHeight * scale + padding * 2);
+        canvas.style.height = `${height}px`;
+
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        ctx.save();
+        ctx.translate(padding - minX * scale, padding - minY * scale);
+        ctx.scale(scale, scale);
+
+        if (map.pit_lane?.length >= 2)
+        {
+            this._traceMiniMapPath(ctx, map.pit_lane, false);
+            ctx.setLineDash([5 / scale, 5 / scale]);
+            ctx.lineWidth = 2.5 / scale;
+            ctx.strokeStyle = 'rgba(150, 155, 170, 0.75)';
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        this._traceMiniMapPath(ctx, map.track_map, true);
+        ctx.lineWidth = 9 / scale;
+        ctx.strokeStyle = 'rgba(240, 241, 245, 0.12)';
+        ctx.stroke();
+
+        ctx.lineWidth = 4 / scale;
+        ctx.strokeStyle = 'rgba(240, 241, 245, 0.9)';
+        ctx.stroke();
+
+        this._drawMiniMapSectors(ctx, map, scale);
+        ctx.restore();
+    }
+
+    /**
+     * Traces a smoothed miniature map path.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Array<Object>} points Ordered map points.
+     * @param {boolean} closed Whether the path closes back to its first point.
+     */
+    _traceMiniMapPath(ctx, points, closed)
+    {
+        if (!points || points.length < 2)
+        {
+            return;
+        }
+
+        const midpoint = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+        ctx.beginPath();
+
+        if (closed)
+        {
+            const start = midpoint(points[points.length - 1], points[0]);
+            ctx.moveTo(start.x, start.y);
+
+            points.forEach((point, index) =>
+            {
+                const next = midpoint(point, points[(index + 1) % points.length]);
+                ctx.quadraticCurveTo(point.x, point.y, next.x, next.y);
+            });
+
+            ctx.closePath();
+            return;
+        }
+
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length - 1; ++i)
+        {
+            const next = midpoint(points[i], points[i + 1]);
+            ctx.quadraticCurveTo(points[i].x, points[i].y, next.x, next.y);
+        }
+        ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    }
+
+    /**
+     * Draws a compact mark at each valid sector start.
+     * @param {CanvasRenderingContext2D} ctx Canvas drawing context.
+     * @param {Object} map Track map payload.
+     * @param {number} scale Current source-to-canvas scale.
+     */
+    _drawMiniMapSectors(ctx, map, scale)
+    {
+        const positions = [
+            map.sectors?.sector1?.position,
+            map.sectors?.sector2?.position,
+            map.sectors?.sector3?.position
+        ];
+
+        for (const position of positions)
+        {
+            if (!position || !Number.isFinite(position.x) || !Number.isFinite(position.y))
+            {
+                continue;
+            }
+
+            ctx.beginPath();
+            ctx.arc(position.x, position.y, 3 / scale, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        }
     }
 
     /**
@@ -448,11 +699,11 @@ class StartingGridPanel
     }
 
     /**
-     * Returns the slot image for a vehicle, which the backend supplies per car, falling back to
-     * the manufacturer logo when the payload carries no vehicle image.
+     * Returns the slot image for a vehicle. The car image is the one the backend supplies per car,
+     * or null when the payload carries none; the logo is the manufacturer logo the head wears.
      * @param {Object} vehicle Vehicle data.
-     * @param (boolean) logo Manufacturer logo.
-     * @returns {string} Image source path or URL.
+     * @param {boolean} logo True for the manufacturer logo, false for the car image.
+     * @returns {?string} Image source path or URL, null when the car carries no image.
      */
     static GetSlotImage(vehicle, logo)
     {
@@ -543,7 +794,7 @@ class StartingGridPanel
                 <img class='portrait' src='${HtmlEscape(logoImage)}' alt='${HtmlEscape(driver)} driver'/>
             </div>
             <div class='car-area'>
-                <img src='${HtmlEscape(carImage)}' data-fallback='${HtmlEscape(logoImage)}' onerror='this.onerror=null;this.src=this.dataset.fallback' alt='${HtmlEscape(driver)} car'/>
+                <img src='${HtmlEscape(carImage)}' alt='${HtmlEscape(driver)} car'/>
                 <div class='lap'>${HtmlEscape(lap)}<small>${HtmlEscape(delta)}</small></div>
                 <div class='meta'>${HtmlEscape(vehicle.vehicle_name)}<span>${HtmlEscape(vehicle.vehicle_class)}</span></div>
             </div>
@@ -586,22 +837,22 @@ class StartingGridPanel
 
     /**
      * Builds the staggered pair of columns for the current page, odd positions on the left so
-     * pole leads the ladder. A page shows two rows at a time, and a class label is drawn each
-     * time the page enters a new class, including at the top of the page for context.
+     * pole leads the ladder. The number of rows comes from grid_page_rows, and a class label is
+     * drawn each time the page enters a new class, including at the top for context.
      * @returns {*} Virtual DOM grid node.
      */
     _buildGrid()
     {
         const rows = this._buildRows();
 
-        this.pager.total = Math.max(1, Math.ceil(rows.length / STARTING_GRID_PAGE_ROWS));
+        this.pager.total = Math.max(1, Math.ceil(rows.length / this.pageRows));
         if (this.pager.index >= this.pager.total)
         {
             this.pager.index = 0;
         }
 
-        const start = this.pager.index * STARTING_GRID_PAGE_ROWS;
-        const page = rows.slice(start, start + STARTING_GRID_PAGE_ROWS);
+        const start = this.pager.index * this.pageRows;
+        const page = rows.slice(start, start + this.pageRows);
 
         let html = '';
         let lastClass = null;
@@ -618,8 +869,8 @@ class StartingGridPanel
                 <div class='row-label row-label-class'>Row ${row.class_row}</div>
                 <div class='row-label'>Row ${row.field_row}</div>
             </div>`;
-            html += `<div class='grid-row'>${this._buildCard(row.left, 'left', row.best_lap_time)}`;
 
+            html += `<div class='grid-row'>${this._buildCard(row.left, 'left', row.best_lap_time)}`;
             if (row.right !== null)
             {
                 html += this._buildCard(row.right, 'right', row.best_lap_time);
@@ -637,7 +888,10 @@ class StartingGridPanel
      */
     _renderPager()
     {
-        if (!this.footer) return;
+        if (!this.footer)
+        {
+            return;
+        }
 
         if (this.pager.total <= 0)
         {
@@ -652,12 +906,31 @@ class StartingGridPanel
             dots += `<span class='pager-dot${i === this.pager.index ? ' active' : ''}'></span>`;
         }
 
-        let html = `<div class='pager-dots'>${dots}</div>`
+        this.footer.innerHTML = `<div class='pager-dots'>${dots}</div>`
+            + this._buildPagerTimer()
             + `<span class='pager-count'>${this.pager.index + 1} / ${this.pager.total}</span>`;
-
-        this.footer.innerHTML = html;
     }
 
+    /**
+     * Builds the bar that drains over the time left until the page switches. The pager is
+     * rewritten on every standings update, so the bar is started with a negative delay equal to
+     * the time already spent on the page, which keeps it on the real timer instead of restarting.
+     * The bar runs over the hold of the page on screen, so the last page counts down its longer
+     * hold. It is left out when the pages do not turn.
+     * @returns {string} Timer markup, or an empty string when there is no page switch to count down.
+     */
+    _buildPagerTimer()
+    {
+        const hold = this._holdTime();
+
+        if (this.pager.total <= 1 || hold <= 0 || this.pager.timer === null)
+        {
+            return '';
+        }
+
+        const elapsed = Math.min(performance.now() - this.pager.started, hold);
+        return `<div class='pager-timer'><span style='animation-duration: ${hold}ms; animation-delay: -${Math.round(elapsed)}ms'></span></div>`;
+    }
 
     /**
      * Builds the full panel tree.

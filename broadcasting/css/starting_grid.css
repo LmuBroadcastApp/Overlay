@@ -3,7 +3,8 @@
  * live feed. A flat translucent scrim covers the whole window, so the game keeps playing behind the
  * panel instead of being hidden by it, and the cards and header sit on top as solid blocks. The
  * cards keep a backdrop blur for when the backend swaps in a translucent slot colour, but nothing
- * here depends on blur working: the fill alone holds the layout together.
+ * here depends on blur working: the fill alone holds the layout together. The full-window scrim
+ * is the only backdrop layer, so there are no separate fades at the header, body or pager edges.
  *
  * Every token this panel draws on lives in common.css under the starting grid heading, so the grid
  * has one place to be configured and the backend overrides in main.js land on the same names.
@@ -40,21 +41,32 @@
     display: flex;
     flex-direction: column;
 
+    position: relative;
+    left: 50%;
     width: var(--starting-grid-panel-width);
-    margin: 0 auto;
+    margin: 0;
+
+    /* A page larger than the body is scaled down to fit rather than cut off, see _fitPage. */
+    transform: translateX(-50%) scale(var(--page-scale, 1));
+    transform-origin: top center;
+}
+
+/* The page starts against the header, so its first block does not carry the gap above it. */
+#starting-grid-panel .grid > :first-child
+{
+    margin-top: 0;
 }
 
 /*
- * Body is the viewport the current page sits in: it fills the panel between the header and the
- * pager, which are both taken out of the flow so they never travel with the grid.
+ * Body is the viewport the current page sits in. It fills the column to the right of the header
+ * sidebar and stops above the pager, which is taken out of the flow so it never travels with the
+ * grid.
  */
 #starting-grid-body
 {
-    /* The body starts under the header, clear of the space above it and the gap below it, and
-     * stops above the pager band at the bottom. */
     position: absolute;
-    top: calc(var(--starting-grid-header-top) + var(--starting-grid-header-height) + var(--starting-grid-header-gap));
-    left: 0;
+    top: var(--starting-grid-header-top);
+    left: calc(var(--starting-grid-header-top) + var(--starting-grid-header-width) + var(--starting-grid-header-gap));
     right: 0;
     bottom: calc(var(--starting-grid-pager-bottom) + var(--starting-grid-pager-height));
 
@@ -62,27 +74,23 @@
 }
 
 /*
- * Header introduces the field with the circuit and the conditions it starts in. It is pinned to
- * the top of the panel, so it stays put while the pages turn beneath it.
+ * Header introduces the field with the circuit and conditions in a full-height sidebar. It shares
+ * the grid body's top and bottom edges, so the two areas read as one stable broadcast composition.
  */
 #starting-grid-header
 {
     position: absolute;
     top: var(--starting-grid-header-top);
-
-    /* Centred on the same content width as the grid, so the header lines up with the ladder
-     * instead of stretching across the whole window. */
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(var(--starting-grid-panel-width) - 2 * var(--starting-grid-header-inset));
+    left: var(--starting-grid-header-top);
+    bottom: calc(var(--starting-grid-pager-bottom) + var(--starting-grid-pager-height));
+    width: var(--starting-grid-header-width);
 
     z-index: 1;
 
-    height: var(--starting-grid-header-height);
-
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
     gap: 2em;
 
     padding: var(--starting-grid-header-padding);
@@ -111,32 +119,48 @@
 #starting-grid-header .grid-header-group
 {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 2em;
+
+    margin-top: auto;
+}
+
+#starting-grid-header .grid-header-map
+{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#starting-grid-header .grid-header-map-canvas
+{
+    display: block;
+    width: 100%;
 }
 
 #starting-grid-header .grid-header-divider
 {
-    align-self: stretch;
-    width: 1px;
+    width: 100%;
+    height: 1px;
 
     background: var(--starting-grid-divider-color);
 }
 
 #starting-grid-header .grid-header-forecast
 {
-    align-items: flex-end;
+    align-items: flex-start;
 }
 
-/* The weather label sits at the end of its block, mirroring the forecast label across the divider. */
+/* Weather and forecast use the same left edge in the vertical sidebar. */
 #starting-grid-header .grid-header-weather .grid-header-label
 {
-    align-self: flex-end;
+    align-self: flex-start;
 }
 
 #starting-grid-header .grid-header-label
 {
-    font-size: 13px;
+    font-size: .58em;
     font-weight: 700;
     letter-spacing: .18em;
     text-transform: uppercase;
@@ -145,7 +169,7 @@
 
 #starting-grid-header .grid-header-value
 {
-    font-size: 28px;
+    font-size: 1.25em;
     font-weight: 700;
     letter-spacing: .3px;
     color: var(--starting-grid-text-color);
@@ -158,7 +182,7 @@
 
 #starting-grid-header .grid-header-sub
 {
-    font-size: 14px;
+    font-size: .625em;
     color: var(--starting-grid-secondary-color);
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
@@ -175,7 +199,7 @@
     white-space: nowrap;
 
     font-variant-numeric: tabular-nums;
-    font-size: 14px;
+    font-size: .625em;
 
     width: 24px;
 }
@@ -189,6 +213,7 @@
 #starting-grid-header .grid-forecast
 {
     display: flex;
+    flex-wrap: wrap;
     gap: 16px;
 }
 
@@ -199,7 +224,7 @@
     align-items: center;
     gap: 2px;
 
-    font-size: 13px;
+    font-size: .58em;
     font-weight: 600;
     color: var(--starting-grid-secondary-color);
     font-variant-numeric: tabular-nums;
@@ -221,13 +246,12 @@
 }
 
 /*
- * Pager indicator. A single band pinned to the bottom of the panel, mirroring the header: one dot
- * per page with the current page filled, and the current page number beside the total.
+ * Pager indicator. The band sits under the grid column only, leaving the sidebar uninterrupted.
  */
 #starting-grid-pager
 {
     position: absolute;
-    left: 0;
+    left: calc(var(--starting-grid-header-top) + var(--starting-grid-header-width) + var(--starting-grid-header-gap));
     right: 0;
     bottom: var(--starting-grid-pager-bottom);
 
@@ -263,13 +287,58 @@
     border-color: transparent;
 }
 
+/*
+ * Page timer. A thin track between the dots and the page count, filled with the time left on the
+ * current page and draining towards the left until the page switches. It is drawn like the
+ * weather panel progress bar, same height and fill colour, so a timed bar reads the same on every
+ * panel. The duration and the time already spent are written inline by the panel.
+ */
+#starting-grid-pager .pager-timer
+{
+    position: relative;
+    overflow: hidden;
+
+    width: 6em;
+    height: 3px;
+
+    background: var(--starting-grid-row-label-fill);
+}
+
+#starting-grid-pager .pager-timer > span
+{
+    position: absolute;
+    inset: 0;
+
+    background: var(--progress-bar-color);
+    transform-origin: left center;
+
+    animation-name: starting-grid-pager-timer;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+}
+
+@keyframes starting-grid-pager-timer
+{
+    from { transform: scaleX(1); }
+    to   { transform: scaleX(0); }
+}
+
+/*
+ * Page count. The pager sits directly on the feed with no panel behind it, so the count is drawn
+ * as white with a black outline rather than in a theme colour, which disappeared into whatever the
+ * camera was showing. The stroke is kept thin and paired with a shadow, so the white still reads
+ * on a pale car body as well as on tarmac.
+ */
 #starting-grid-pager .pager-count
 {
-    font-size: 13px;
+    font-size: .58em;
     font-weight: 700;
     letter-spacing: .16em;
-    color: var(--starting-grid-secondary-color);
+    color: #fff;
     font-variant-numeric: tabular-nums;
+
+    -webkit-text-stroke: 1px #000;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 /*
@@ -298,7 +367,7 @@
     letter-spacing: .16em;
     text-transform: uppercase;
     font-weight: 700;
-    font-size: 13px;
+    font-size: .58em;
 
     color: var(--starting-grid-text-color);
 
@@ -358,7 +427,7 @@
     letter-spacing: .16em;
     text-transform: uppercase;
     font-weight: 700;
-    font-size: 13px;
+    font-size: .58em;
 
     background: var(--starting-grid-row-label-fill);
     border: 1px solid var(--starting-grid-divider-color);
@@ -383,8 +452,8 @@
 
 /*
  * The card is the glass surface: the head and the car area sit inside it and stay transparent, so
- * the card has a single border, a single shadow and a single clip rather than a seam between two
- * stacked fills. The class colour is a bar beside the driver name, see .driver-name.
+ * the card has one crisp inset edge rather than an exterior glow that gets clipped at the body
+ * boundary. The class colour is a bar beside the driver name, see .driver-name.
  */
 #starting-grid-panel .driver-card
 {
@@ -492,7 +561,7 @@
 
     color: var(--starting-grid-text-color);
     font-weight: 700;
-    font-size: 40px;
+    font-size: 1.8em;
 
     /* A soft shadow instead of the hard outline the number used to carry, which read as a sticker
      * on the feed. Two shadows, one tight and one wide, hold the shape over a busy background. */
@@ -516,20 +585,33 @@
 
     line-height: 1.05;
     margin-right: auto;
+
+    /* A flex item does not shrink below its content by default, so a long name would push the car
+     * tab and the portrait out of the card instead of being cut. */
+    min-width: 0;
 }
 
 #starting-grid-panel .driver-name small
 {
     display: block;
-    font-size: 14px;
+    font-size: .625em;
     color: var(--starting-grid-secondary-color);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #starting-grid-panel .driver-name strong
 {
     display: block;
-    font-size: 28px;
+    font-size: 1.25em;
     letter-spacing: .3px;
+
+    /* A long last name is clipped rather than allowed to widen the head. */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /*
@@ -544,6 +626,9 @@
     align-items: center;
     justify-content: center;
 
+    /* Held at its own size, so a long driver name is cut instead of squeezing the number. */
+    flex: none;
+
     min-width: 52px;
     height: 34px;
     padding: 0 12px;
@@ -554,7 +639,7 @@
     color: var(--starting-grid-text-color);
 
     font-weight: 700;
-    font-size: 20px;
+    font-size: .9em;
     letter-spacing: .04em;
 
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
@@ -568,6 +653,7 @@
 
 #starting-grid-panel .portrait
 {
+    flex: none;
     width: var(--starting-grid-logo-height);
     height: var(--starting-grid-logo-height);
 
@@ -599,13 +685,29 @@
     filter: drop-shadow(0 -8px 16px rgba(0, 0, 0, 0.5));
 }
 
+/*
+ * Neutral silhouette drawn when a slot has no vehicle image. It is kept faint and set in from the
+ * card edges, so it reads as a placeholder rather than as the car that is actually on the grid.
+ */
+#starting-grid-panel .car-area img.car-fallback
+{
+    left: 28px;
+    top: 16%;
+
+    height: calc(62% - var(--starting-grid-meta-height));
+    max-width: 58%;
+
+    opacity: .18;
+    filter: none;
+}
+
 #starting-grid-panel .lap
 {
     position: absolute;
     right: 14px;
     top: 12px;
 
-    font-size: 20px;
+    font-size: .9em;
     font-weight: 700;
     text-align: right;
     color: var(--starting-grid-text-color);
@@ -615,7 +717,7 @@
 #starting-grid-panel .lap small
 {
     display: block;
-    font-size: 13px;
+    font-size: .65em;
     font-weight: 400;
     color: var(--starting-grid-secondary-color);
 }
@@ -645,7 +747,7 @@
     overflow: hidden;
 
     isolation: isolate;
-    font-size: 14px;
+    font-size: .625em;
 }
 
 #starting-grid-panel .meta:before

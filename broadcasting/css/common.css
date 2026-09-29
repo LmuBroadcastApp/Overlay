@@ -134,6 +134,7 @@
     --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
     --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
     --starting-grid-page-duration: 5s;                                                  /** Seconds each page stays up before the pager turns to the next */
+    --starting-grid-last-page-duration: 30s;                                            /** Seconds the last page stays up before the pager starts again from page one */
     --starting-grid-card-color: #1e1e1e;                                                /** Slot background, the neutral dark shared by the timing cells */
     --starting-grid-accent-color: #555;                                                 /** Fallback accent when a vehicle carries no class colour */
     --starting-grid-secondary-color: var(--text-color-secondary);                       /** Driver name and team labels, the shared secondary text */
@@ -146,11 +147,10 @@
     --starting-grid-number-lift: 5px;                                                   /** How far the car number hangs above its own row, inside the headroom band */
     --starting-grid-number-offset: 21px;                                                /** Clear space between the card edge and the number and tick that hang into the centre gap */
 
-    /** Starting grid, header. Fixed values, because the header does not follow the card size. */
-    --starting-grid-header-top: 1rem;                                                   /** Clear space above the header, down to the screen top */
-    --starting-grid-header-gap: 1rem;                                                   /** Gap between the header and the grid below it */
-    --starting-grid-header-inset: 18px;                                                 /** Horizontal inset from the panel edges, so the header reads as its own surface */
-    --starting-grid-header-height: 112px;                                               /** Height of the header band */
+    /** Starting grid, header sidebar. */
+    --starting-grid-header-top: 1rem;                                                   /** Clear space above and to the left of the sidebar */
+    --starting-grid-header-gap: 1rem;                                                   /** Gap between the sidebar and the grid column */
+    --starting-grid-header-width: 300px;                                                /** Width of the full-height circuit and weather sidebar */
     --starting-grid-header-padding: 14px 22px;                                          /** Padding inside the header */
     --starting-grid-header-icon-size: 30px;                                             /** Forecast icon size */
 
@@ -161,15 +161,15 @@
     /** Starting grid, surface recipe, shared by every glass surface in the panel. */
     --starting-grid-scrim-color: rgba(0, 0, 0, 0.20);                                   /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */
     --starting-grid-glass-blur: 18px;                                                    /** Backdrop blur radius, unused while the card and header fills stay opaque */
-    --starting-grid-glass-shadow: 0 18px 40px rgba(0, 0, 0, 0.38), 0 2px 6px rgba(0, 0, 0, 0.30); /** Wide soft lift plus a tight layer to define the edge */
+    --starting-grid-glass-shadow: inset 0 0 0 1px var(--starting-grid-divider-color);    /** Crisp surface edge; an exterior shadow would form visible bands between header, body and pager */
     --starting-grid-row-label-fill: rgba(0, 0, 0, 0.55);                                /** Backing chip behind each row label */
     --starting-grid-row-label-blur: 10px;                                               /** Backdrop blur on the row label, the one surface translucent enough to show it */
     --starting-grid-meta-fill: rgba(0, 0, 0, 0.72);                                     /** Fill of the meta bar under the vehicle */
 
     /** Starting grid, accents and dividers. */
-    --starting-grid-tick-color: var(--timing-yellow);                                   /** Tick that leaves each card towards the centre gap */
-    --starting-grid-tick-fade: rgba(236, 204, 104, 0.25);                               /** Far end of the tick gradient, the alpha it fades to at the number */
-    --starting-grid-tick-glow: 0 0 12px rgba(236, 204, 104, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
+    --starting-grid-tick-color: var(--text-color-primary);                              /** Tick that leaves each card towards the centre gap, and the active pager dot. Neutral, because yellow means a yellow flag on the other panels */
+    --starting-grid-tick-fade: rgba(255, 255, 255, 0.25);                               /** Far end of the tick gradient, the alpha it fades to at the number */
+    --starting-grid-tick-glow: 0 0 12px rgba(255, 255, 255, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
     --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
     --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
 }

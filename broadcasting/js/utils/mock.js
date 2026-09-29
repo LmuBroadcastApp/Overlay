@@ -171,6 +171,7 @@
             show_last_pitstop: true,
             show_starting_grid: !window.location.search.includes('nogrid'),
             grid_page_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
+            grid_page_rows: Number(new URLSearchParams(window.location.search).get('rows')) || 3,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }
