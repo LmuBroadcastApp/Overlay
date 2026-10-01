@@ -52,6 +52,27 @@ function SetExclusiveOverlay(name)
 }
 
 /**
+ * Resolves which of the focused-car panels (driver info table, telemetry) should be visible.
+ *
+ * `overlay_controls.focus_panel` ('driver' or 'telemetry') shows exactly one of them. Older backends
+ * that do not send it keep the previous behaviour: driver info always, telemetry per `show_telemetry`.
+ *
+ * @param {Object} controls Overlay controls payload.
+ * @returns {{driver: boolean, telemetry: boolean}} Visibility of each focused-car panel.
+ */
+function GetFocusPanels(controls)
+{
+    let mode = controls?.focus_panel?.toLowerCase?.();
+
+    if (mode === 'driver' || mode === 'telemetry')
+    {
+        return { driver: mode === 'driver', telemetry: mode === 'telemetry' };
+    }
+
+    return { driver: true, telemetry: false };
+}
+
+/**
  * Applies the current enabled/disabled panel visibility state, also honoring the fullscreen overlays.
  *
  * The starting grid is exclusive: while it is active it takes the whole window and every other
@@ -59,18 +80,25 @@ function SetExclusiveOverlay(name)
  */
 function ApplyPanelVisibility()
 {
-    let grid = stateManager.getState('overlay_controls')?.show_starting_grid === true
+    let controls = stateManager.getState('overlay_controls');
+    let grid = controls?.show_starting_grid === true
         && g_PanelEnabled.grid
         && !g_ReplayActive;
     let show = !g_ReplayActive && !grid;
+
+    let focus = GetFocusPanels(controls);
+    let showDriverInfo = focus.driver && g_PanelEnabled.driver;
+    let showTelemetry = focus.telemetry && g_PanelEnabled.telemetry;
 
     $("#tower-panel").showIf(show && g_PanelEnabled.standings);
     $("#battle-panel").showIf(show && g_PanelEnabled.relative);
     $("#session-panel").showIf(show && g_PanelEnabled.session);
     $("#weather-panel").showIf(show && g_PanelEnabled.weather);
     $("#track-map-panel").showIf(show && g_PanelEnabled.map);
-    $("#telemetry-panel").showIf(show && g_PanelEnabled.telemetry);
-    $("#driver-panel").showIf(show && g_PanelEnabled.driver);
+
+    $("#driver-panel").showIf(show && (showDriverInfo || showTelemetry));
+    $("#telemetry-panel").showIf(showTelemetry);
+    $("#driver-info").showIf(showDriverInfo);
 
     $("#notification-container").visibleIf(show && g_PanelEnabled.notifications);
     $("#gradient-background").showIf(!grid);

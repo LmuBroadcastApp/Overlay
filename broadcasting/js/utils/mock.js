@@ -167,9 +167,9 @@
             driver_name: 'full',
             vehicle_class: 'multiclass',
             sector_bars: true,
-            show_telemetry: true,
+            focus_panel: new URLSearchParams(window.location.search).get('panel') || 'driver',
             show_last_pitstop: true,
-            show_starting_grid: !window.location.search.includes('nogrid'),
+            show_starting_grid: window.location.search.includes('grid'),
             grid_page_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
             grid_page_rows: Number(new URLSearchParams(window.location.search).get('rows')) || 3,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }

@@ -8,6 +8,8 @@
 const TIRE_ICON_STATES = ['wet', 'soft', 'medium', 'hard'];
 const SECTOR_STATES = ['inactive', 'green', 'yellow', 'purple'];
 const LAP_STATES = ['bg-green', 'bg-yellow', 'bg-purple'];
+const DELTA_STATES = ['gaining', 'losing'];
+const ENERGY_STATES = ['low', 'critical'];
 
 class TelemetryPanel
 {
@@ -35,6 +37,8 @@ class TelemetryPanel
 
         this.throttleFill = document.getElementById('throttleFill');
         this.brakeFill = document.getElementById('brakeFill');
+        this.throttleValue = document.getElementById('throttleValue');
+        this.brakeValue = document.getElementById('brakeValue');
         this.speedValue = document.getElementById('speedValue');
         this.rpmNumber = document.getElementById('rpmNumber');
         this.gearLabel = document.getElementById('gearLabel');
@@ -43,6 +47,10 @@ class TelemetryPanel
         this.gapToNext = this.element.querySelector('.gap-to-next');
         this.bestLapTime = this.element.querySelector('.best-lap-time');
         this.gapToLeader = this.element.querySelector('.gap-to-ldr');
+        this.deltaValue = this.element.querySelector('.delta-value');
+        this.driverName = this.element.querySelector('.telemetry-driver-name');
+        this.energyLabel = this.element.querySelector('.energy-label');
+        this.energyValue = this.element.querySelector('.energy-value');
 
         this.currentSectors = [];
         this.bestSectors = [];
@@ -63,6 +71,7 @@ class TelemetryPanel
         this.rpmChart = this._createGaugeChart('rpmChart', '#00ff88', this.maxRpm);
 
         this.classBestMiniSectors = [];
+        this.tireIconKey = null;
         this.stateManager.subscribe(this.handleStateChange.bind(this));
     }
 
@@ -102,7 +111,7 @@ class TelemetryPanel
     }
 
     /**
-     * Stores standings updates and telemetry visibility controls.
+     * Stores standings updates. Visibility is handled by ApplyPanelVisibility in main.js.
      * @param {string} key Updated state key.
      * @param {*} value Updated value.
      */
@@ -113,10 +122,6 @@ class TelemetryPanel
             this.standings = value;
             this.vehicle = value ? StandingsGetFocus(value) : null;
             this.classBestMiniSectors = this._getClassBestMiniSectors();
-        }
-        else if (key === 'overlay_controls')
-        {
-            this.element.style.visibility = value.show_telemetry ? 'visible' : 'hidden';
         }
     }
 
@@ -182,8 +187,13 @@ class TelemetryPanel
         this.speedValue.textContent = Math.round(speed);
         this.gearLabel.textContent = gear < 0 ? 'R' : gear === 0 ? 'N' : gear;
 
+        /** Flash the gear label red near the rev limit as a shift indicator. */
+        this.gearLabel.classList.toggle('redline', rpm > this.maxRpm * 0.9);
+
         this.throttleFill.style.width = (telemetry.throttle * 100) + '%';
         this.brakeFill.style.width = (telemetry.brake * 100) + '%';
+        this.throttleValue.textContent = Math.round(telemetry.throttle * 100);
+        this.brakeValue.textContent = Math.round(telemetry.brake * 100);
 
         this.speedChart.update();
         this.rpmChart.update();
@@ -346,11 +356,30 @@ class TelemetryPanel
     }
 
     /**
+     * Updates the live delta against the focused driver's best lap.
+     */
+    _updateDelta()
+    {
+        const delta = this.vehicle.telemetry?.delta;
+
+        if (!Number.isFinite(delta))
+        {
+            this.deltaValue.textContent = '-.---';
+            this._setStateClass(this.deltaValue, DELTA_STATES, '');
+            return;
+        }
+
+        this.deltaValue.textContent = `${delta >= 0 ? '+' : '-'}${Math.abs(delta).toFixed(3)}`;
+
+        const state = delta < 0 ? 'gaining' : delta > 0 ? 'losing' : '';
+        this._setStateClass(this.deltaValue, DELTA_STATES, state);
+    }
+
+    /**
      * Updates tire compound and tire-age widgets.
      */
     _updateTires()
     {
-        let sameTireCompound = HasOneTireCompound(this.vehicle);
         let laps = this.vehicle.laps;
 
         if (this.vehicle.pitstops.length > 0)
@@ -360,18 +389,77 @@ class TelemetryPanel
         }
 
         this.element.querySelector('.tyre-age').textContent = laps;
-        let tireIconElement = this.element.querySelector('.tyre-icon');
+        this._updateTireIcon(this.element.querySelector('.tyre-icon'));
+    }
 
-        if (sameTireCompound)
+    /**
+     * Renders the tire compound icon: the compound letter when all four tires match, otherwise a
+     * 2x2 grid of colored dots (FL FR / RL RR) like the standings tower. Only rebuilt on change.
+     * @param {Element} tireIconElement Tire icon element.
+     */
+    _updateTireIcon(tireIconElement)
+    {
+        const compounds = Array.isArray(this.vehicle.tire_compound) ? this.vehicle.tire_compound.slice(0, 4) : [];
+        const key = compounds.join('|');
+
+        if (key === this.tireIconKey)
         {
-            tireIconElement.textContent = this.vehicle.tire_compound[0][0];
-            this._setStateClass(tireIconElement, TIRE_ICON_STATES, this.vehicle.tire_compound[0].toLowerCase());
+            return;
+        }
+
+        this.tireIconKey = key;
+
+        if (compounds.length === 4 && HasOneTireCompound(this.vehicle))
+        {
+            tireIconElement.classList.remove('mixed');
+            tireIconElement.textContent = compounds[0][0];
+            this._setStateClass(tireIconElement, TIRE_ICON_STATES, compounds[0].toLowerCase());
+        }
+        else if (compounds.length === 4)
+        {
+            this._setStateClass(tireIconElement, TIRE_ICON_STATES, '');
+            tireIconElement.classList.add('mixed');
+            tireIconElement.replaceChildren(...compounds.map(compound =>
+            {
+                const dot = document.createElement('span');
+                dot.className = 'tyre-dot';
+                dot.style.backgroundColor = TireCompoundColor(compound);
+                return dot;
+            }));
         }
         else
         {
+            tireIconElement.classList.remove('mixed');
             tireIconElement.textContent = '-';
-            this._setStateClass(tireIconElement, TIRE_ICON_STATES, 'undefined');
+            this._setStateClass(tireIconElement, TIRE_ICON_STATES, '');
         }
+    }
+
+    /**
+     * Updates the remaining virtual energy (%) or, for cars without it, fuel (L).
+     */
+    _updateEnergy()
+    {
+        const telemetry = this.vehicle.telemetry;
+        const ve = telemetry?.ve;
+        const fuel = telemetry?.fuel;
+        const hasVe = Number.isFinite(ve) && ve > 0;
+
+        if (!hasVe && !Number.isFinite(fuel))
+        {
+            this.energyLabel.textContent = 'NRG';
+            this.energyValue.textContent = '-';
+            this._setStateClass(this.energyValue, ENERGY_STATES, '');
+            return;
+        }
+
+        const amount = hasVe ? ve : fuel;
+
+        this.energyLabel.textContent = hasVe ? 'NRG' : 'FUEL';
+        this.energyValue.textContent = amount.toFixed(0) + (hasVe ? '%' : 'L');
+
+        const state = amount < 10 ? 'critical' : amount < 30 ? 'low' : '';
+        this._setStateClass(this.energyValue, ENERGY_STATES, state);
     }
 
     /**
@@ -383,6 +471,7 @@ class TelemetryPanel
         const bestLap = GetBestLapTime(this.standings, this.vehicle.vehicle_class);
 
         this.lastLapTime.textContent = LaptimeToString(this.vehicle.last_lap);
+        this.driverName.textContent = this.vehicle.driver ?? '';
         this.gapToNext.textContent = this.vehicle.delta_to_next.toFixed(3);
         this.bestLapTime.textContent = LaptimeToString(this.vehicle.best_lap);
         this.gapToLeader.textContent = this.vehicle.delta_to_class_leader.toFixed(3);
@@ -403,8 +492,10 @@ class TelemetryPanel
 
         this._updateBestLap(bestLap);
         this._updateLastLap();
+        this._updateDelta();
         this._updateMiniSectors();
         this._updateTires();
+        this._updateEnergy();
     }
 
     /**

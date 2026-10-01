@@ -9,15 +9,19 @@
 
     position: fixed;
     display: flex;
-    gap: 1px;
+    gap: 8px;
 }
 
 #driver-panel table
 {
     width: var(--driver-panel-width);
     border-collapse: separate;
-    border-spacing: 1px 1px;
+    border-spacing: 4px;
     table-layout: fixed;
+
+    background-color: var(--driver-panel-background-color);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-blur);
 }
 
 #driver-panel table td
@@ -27,11 +31,6 @@
 
     padding: 2px var(--cell-padding-x);
     overflow: hidden;
-}
-
-#driver-panel tbody
-{
-    background-color: var(--driver-panel-background-color);
 }
 
 #driver-panel .driver-vehicle-position
@@ -150,6 +149,6 @@
 
 #driver-panel tbody tr:nth-child(3) td
 {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--surface-divider);
     padding-top: 4px;
 }

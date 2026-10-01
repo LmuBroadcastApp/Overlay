@@ -5,12 +5,21 @@
     --text-color-primary: white;                                                        /** Primary text color for panels */
     --text-color-secondary: whitesmoke;                                                 /** Secondary text color (notices, labels) */
     --text-color-dark: black;                                                           /** Text on light/colored backgrounds */
-    --panel-dark-bg: rgba(33, 37, 41, 0.9);                                             /** Reusable dark background for panels and notifications */
+    --panel-dark-bg: rgba(16, 19, 26, 0.85);                                            /** Reusable dark background for panels and notifications */
+
+    /** Surface recipe: tinted translucent fill, hairline edge, soft shadow, light blur (not frosted glass) */
+    --surface-color: rgba(16, 19, 26, 0.68);                                            /** Main panel fill */
+    --surface-color-alt: rgba(16, 19, 26, 0.48);                                        /** Secondary fill (gaps, extra columns, table bodies) */
+    --surface-color-strong: rgba(16, 19, 26, 0.85);                                     /** Headers and emphasized areas */
+    --surface-border: rgba(255, 255, 255, 0.08);                                        /** Hairline edge color */
+    --surface-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--surface-border);
+    --surface-blur: blur(6px);                                                          /** Backdrop blur, kept light on purpose */
+    --surface-divider: rgba(255, 255, 255, 0.10);                                       /** Inner dividers */
 
     --cell-padding-x: 5px;                                                              /** Horizontal padding for table cells */
     --panel-padding: 10px;                                                              /** General panel padding */
 
-    --transition-speed: 0.3s ease;                                                      /** Standard transition for animations */
+    --transition-speed: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);                            /** Standard transition for animations */
 
     --z-index-gradient: -1;                                                             /** Background gradient layer */
     --z-index-panel: 10;                                                                /** Default panel layer */
@@ -22,8 +31,8 @@
     --timing-purple: #a29bfe;                                                           /** Overall best sector */
     --timing-yellow: #eccc68;                                                           /** Yellow flag / yellow sector */
     --timing-text-dark: #000;                                                           /** Text on colored timing backgrounds */
-    --timing-bg: #1e1e1e;                                                               /** Default timing background */
-    --timing-bg-inactive: #1a1a1a;                                                      /** Inactive timing cell background */
+    --timing-bg: rgba(255, 255, 255, 0.07);                                             /** Default timing background */
+    --timing-bg-inactive: rgba(255, 255, 255, 0.04);                                    /** Inactive timing cell background */
     --timing-inactive: #444;                                                            /** Inactive timing text color */
 
     /** Telemetry input colors */
@@ -51,8 +60,8 @@
     --standings-panel-font-weight: 600;                                                 /** How bold the font will be seen */
     --standings-panel-font-size: 1em;                                                   /** General font size of the panel */
 
-    --standings-panel-primary-color: rgba(0, 0, 0, 0.6);                                /** Vehicle position, driver/team, number, icon */
-    --standings-panel-secondary-color: rgba(0, 0, 0, 0.4);                              /** Vehicle gap and right column */
+    --standings-panel-primary-color: var(--surface-color);                              /** Vehicle position, driver/team, number, icon */
+    --standings-panel-secondary-color: var(--surface-color-alt);                        /** Vehicle gap and right column */
 
     --standings-panel-gap-less-1-color: rgb(242, 92, 84);                               /** Interval GAP less than 0.5 seconds */
     --standings-panel-gap-less-2-color: rgb(247, 178, 103);                             /** Interval GAP less than   2 seconds */
@@ -84,13 +93,13 @@
     --driver-panel-font-size: 1em;                                                      /** General font size of the panel */
     --driver-panel-position-right: 1.0rem;                                              /** Position from the right of the screen */
     --driver-panel-position-bottom: 1.0rem;                                             /** Position from the bottom of the screen */
-    --driver-panel-background-color: rgba(0, 0, 0, 0.7);                                /** Panel general background */
+    --driver-panel-background-color: var(--surface-color);                              /** Panel general background */
     --driver-panel-vehicle-number-background-color: rgba(255, 255, 255, 0.6);           /** This will be overridden by the vehicle class color */
     --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);         /** Vehicle position background */
 
     /** Weather forecast panel */
-    --weather-panel-header-background-color: var(--panel-dark-bg);                      /** Background color for the table header */
-    --weather-panel-body-background-color: rgba(0, 0, 0, 0.4);                          /** Background color for the table body */
+    --weather-panel-header-background-color: var(--surface-color-strong);               /** Background color for the table header */
+    --weather-panel-body-background-color: var(--surface-color-alt);                    /** Background color for the table body */
     --weather-panel-text-color: rgb(240, 240, 240);                                     /** Header and body text color */
     --weather-panel-position-right: 1.0rem;                                             /** Position from the right of the screen */
     --weather-panel-position-top: 1.0rem;                                               /** Position from the top of the screen */
@@ -134,7 +143,6 @@
     --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
     --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
     --starting-grid-page-duration: 5s;                                                  /** Seconds each page stays up before the pager turns to the next */
-    --starting-grid-last-page-duration: 30s;                                            /** Seconds the last page stays up before the pager starts again from page one */
     --starting-grid-card-color: #1e1e1e;                                                /** Slot background, the neutral dark shared by the timing cells */
     --starting-grid-accent-color: #555;                                                 /** Fallback accent when a vehicle carries no class colour */
     --starting-grid-secondary-color: var(--text-color-secondary);                       /** Driver name and team labels, the shared secondary text */

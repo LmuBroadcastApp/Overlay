@@ -119,8 +119,16 @@
                             </div>
                         </div>
                         <div id="inputs">
-                            <div class="bar"><div id="throttleFill" class="fill"></div></div>
-                            <div class="bar"><div id="brakeFill" class="fill"></div></div>
+                            <div class="input-row">
+                                <span class="input-label">T</span>
+                                <div class="bar"><div id="throttleFill" class="fill"></div></div>
+                                <span class="input-value" id="throttleValue">0</span>
+                            </div>
+                            <div class="input-row">
+                                <span class="input-label">B</span>
+                                <div class="bar"><div id="brakeFill" class="fill"></div></div>
+                                <span class="input-value" id="brakeValue">0</span>
+                            </div>
                         </div>
                     </div>
                     <div id="timing-tower">
@@ -135,6 +143,9 @@
                                     <span class="time-val gap-to-next"></span>
                                 </div>
                             </div>
+                            <div class="time-row driver-name-row">
+                                <span class="telemetry-driver-name"></span>
+                            </div>
                             <div class="time-row">
                                 <div class="time-block">
                                     <span class="time-label">BEST</span>
@@ -144,6 +155,16 @@
                                     <span class="time-label">LDR</span>
                                     <span class="time-val gap-to-ldr"></span>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="delta-section">
+                            <div class="delta-row">
+                                <span class="delta-label">DELTA</span>
+                                <span class="delta-value">-.---</span>
+                            </div>
+                            <div class="delta-row">
+                                <span class="energy-label">NRG</span>
+                                <span class="energy-value">-</span>
                             </div>
                         </div>
                         <div class="sectors-section">
@@ -190,7 +211,7 @@
                         </div>
                     </div>
                 </div>
-                <table>
+                <table id="driver-info">
                     <tbody>
                         <tr>
                             <td class="driver-vehicle-position" rowspan="2"></td>

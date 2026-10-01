@@ -323,22 +323,13 @@
     to   { transform: scaleX(0); }
 }
 
-/*
- * Page count. The pager sits directly on the feed with no panel behind it, so the count is drawn
- * as white with a black outline rather than in a theme colour, which disappeared into whatever the
- * camera was showing. The stroke is kept thin and paired with a shadow, so the white still reads
- * on a pale car body as well as on tarmac.
- */
 #starting-grid-pager .pager-count
 {
     font-size: .58em;
     font-weight: 700;
     letter-spacing: .16em;
-    color: #fff;
+    color: var(--starting-grid-secondary-color);
     font-variant-numeric: tabular-nums;
-
-    -webkit-text-stroke: 1px #000;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
 }
 
 /*
