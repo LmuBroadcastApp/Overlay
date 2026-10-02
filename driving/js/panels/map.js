@@ -97,8 +97,12 @@ class WorldMapPanel
         const dpr = window.devicePixelRatio || 1;
         const scale = this.scale;
 
-        const w = this.map.size.width  * scale;
-        const h = this.map.size.height * scale;
+        // source_size is the unscaled bounding box; size additionally carries the
+        // backend track map scale, which this panel's own slider should not compound with
+        const src = this.map.source_size ?? this.map.size;
+
+        const w = src.width  * scale;
+        const h = src.height * scale;
 
         if (canvas.width !== w * dpr || canvas.height !== h * dpr)
         {
