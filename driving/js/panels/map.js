@@ -54,6 +54,10 @@ class WorldMapPanel
             this.map = value;
             this.splineOffset = null; // track changed, offset must be recomputed
         }
+        else if (key === 'overlay_settings')
+        {
+            this.scale = value.driving_track_map.scale ?? 1;
+        }
     }
 
     /**
