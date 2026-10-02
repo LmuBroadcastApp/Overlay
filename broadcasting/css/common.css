@@ -206,14 +206,13 @@ body
 
 #gradient-background
 {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.0));
     z-index: var(--z-index-gradient);
     top: 0; left: 0;
 
-    width: 40%;
-    height: 100%;
-
     position: absolute;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.0));
+    height: 100%;
+    width: 40%;
 }
 
 /**********************************************************************************************************************/
@@ -232,6 +231,26 @@ body
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+
+/**********************************************************************************************************************/
+
+.penalty-style
+{
+    background-color: var(--penalty-color);
+    color: var(--text-color-secondary);
+
+    font-size: calc(var(--standings-panel-font-size));
+    font-weight: var(--standings-panel-font-weight);
+}
+
+.vehicle-in-pits
+{
+    background-color: var(--pit-color);
+    color: var(--text-color-dark);
+
+    font-size: calc(var(--standings-panel-font-size));
+    font-weight: var(--standings-panel-font-weight);
 }
 
 /**********************************************************************************************************************/

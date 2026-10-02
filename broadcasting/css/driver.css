@@ -9,15 +9,16 @@
 
     position: fixed;
     display: flex;
-    gap: 8px;
+    gap: 1px;
 }
 
 #driver-panel table
 {
     width: var(--driver-panel-width);
     border-collapse: separate;
-    border-spacing: 4px;
+
     table-layout: fixed;
+    border-spacing: 0;
 
     background-color: var(--driver-panel-background-color);
     box-shadow: var(--surface-shadow);
@@ -35,8 +36,8 @@
 
 #driver-panel .driver-vehicle-position
 {
-    width: 20%;
     background-color: var(--driver-panel-vehicle-position-background-color);
+    width: 20%;
 
     font-size: calc(var(--driver-panel-font-size) + 0.5rem);
     color: var(--text-color-dark);

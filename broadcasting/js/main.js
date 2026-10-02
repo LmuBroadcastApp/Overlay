@@ -54,8 +54,8 @@ function SetExclusiveOverlay(name)
 /**
  * Resolves which of the focused-car panels (driver info table, telemetry) should be visible.
  *
- * `overlay_controls.focus_panel` ('driver' or 'telemetry') shows exactly one of them. Older backends
- * that do not send it keep the previous behaviour: driver info always, telemetry per `show_telemetry`.
+ * `overlay_controls.focus_panel` ('driver', 'telemetry' or 'both') decides which of them are shown.
+ * Older backends that do not send it keep the previous behaviour: driver info only.
  *
  * @param {Object} controls Overlay controls payload.
  * @returns {{driver: boolean, telemetry: boolean}} Visibility of each focused-car panel.
@@ -64,6 +64,10 @@ function GetFocusPanels(controls)
 {
     let mode = controls?.focus_panel?.toLowerCase?.();
 
+    if (mode === 'both')
+    {
+        return { driver: true, telemetry: true };
+    }
     if (mode === 'driver' || mode === 'telemetry')
     {
         return { driver: mode === 'driver', telemetry: mode === 'telemetry' };

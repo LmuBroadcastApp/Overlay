@@ -284,7 +284,7 @@
 
             pit_stops: cfg.pit_stops || 0,
             pitstops: cfg.pitstops || [],
-            penalties: { drive_through: 0, stop_and_go: 0, time_penalty: cfg.time_penalty || 0 },
+            penalties: { drive_through: cfg.drive_through || 0, stop_and_go: cfg.stop_and_go || 0, time_penalty: cfg.time_penalty || 0 },
             impact: { et: 0, points: 0 },
             cut_points: 0,
             damage: cfg.damage || 0,
@@ -322,20 +322,20 @@
     function buildField()
     {
         return [
-            makeCar({ slot_id:  1, number: '7',  driver: 'Kamui Kobayashi',   team: 'Toyota Gazoo Racing',    vehicle_class: 'Hyper', manufacturer: 'Toyota',   lapTime: 92.1, spline: 0.62, qualy_position_class: 2, ve: 68, damage:  0.0, tires: ['Medium', 'Medium', 'Medium', 'Medium'] }),
-            makeCar({ slot_id:  2, number: '6',  driver: 'Kevin Estre',       team: 'Porsche Penske Motorsport', vehicle_class: 'Hyper', manufacturer: 'Porsche', lapTime: 92.4, spline: 0.58, qualy_position_class: 1, ve: 55, damage:  2.1, pit_stops: 1, pitstops: [{ session: 'RACE', lap: 8, pit_lane_time: 52.4 }] }),
-            makeCar({ slot_id:  3, number: '50', driver: 'Antonio Fuoco',     team: 'Ferrari AF Corse',       vehicle_class: 'Hyper', manufacturer: 'Ferrari',  lapTime: 92.8, spline: 0.51, qualy_position_class: 3, ve: 41, damage:  8.5, time_penalty: 5, warning: true }),
-            makeCar({ slot_id:  4, number: '2',  driver: 'Earl Bamber',       team: 'Cadillac Racing',        vehicle_class: 'Hyper', manufacturer: 'Cadillac', lapTime: 93.2, spline: 0.44, qualy_position_class: 4, ve: 23, damage:  0.0 }),
+            makeCar({ slot_id:  1, number: '7',  driver: 'Kamui Kobayashi',     team: 'Toyota Gazoo Racing',        vehicle_class: 'Hyper', manufacturer: 'Toyota',     lapTime: 92.1, spline: 0.62, qualy_position_class: 2, ve: 68, damage:  0.0, tires: ['Medium', 'Medium', 'Medium', 'Medium'] }),
+            makeCar({ slot_id:  2, number: '6',  driver: 'Kevin Estre',         team: 'Porsche Penske Motorsport',  vehicle_class: 'Hyper', manufacturer: 'Porsche',    lapTime: 92.4, spline: 0.58, qualy_position_class: 1, ve: 55, damage:  2.1, pit_stops: 1, pitstops: [{ session: 'RACE', lap: 8, pit_lane_time: 52.4 }] }),
+            makeCar({ slot_id:  3, number: '50', driver: 'Antonio Fuoco',       team: 'Ferrari AF Corse',           vehicle_class: 'Hyper', manufacturer: 'Ferrari',    lapTime: 92.8, spline: 0.51, qualy_position_class: 3, ve: 41, damage:  8.5, time_penalty: 5, warning: true }),
+            makeCar({ slot_id:  4, number: '2',  driver: 'Earl Bamber',         team: 'Cadillac Racing',            vehicle_class: 'Hyper', manufacturer: 'Cadillac',   lapTime: 93.2, spline: 0.44, qualy_position_class: 4, ve: 23, damage:  0.0 }),
 
-            makeCar({ slot_id:  5, number: '22', driver: 'Filipe Albuquerque', team: 'United Autosports',     vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.0, spline: 0.31, qualy_position_class: 1, fuel: 48, damage:  0.0 }),
-            makeCar({ slot_id:  6, number: '28', driver: 'Oliver Rasmussen',  team: 'IDEC Sport',             vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.4, spline: 0.28, qualy_position_class: 3, fuel: 27, damage:  4.2 }),
-            makeCar({ slot_id:  7, number: '9',  driver: 'Mathias Beche',     team: 'Proton Competition',     vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.7, spline: 0.22, qualy_position_class: 2, fuel:  8, damage:  0.0 }),
-            makeCar({ slot_id:  8, number: '35', driver: 'Paul-Loup Chatin',  team: 'Alpine Endurance Team',  vehicle_class: 'LMP2', manufacturer: 'Alpine',   lapTime: 98.1, spline: 0.15, qualy_position_class: 4, fuel: 52, damage: 12.3, in_pits: true }),
+            makeCar({ slot_id:  5, number: '22', driver: 'Filipe Albuquerque',  team: 'United Autosports',          vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.0, spline: 0.31, qualy_position_class: 1, fuel: 48, damage:  0.0 }),
+            makeCar({ slot_id:  6, number: '28', driver: 'Oliver Rasmussen',    team: 'IDEC Sport',                 vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.4, spline: 0.28, qualy_position_class: 3, fuel: 27, damage:  4.2 }),
+            makeCar({ slot_id:  7, number: '9',  driver: 'Mathias Beche',       team: 'Proton Competition',         vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.7, spline: 0.22, qualy_position_class: 2, fuel:  8, damage:  0.0 }),
+            makeCar({ slot_id:  8, number: '35', driver: 'Paul-Loup Chatin',    team: 'Alpine Endurance Team',      vehicle_class: 'LMP2', manufacturer: 'Alpine',   lapTime: 98.1, spline: 0.15, qualy_position_class: 4, fuel: 52, damage: 12.3, in_pits: true, drive_through: 1, stop_and_go: 1 }),
 
-            makeCar({ slot_id:  9, number: '92', driver: 'Michael Christensen', team: 'Manthey EMA',          vehicle_class: 'GT3', manufacturer: 'Porsche',  lapTime: 105.0, spline: 0.080, qualy_position_class: 2, ve: 61, damage: 0.0, focus: true }),
-            makeCar({ slot_id: 10, number: '81', driver: 'Charlie Eastwood',  team: 'TF Sport',               vehicle_class: 'GT3', manufacturer: 'Corvette', lapTime: 105.2, spline: 0.086, qualy_position_class: 1, ve: 44, damage: 1.5 }),
-            makeCar({ slot_id: 11, number: '59', driver: 'James Cottingham',  team: 'United Autosports',      vehicle_class: 'GT3', manufacturer: 'McLaren',  lapTime: 105.5, spline: 0.072, qualy_position_class: 4, ve: 29, damage: 0.0, tires: ['Soft', 'Soft', 'Medium', 'Medium'] }),
-            makeCar({ slot_id: 12, number: '87', driver: 'Jose Maria Lopez',  team: 'Akkodis ASP Team',       vehicle_class: 'GT3', manufacturer: 'Lexus',    lapTime: 105.9, spline: 0.030, qualy_position_class: 3, ve: 74, damage: 0.0 })
+            makeCar({ slot_id:  9, number: '92', driver: 'Michael Christensen', team: 'Manthey EMA',                vehicle_class: 'GT3', manufacturer: 'Porsche',  lapTime: 105.0, spline: 0.080, qualy_position_class: 2, ve: 61, damage: 0.0, drive_through: 1, focus: true }),
+            makeCar({ slot_id: 10, number: '81', driver: 'Charlie Eastwood',    team: 'TF Sport',                   vehicle_class: 'GT3', manufacturer: 'Corvette', lapTime: 105.2, spline: 0.086, qualy_position_class: 1, ve: 44, damage: 1.5 }),
+            makeCar({ slot_id: 11, number: '59', driver: 'James Cottingham',    team: 'United Autosports',          vehicle_class: 'GT3', manufacturer: 'McLaren',  lapTime: 105.5, spline: 0.072, qualy_position_class: 4, ve: 29, damage: 0.0, tires: ['Soft', 'Soft', 'Medium', 'Medium'] }),
+            makeCar({ slot_id: 12, number: '87', driver: 'Jose Maria Lopez',    team: 'Akkodis ASP Team',           vehicle_class: 'GT3', manufacturer: 'Lexus',    lapTime: 105.9, spline: 0.030, qualy_position_class: 3, ve: 74, damage: 0.0 })
         ];
     }
 
