@@ -467,11 +467,19 @@ class StartingGridPanel
 
         if (map.pit_lane?.length >= 2)
         {
-            this._traceMiniMapPath(ctx, map.pit_lane, false);
             ctx.setLineDash([5 / scale, 5 / scale]);
             ctx.lineWidth = 2.5 / scale;
             ctx.strokeStyle = 'rgba(150, 155, 170, 0.75)';
-            ctx.stroke();
+
+            // The pit lane is packed as multiple lanes in one array, so stroke
+            // each continuous segment separately to avoid a connector line.
+            for (const segment of this._splitOnGaps(map.pit_lane, 30))
+            {
+                if (segment.length < 2) continue;
+                this._traceMiniMapPath(ctx, segment, false);
+                ctx.stroke();
+            }
+
             ctx.setLineDash([]);
         }
 
@@ -526,6 +534,37 @@ class StartingGridPanel
             ctx.quadraticCurveTo(points[i].x, points[i].y, next.x, next.y);
         }
         ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+    }
+
+    /**
+     * Splits a point list wherever two consecutive points are farther apart than
+     * maxGap. Used to separate the multiple pit-lane paths packed into one array.
+     *
+     * @param {Array<Object>} points Ordered points.
+     * @param {number} maxGap Maximum allowed distance between consecutive points.
+     * @returns {Array<Array<Object>>} Continuous point segments.
+     */
+    _splitOnGaps(points, maxGap)
+    {
+        const segments = [];
+        let current = [points[0]];
+
+        for (let i = 1; i < points.length; ++i)
+        {
+            const dx = points[i].x - points[i - 1].x;
+            const dy = points[i].y - points[i - 1].y;
+
+            if (Math.hypot(dx, dy) > maxGap)
+            {
+                segments.push(current);
+                current = [];
+            }
+
+            current.push(points[i]);
+        }
+
+        segments.push(current);
+        return segments;
     }
 
     /**
