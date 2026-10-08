@@ -93,7 +93,35 @@ class WeatherPanel
      */
     _forecastCell(sky, rainChance)
     {
-        const icon = `<img src="../shared/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
+        if (sky <= 4)
+        {
+            if (rainChance >= 60)
+            {
+                sky = 10;
+            }
+            else if (rainChance >= 40)
+            {
+                sky = 9;
+            }
+            else if (rainChance >= 20)
+            {
+                sky = 8;
+            }
+            else if (rainChance >= 15)
+            {
+                sky = 7;
+            }
+            else if (rainChance >= 10)
+            {
+                sky = 6;
+            }
+            else if (rainChance >= 5)
+            {
+                sky = 5;
+            }
+        }
+
+        let icon = `<img src="../shared/img/weather/${sky}.png" alt="" style="width: var(--weather-panel-img-width);"/>`;
         return `<td class="progress-cell" style="--progress: ${rainChance}%;width: var(--weather-panel-img-width);">${icon}</td>`;
     }
 

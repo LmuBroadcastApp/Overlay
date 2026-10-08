@@ -88,8 +88,8 @@ class SessionPanel
 
         let html = '';
         let when = 'Now';
-        let sky = session.cloudCoverage || 0;
         let rain = session.raining;
+        let sky = this._getSky(session.cloudCoverage, rain);
 
         for (let i = idx; i < forecast.length - 1; ++i)
         {
@@ -99,8 +99,8 @@ class SessionPanel
                 const remaining = timeSlot - session.currentEventTime;
 
                 when = Math.floor(remaining / 60) + "'";
-                sky = forecast[i].sky;
                 rain = forecast[i].rainChance;
+                sky = forecast[i].sky;
             }
 
             html += `<div class="forecast-cell">
@@ -161,5 +161,38 @@ class SessionPanel
     getTemperatureString(session)
     {
         return `Track: ${session.trackTemp.toFixed(1)}°C / Air: ${session.ambientTemp.toFixed(1)}°C / Rain: ${session.raining.toFixed(1)}% / Wet: ${session.averagePathWetness.toFixed(1)}%`;
+    }
+
+    _getSky(sky, rainChance)
+    {
+        if (sky <= 4)
+        {
+            if (rainChance >= 60)
+            {
+                sky = 10;
+            }
+            else if (rainChance >= 40)
+            {
+                sky = 9;
+            }
+            else if (rainChance >= 20)
+            {
+                sky = 8;
+            }
+            else if (rainChance >= 15)
+            {
+                sky = 7;
+            }
+            else if (rainChance >= 10)
+            {
+                sky = 6;
+            }
+            else if (rainChance >= 5)
+            {
+                sky = 5;
+            }
+        }
+
+        return sky;
     }
 }

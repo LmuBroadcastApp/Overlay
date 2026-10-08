@@ -95,7 +95,7 @@ class WeatherPanel
      */
     _forecastCell(sky, rainChance)
     {
-        return `<td class="progress-cell" style="--progress: ${rainChance}%;width: var(--weather-panel-img-width);">${this._weatherIcon(sky)}</td>`;
+        return `<td class="progress-cell" style="--progress: ${rainChance}%;width: var(--weather-panel-img-width);">${this._weatherIcon(sky, rainChance)}</td>`;
     }
 
     /**
@@ -116,8 +116,36 @@ class WeatherPanel
      * @param {number} sky Sky-state identifier.
      * @returns {string} Icon glyph.
      */
-    _weatherIcon(sky)
+    _weatherIcon(sky, rainChance)
     {
+        if (sky <= 4)
+        {
+            if (rainChance >= 60)
+            {
+                sky = 10;
+            }
+            else if (rainChance >= 40)
+            {
+                sky = 9;
+            }
+            else if (rainChance >= 20)
+            {
+                sky = 8;
+            }
+            else if (rainChance >= 15)
+            {
+                sky = 7;
+            }
+            else if (rainChance >= 10)
+            {
+                sky = 6;
+            }
+            else if (rainChance >= 5)
+            {
+                sky = 5;
+            }
+        }
+
         switch (sky)
         {
             case  0: return ''; // Clear
