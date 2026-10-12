@@ -167,6 +167,7 @@
             driver_name: 'full',
             vehicle_class: 'multiclass',
             sector_bars: true,
+            hide_dnf: false,
             focus_panel: new URLSearchParams(window.location.search).get('panel') || 'driver',
             show_last_pitstop: true,
             show_starting_grid: window.location.search.includes('grid'),

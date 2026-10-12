@@ -170,25 +170,22 @@ class TelemetryPanel
     _updateGauges()
     {
         const telemetry = this.vehicle.telemetry;
-        if (!telemetry)
-        {
-            return;
-        }
+        if (!telemetry) { return; }
 
         const speed = Math.min(telemetry.speed, this.maxSpeed);
         const gear = telemetry.gear;
         const rpm = telemetry.rpm;
 
         this.speedChart.data.datasets[0].data = [speed, this.maxSpeed - speed];
-        this.rpmChart.data.datasets[0].data = [rpm, this.maxRpm - rpm];
-        this.rpmChart.data.datasets[0].backgroundColor[0] = this._getRPMColor(rpm, this.maxRpm);
+        this.rpmChart.data.datasets[0].data = [rpm, telemetry.max_rpm - rpm];
+        this.rpmChart.data.datasets[0].backgroundColor[0] = this._getRPMColor(rpm, telemetry.max_rpm);
 
         this.rpmNumber.textContent = Math.round(rpm);
         this.speedValue.textContent = Math.round(speed);
         this.gearLabel.textContent = gear < 0 ? 'R' : gear === 0 ? 'N' : gear;
 
         /** Flash the gear label red near the rev limit as a shift indicator. */
-        this.gearLabel.classList.toggle('redline', rpm > this.maxRpm * 0.9);
+        //this.gearLabel.classList.toggle('redline', rpm > telemetry.max_rpm * 0.9);
 
         this.throttleFill.style.width = (telemetry.throttle * 100) + '%';
         this.brakeFill.style.width = (telemetry.brake * 100) + '%';
