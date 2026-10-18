@@ -1,0 +1,284 @@
+/**
+ * @file Fullscreen live classification panel, grouped by vehicle class.
+ */
+
+/**
+ * Renders the whole field as one column per vehicle class, with the live class order, the gap to
+ * the class leader and a small position change marker. The panel is exclusive: while it is shown
+ * no other broadcasting overlay is visible.
+ */
+class ClassificationPanel
+{
+    /**
+     * Creates a classification panel and subscribes to shared overlay state.
+     * @param {string} selector CSS selector for the panel root element.
+     * @param {StateManager} stateManager Shared state store.
+     */
+    constructor(selector, stateManager)
+    {
+        this.element = document.querySelector(selector);
+        this.stateManager = stateManager;
+
+        if (!this.element)
+        {
+            console.error(`ClassificationPanel: Element ${selector} not found`);
+            return;
+        }
+
+        this.body = this.element.querySelector('#classification-body');
+        this.sessionLabel = this.element.querySelector('.classification-session');
+        this.trackLabel = this.element.querySelector('.classification-track');
+        this.countLabel = this.element.querySelector('.classification-count');
+
+        this.standings = null;
+        this.session = this.stateManager.getState('session');
+
+        this.controls =
+        {
+            gap_mode: 'leader',
+            name_source: 'driver',
+            driver_name: 'short'
+        };
+
+        /** Last class position seen per car, used for the gain/loss marker. */
+        this.previousPositions = new Map();
+
+        this.vdom = new VirtualDOM();
+        this.tree = null;
+
+        this.counter_standings_curr = 0;
+        this.counter_standings_test = -1;
+        this.headerDirty = true;
+
+        this.stateManager.subscribe(this.handleStateChange.bind(this));
+    }
+
+    /**
+     * Stores standings, session and control updates used by the classification renderer.
+     * @param {string} key Updated state key.
+     * @param {*} value Updated value.
+     */
+    handleStateChange(key, value)
+    {
+        if (key === 'standings')
+        {
+            this.counter_standings_curr++;
+            this.standings = value;
+        }
+        else if (key === 'session')
+        {
+            this.session = value?.trackName ? value : null;
+            this.headerDirty = true;
+        }
+        else if (key === 'overlay_controls')
+        {
+            this.controls = value;
+        }
+        else if (key === 'overlay_exclusive')
+        {
+            // A fresh showing starts without movement markers from the previous run.
+            if (value === 'classification')
+            {
+                this.previousPositions.clear();
+                this.counter_standings_test = -1;
+            }
+        }
+    }
+
+    /**
+     * Rebuilds the header and patches the classification when the standings snapshot changes.
+     */
+    update()
+    {
+        if (this.headerDirty)
+        {
+            this._renderHeader();
+        }
+
+        if (this.standings == null || this.standings.length === 0)
+        {
+            if (this.tree !== null)
+            {
+                this.tree = null;
+                this.vdom.render(this.vdom.h('div'), this.body);
+            }
+
+            this.countLabel.textContent = '0 entries';
+            return;
+        }
+
+        if (this.counter_standings_curr === this.counter_standings_test)
+        {
+            return;
+        }
+
+        this.counter_standings_test = this.counter_standings_curr;
+
+        let newTree = this._buildTree();
+
+        if (this.tree === null)
+        {
+            this.tree = this.vdom.render(newTree, this.body);
+        }
+        else
+        {
+            this.tree = this.vdom.patch(this.tree, newTree, this.body);
+        }
+    }
+
+    /**
+     * Writes the session labels and the entry count. The count is part of the header rather than
+     * the class columns, so it stays accurate even when a class has no cars.
+     */
+    _renderHeader()
+    {
+        this.headerDirty = false;
+
+        this.sessionLabel.textContent = this.session?.name ?? '';
+        this.trackLabel.textContent = this.session?.trackName ?? '';
+
+        let total = this.standings?.length ?? 0;
+        this.countLabel.textContent = `${total} ${total === 1 ? 'entry' : 'entries'}`;
+    }
+
+    /**
+     * Returns a car's class position, falling back to the overall position when the backend has
+     * not assigned a class position yet.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {number} Class position, zero when neither is available.
+     */
+    _getClassPosition(vehicle)
+    {
+        return vehicle.race_position_class > 0 ? vehicle.race_position_class : vehicle.race_position;
+    }
+
+    /**
+     * Formats the gap column. The class leader reads LEADER, lapped cars keep the lap suffix the
+     * shared helper produces, and everything else is shown as a positive time gap.
+     * @param {Object} vehicle Vehicle data.
+     * @param {number} position Class position of the vehicle.
+     * @param {boolean} isRace Whether the current session is a race.
+     * @returns {string} Gap text.
+     */
+    _formatGap(vehicle, position, isRace)
+    {
+        if (vehicle.status === 'DQ' || vehicle.status === 'DNF')
+        {
+            return vehicle.status;
+        }
+
+        if (position <= 1)
+        {
+            return 'LEADER';
+        }
+
+        let gap = VehicleGetGap(vehicle, this.controls, isRace);
+
+        if (typeof gap === 'string' && gap.endsWith('L'))
+        {
+            return gap;
+        }
+
+        let value = Number(gap);
+
+        return Number.isFinite(value) ? `+${value.toFixed(1)}s` : '-';
+    }
+
+    /**
+     * Builds one class section. Every value taken from the payload is escaped before being
+     * interpolated into the markup handed to the vdom's htmlContent attribute.
+     * @param {string} className Vehicle class name.
+     * @param {Array<Object>} vehicles Vehicles in that class.
+     * @param {boolean} isRace Whether the current session is a race.
+     * @param {Map<number, number>} nextPositions Class positions collected for the next update.
+     * @returns {string} Class section markup.
+     */
+    _buildClassSection(className, vehicles, isRace, nextPositions)
+    {
+        let rows = [...vehicles].sort((a, b) => this._getClassPosition(a) - this._getClassPosition(b));
+
+        let html = `<section class='classification-class ${CSSClassFromVehicleClass(className)}'>
+            <header class='classification-class-head'>
+                <div class='classification-class-title'>
+                    <span class='classification-class-marker'></span>
+                    <div>
+                        <h2 class='classification-class-name'>${HtmlEscape(className)}</h2>
+                        <span class='classification-class-sub'>${rows.length} ${rows.length === 1 ? 'car' : 'cars'}</span>
+                    </div>
+                </div>
+            </header>
+            <div class='classification-list'>
+                <table class='classification-table'>
+                    <thead>
+                        <tr>
+                            <th>Pos</th>
+                            <th></th>
+                            <th>Driver / Team</th>
+                            <th>Laps</th>
+                            <th>Gap</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        for (const vehicle of rows)
+        {
+            let position = this._getClassPosition(vehicle);
+            let previous = this.previousPositions.get(vehicle.slot_id);
+            let delta = previous === undefined ? 0 : previous - position;
+            let movementClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
+            let movement = delta > 0 ? `\u25B2${delta}` : delta < 0 ? `\u25BC${Math.abs(delta)}` : '\u2014';
+
+            nextPositions.set(vehicle.slot_id, position);
+
+            let name = VehicleGetName(vehicle, this.controls);
+            let team = vehicle.vehicle_name ?? '';
+            let teamLine = team && team !== name ? `<span class='classification-team'>${HtmlEscape(team)}</span>` : '';
+            let manufacturer = vehicle.manufacturer?.trim() || 'Default';
+
+            html += `<tr>
+                <td>
+                    <span class='classification-position'>${HtmlEscape(position > 0 ? position : '-')}</span>
+                    <span class='classification-movement ${movementClass}'>${movement}</span>
+                </td>
+                <td><img class='classification-logo' src='../shared/img/brandlogo/${HtmlEscape(manufacturer)}.png' alt=''/></td>
+                <td>
+                    <span class='classification-driver'>${HtmlEscape(name)}</span>
+                    ${teamLine}
+                </td>
+                <td><span class='classification-laps'>${HtmlEscape(vehicle.laps ?? 0)}</span></td>
+                <td><span class='classification-gap'>${HtmlEscape(this._formatGap(vehicle, position, isRace))}</span></td>
+            </tr>`;
+        }
+
+        return html + `</tbody></table></div></section>`;
+    }
+
+    /**
+     * Builds the full classification tree, one column per class in field order.
+     * @returns {*} Virtual DOM tree.
+     */
+    _buildTree()
+    {
+        let groups = GetByClasses(this.standings);
+        let isRace = (this.session?.name ?? '').toLowerCase().includes('race');
+        let nextPositions = new Map();
+        let sections = '';
+
+        for (const [className, vehicles] of groups)
+        {
+            sections += this._buildClassSection(className, vehicles, isRace, nextPositions);
+        }
+
+        this.previousPositions = nextPositions;
+
+        let total = this.standings.length;
+        this.countLabel.textContent = `${total} ${total === 1 ? 'entry' : 'entries'}`;
+
+        return this.vdom.h('div',
+            {
+                className: 'classification-grid',
+                style: `--classification-columns: ${Math.max(1, groups.size)}`,
+                htmlContent: sections
+            });
+    }
+}

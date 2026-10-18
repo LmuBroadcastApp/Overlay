@@ -79,16 +79,19 @@ function GetFocusPanels(controls)
 /**
  * Applies the current enabled/disabled panel visibility state, also honoring the fullscreen overlays.
  *
- * The starting grid is exclusive: while it is active it takes the whole window and every other
- * overlay is hidden. Replay keeps its own dedicated banner instead.
+ * The starting grid and the live classification are exclusive: while either is active it takes the
+ * whole window and every other overlay is hidden. Classification takes priority when both are on.
+ * Replay keeps its own dedicated banner instead.
  */
 function ApplyPanelVisibility()
 {
     let controls = stateManager.getState('overlay_controls');
+    let classification = controls?.show_current_classification === true && !g_ReplayActive;
     let grid = controls?.show_starting_grid === true
         && g_PanelEnabled.grid
-        && !g_ReplayActive;
-    let show = !g_ReplayActive && !grid;
+        && !g_ReplayActive
+        && !classification;
+    let show = !g_ReplayActive && !grid && !classification;
 
     let focus = GetFocusPanels(controls);
     let showDriverInfo = focus.driver && g_PanelEnabled.driver;
@@ -105,11 +108,12 @@ function ApplyPanelVisibility()
     $("#driver-info").showIf(showDriverInfo);
 
     $("#notification-container").visibleIf(show && g_PanelEnabled.notifications);
-    $("#gradient-background").showIf(!grid);
+    $("#gradient-background").showIf(!grid && !classification);
     $("#replay-banner").showIf(g_ReplayActive && g_PanelEnabled.replay);
     $("#starting-grid-panel").showIf(grid);
+    $("#classification-panel").showIf(classification);
 
-    SetExclusiveOverlay(g_ReplayActive ? 'replay' : (grid ? 'grid' : null));
+    SetExclusiveOverlay(g_ReplayActive ? 'replay' : (classification ? 'classification' : (grid ? 'grid' : null)));
 }
 
 /**
@@ -320,6 +324,7 @@ panelRegistry.register('session', SessionPanel, '#session-panel');
 panelRegistry.register('weather', WeatherPanel, '#weather-panel');
 panelRegistry.register('telemetry', TelemetryPanel, '#telemetry-panel');
 panelRegistry.register('grid', StartingGridPanel, '#starting-grid-panel');
+panelRegistry.register('classification', ClassificationPanel, '#classification-panel');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

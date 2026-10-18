@@ -25,6 +25,7 @@
     --z-index-panel: 10;                                                                /** Default panel layer */
     --z-index-notification: 100;                                                        /** Notifications above all panels */
     --z-index-grid: 200;                                                                /** Fullscreen starting grid above everything else */
+    --z-index-classification: 210;                                                      /** Fullscreen live classification above every other panel */
 
     /** Timing colors (shared across tower, telemetry, driver) */
     --timing-green: #2ed573;                                                            /** Personal best / faster sector */
@@ -180,6 +181,16 @@
     --starting-grid-tick-glow: 0 0 12px rgba(255, 255, 255, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
     --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
     --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
+
+    /** Classification (fullscreen) */
+    --classification-font-size: 1.5em;                                                  /** General font size of the panel */
+    --classification-scrim-color: rgba(0, 0, 0, 0.20);                                  /** Flat wash over the whole window, the same scrim the starting grid uses */
+    --classification-header-height: 4rem;                                               /** Height of the title bar at the top */
+    --classification-header-bg: var(--surface-color-strong);                            /** Background of the title bar */
+    --classification-panel-bg: var(--surface-color);                                    /** Background of each class column */
+    --classification-cell-bg: var(--surface-color-alt);                                 /** Position chip background */
+    --classification-gain-color: var(--timing-green);                                   /** Position gained since the previous update */
+    --classification-lost-color: var(--penalty-color);                                  /** Position lost since the previous update */
 }
 
 /**********************************************************************************************************************/

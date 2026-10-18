@@ -12,6 +12,7 @@
 
         <link rel="stylesheet" href="css/notifications.css"/>
         <link rel="stylesheet" href="css/starting_grid.css"/>
+        <link rel="stylesheet" href="css/classification.css"/>
 
         <link rel="stylesheet" href="css/telemetry.css"/>
         <link rel="stylesheet" href="css/session.css"/>
@@ -44,6 +45,7 @@
         <script src="js/panels/driver.js"></script>
         <script src="js/panels/tower.js"></script>
         <script src="js/panels/map.js"></script>
+        <script src="js/panels/classification.js"></script>
 
         <script src="js/main.js"></script>
         <script src="js/utils/mock.js"></script>
@@ -52,6 +54,21 @@
         <main aria-label="LMU TV Overlay panels">
             <section id="gradient-background"></section>
             <section id="notification-container"></section>
+
+            <section id="classification-panel" aria-label="Live classification">
+                <header id="classification-header">
+                    <div class="classification-heading">
+                        <span class="classification-eyebrow">Live timing</span>
+                        <h1 class="classification-title">Live classification</h1>
+                    </div>
+                    <div class="classification-session-info">
+                        <span class="classification-session"></span>
+                        <span class="classification-track"></span>
+                        <span class="classification-count"></span>
+                    </div>
+                </header>
+                <div id="classification-body"></div>
+            </section>
 
             <section id="starting-grid-panel" aria-label="Starting grid">
                 <header id="starting-grid-header"></header>

@@ -1,0 +1,422 @@
+/**
+ * Live classification: a fullscreen broadcast panel that groups the field by vehicle class in one
+ * column per class. It shares the surface recipe, class colours and typography of the other
+ * broadcasting panels, and it takes the whole window while it is on screen.
+ */
+
+#classification-panel
+{
+    height: 100vh;
+
+    position: relative;
+    overflow: hidden;
+
+    z-index: var(--z-index-classification);
+    display: none;
+
+    background: var(--classification-scrim-color);
+
+    font-size: var(--classification-font-size);
+    color: var(--text-color-primary);
+}
+
+#classification-header
+{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    height: var(--classification-header-height);
+    padding: 0 1.25rem;
+
+    background: var(--classification-header-bg);
+    box-shadow: var(--surface-shadow);
+}
+
+#classification-header .classification-heading
+{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    min-width: 0;
+}
+
+#classification-header .classification-eyebrow
+{
+    color: var(--text-color-secondary);
+
+    font-size: .55em;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+}
+
+#classification-header .classification-title
+{
+    margin: 0;
+
+    font-size: 1.3em;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#classification-header .classification-session-info
+{
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+
+    min-width: 0;
+
+    color: var(--text-color-secondary);
+    font-size: .7em;
+    font-variant-numeric: tabular-nums;
+}
+
+#classification-header .classification-session
+{
+    padding: .35rem .7rem;
+
+    border: 1px solid var(--surface-border);
+    background: var(--surface-color-alt);
+
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+#classification-header .classification-track
+{
+    min-width: 0;
+
+    font-weight: 600;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#classification-header .classification-count
+{
+    white-space: nowrap;
+}
+
+#classification-body
+{
+    position: absolute;
+    top: var(--classification-header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    padding: 1rem;
+
+    overflow: hidden;
+}
+
+/**********************************************************************************************************************/
+
+#classification-panel .classification-grid
+{
+    display: grid;
+    grid-template-columns: repeat(var(--classification-columns, 3), minmax(0, 1fr));
+    gap: 1rem;
+
+    height: 100%;
+}
+
+/**********************************************************************************************************************/
+
+/*
+ * One class column. The class colour class supplied by CSSClassFromVehicleClass sets --class-color,
+ * which the top rule and the class marker draw with. The id selector keeps the surface fill in
+ * charge of the background rather than the shared class colour rule.
+ */
+#classification-panel .classification-class
+{
+    display: flex;
+    flex-direction: column;
+
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+
+    background: var(--classification-panel-bg);
+    border: 1px solid var(--surface-border);
+    border-top: 3px solid var(--class-color, var(--starting-grid-accent-color));
+    box-shadow: var(--surface-shadow);
+}
+
+#classification-panel .classification-class-head
+{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+
+    flex: 0 0 auto;
+
+    padding: .7rem .85rem;
+
+    border-bottom: 1px solid var(--surface-divider);
+    background: var(--surface-color-strong);
+}
+
+#classification-panel .classification-class-title
+{
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+
+    min-width: 0;
+}
+
+#classification-panel .classification-class-marker
+{
+    flex: 0 0 auto;
+
+    width: .55rem;
+    height: 1.6rem;
+
+    background: var(--class-color, var(--starting-grid-accent-color));
+}
+
+#classification-panel .classification-class-name
+{
+    margin: 0;
+
+    font-size: .95em;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#classification-panel .classification-class-sub
+{
+    display: block;
+    margin-top: 2px;
+
+    color: var(--text-color-secondary);
+    font-size: .55em;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+/**********************************************************************************************************************/
+
+#classification-panel .classification-list
+{
+    flex: 1 1 auto;
+
+    min-height: 0;
+
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+#classification-panel .classification-table
+{
+    width: 100%;
+
+    border-collapse: collapse;
+    border-spacing: 0;
+
+    font-variant-numeric: tabular-nums;
+}
+
+#classification-panel .classification-table thead
+{
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+#classification-panel .classification-table th
+{
+    padding: .5rem .35rem;
+
+    background: var(--surface-color-strong);
+    color: var(--text-color-secondary);
+
+    font-size: .58em;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-align: right;
+    text-transform: uppercase;
+
+    white-space: nowrap;
+}
+
+#classification-panel .classification-table th:nth-child(1)
+{
+    padding-left: .85rem;
+    text-align: left;
+}
+
+#classification-panel .classification-table th:nth-child(2)
+{
+    width: 2.4rem;
+    text-align: center;
+}
+
+#classification-panel .classification-table th:nth-child(3)
+{
+    text-align: left;
+}
+
+#classification-panel .classification-table th:last-child
+{
+    padding-right: .9rem;
+}
+
+#classification-panel .classification-table td
+{
+    padding: .45rem .35rem;
+
+    border-bottom: 1px solid var(--surface-divider);
+
+    text-align: right;
+
+    white-space: nowrap;
+}
+
+#classification-panel .classification-table tbody tr:last-child td
+{
+    border-bottom: none;
+}
+
+#classification-panel .classification-table tbody tr:hover
+{
+    background: rgba(255, 255, 255, 0.04);
+}
+
+#classification-panel .classification-table td:nth-child(1)
+{
+    padding-left: .85rem;
+    text-align: left;
+}
+
+#classification-panel .classification-table td:nth-child(2)
+{
+    width: 2.4rem;
+    text-align: center;
+}
+
+#classification-panel .classification-table td:nth-child(3)
+{
+    text-align: left;
+
+    white-space: normal;
+}
+
+#classification-panel .classification-table td:last-child
+{
+    padding-right: .9rem;
+}
+
+#classification-panel .classification-position
+{
+    display: inline-grid;
+    place-items: center;
+
+    min-width: 1.8em;
+    height: 1.8em;
+
+    background: var(--classification-cell-bg);
+
+    font-size: .7em;
+    font-weight: 700;
+}
+
+#classification-panel .classification-movement
+{
+    display: inline-block;
+    margin-left: .25em;
+
+    font-size: .55em;
+    font-weight: 700;
+}
+
+#classification-panel .classification-movement.up
+{
+    color: var(--classification-gain-color);
+}
+
+#classification-panel .classification-movement.down
+{
+    color: var(--classification-lost-color);
+}
+
+#classification-panel .classification-movement.same
+{
+    color: var(--text-color-secondary);
+}
+
+#classification-panel .classification-logo
+{
+    height: 1.5em;
+
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+#classification-panel .classification-driver
+{
+    display: block;
+
+    font-size: .8em;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+#classification-panel .classification-team
+{
+    display: block;
+    margin-top: 2px;
+
+    color: var(--text-color-secondary);
+
+    font-size: .58em;
+    font-weight: 400;
+    line-height: 1.25;
+}
+
+#classification-panel .classification-laps
+{
+    font-size: .7em;
+    font-weight: 600;
+}
+
+#classification-panel .classification-gap
+{
+    font-size: .7em;
+    font-weight: 700;
+}
+
+#classification-panel .classification-empty
+{
+    padding: 1.5rem .75rem;
+
+    color: var(--text-color-secondary);
+
+    text-align: center;
+}
