@@ -457,8 +457,11 @@
     width: var(--starting-grid-entry-width);
     height: var(--starting-grid-entry-height);
 
-    background: var(--starting-grid-card-color);
-    box-shadow: var(--starting-grid-glass-shadow);
+    background: var(--starting-grid-card-fill);
+    box-shadow: var(--starting-grid-glass-shadow), inset 0 var(--starting-grid-topline-width) 0 var(--class-color, var(--starting-grid-accent-color));
+
+    animation: starting-grid-card-in var(--starting-grid-reveal-duration) cubic-bezier(.2, .8, .2, 1) both;
+    animation-delay: calc(var(--row-index, 0) * var(--starting-grid-reveal-step));
 
     /* Blur is off while the fill above is opaque, see the header for why. */
     /*
@@ -517,10 +520,24 @@
     height: 6px;
 
     /* A short gradient rather than a flat bar, bright at the card and fading towards the number. */
-    background: linear-gradient(to right, var(--starting-grid-tick-color), var(--starting-grid-tick-fade));
+    background: linear-gradient(to right, var(--class-color, var(--starting-grid-tick-color)), var(--starting-grid-tick-fade));
     box-shadow: var(--starting-grid-tick-glow);
     position: absolute;
     content: "";
+}
+
+/* Class coloured stripe down the left edge of the head, the card's identity at a glance. */
+#starting-grid-panel .driver-head:before
+{
+    position: absolute;
+    content: "";
+
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--starting-grid-stripe-width);
+
+    background: var(--class-color, var(--starting-grid-accent-color));
 }
 
 /* The right card faces the other way, so its tick hangs left, into the same gap. */
@@ -528,7 +545,7 @@
 {
     right: calc(100% + var(--starting-grid-number-offset));
     left: auto;
-    background: linear-gradient(to left, var(--starting-grid-tick-color), var(--starting-grid-tick-fade));
+    background: linear-gradient(to left, var(--class-color, var(--starting-grid-tick-color)), var(--starting-grid-tick-fade));
 }
 
 #starting-grid-panel .card-number
@@ -551,8 +568,11 @@
     text-align: center;
 
     color: var(--starting-grid-text-color);
-    font-weight: 700;
-    font-size: 1.8em;
+    font-weight: 800;
+    font-style: italic;
+    font-size: var(--starting-grid-number-font-size);
+    line-height: 1;
+    transform: skewX(var(--starting-grid-number-skew));
 
     /* A soft shadow instead of the hard outline the number used to carry, which read as a sticker
      * on the feed. Two shadows, one tight and one wide, hold the shape over a busy background. */
@@ -756,4 +776,28 @@
 #starting-grid-panel .meta span
 {
     float: right;
+}
+
+/*
+ * Pole of each class: the left card of the first row gets a glow in its class colour, so the
+ * front of every class block stands out from the rest of the ladder.
+ */
+#starting-grid-panel .grid-row.pole .driver-card.left
+{
+    box-shadow: var(--starting-grid-glass-shadow), inset 0 var(--starting-grid-topline-width) 0 var(--class-color, var(--starting-grid-accent-color)), var(--starting-grid-pole-glow);
+}
+
+/* Cards slide in from their own side, so the ladder builds up from pole. */
+#starting-grid-panel .driver-card.left  { --slide-from: -48px; }
+#starting-grid-panel .driver-card.right { --slide-from: 48px; }
+
+@keyframes starting-grid-card-in
+{
+    from { opacity: 0; transform: translateX(var(--slide-from, 0)); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce)
+{
+    #starting-grid-panel .driver-card { animation: none; }
 }

@@ -896,7 +896,7 @@ class StartingGridPanel
         let html = '';
         let lastClass = null;
 
-        page.forEach((row) =>
+        page.forEach((row, index) =>
         {
             if (row.className !== lastClass)
             {
@@ -909,7 +909,8 @@ class StartingGridPanel
                 <div class='row-label'>Row ${row.field_row}</div>
             </div>`;
 
-            html += `<div class='grid-row'>${this._buildCard(row.left, 'left', row.best_lap_time)}`;
+            const pole = row.class_row === 1 ? ' pole' : '';
+            html += `<div class='grid-row${pole}' style='--row-index:${index}'>${this._buildCard(row.left, 'left', row.best_lap_time)}`;
             if (row.right !== null)
             {
                 html += this._buildCard(row.right, 'right', row.best_lap_time);

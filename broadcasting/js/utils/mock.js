@@ -317,11 +317,107 @@
     }
 
     /**
-     * Creates the mock multi-class field shown in preview mode.
+     * Extra mock entries per class, so the preview reaches a full 62 car field.
+     * Each entry is [driver, team, manufacturer].
+     */
+    const EXTRA_ENTRIES =
+    {
+        Hyper:
+        {
+            lapTime: 93.6,
+            cars:
+            [
+                ['Marc Leclerc', 'Peugeot TotalEnergies', 'Peugeot'], ['Jonas Weber', 'Alpine Endurance Team', 'Alpine'],
+                ['Luca Moretti', 'Lamborghini Iron Lynx', 'Lamborghini'], ['Ben Hartley', 'BMW M Team WRT', 'BMW'],
+                ['Yuki Tanaka', 'Toyota Gazoo Racing', 'Toyota'], ['Pierre Dubois', 'Peugeot TotalEnergies', 'Peugeot'],
+                ['Sam Whitaker', 'Cadillac Hertz Team Jota', 'Cadillac'], ['Nico Brandt', 'Porsche Penske Motorsport', 'Porsche'],
+                ['Diego Alvarez', 'Ferrari AF Corse', 'Ferrari'], ['Tom Jensen', 'Aston Martin THOR Team', 'Aston Martin'],
+                ['Hugo Marchand', 'Glickenhaus Racing', 'Glickenhaus'], ['Aleks Petrov', 'Vanwall Vandoorne Racing', 'Vanwall'],
+                ['Ryan Collins', 'Isotta Fraschini', 'Isotta Fraschini'], ['Matteo Rossi', 'Ferrari AF Corse', 'Ferrari']
+            ]
+        },
+        LMP2:
+        {
+            lapTime: 98.6,
+            cars:
+            [
+                ['Remy Laurent', 'Vector Sport', 'Oreca'], ['Josh Palmer', 'Algarve Pro Racing', 'Oreca'],
+                ['Felix Neumann', 'Prema Racing', 'Oreca'], ['Carlos Mendes', 'Nielsen Racing', 'Oreca'],
+                ['Oscar Lindqvist', 'Duqueine Team', 'Duqueine'], ['Theo Garnier', 'Ligier Racing', 'Ligier'],
+                ['Will Stevens', 'Inter Europol', 'Oreca'], ['Andre Costa', 'Cool Racing', 'Oreca'],
+                ['Lukas Novak', 'AO by TF', 'Oreca'], ['Ivan Sokolov', 'Panis Racing', 'Oreca'],
+                ['Henri Girard', 'Duqueine Team', 'Duqueine'], ['Dan Mitchell', 'Ultimate', 'Oreca'],
+                ['Enzo Bianchi', 'Prema Racing', 'Oreca'], ['Kai Svensson', 'Ligier Racing', 'Ligier']
+            ]
+        },
+        GT3:
+        {
+            lapTime: 106.2,
+            cars:
+            [
+                ['Mick Bauer', 'Manthey EMA', 'Porsche'], ['Alex Fernandes', 'Iron Lynx', 'Lamborghini'],
+                ['Paul Harris', 'Heart of Racing', 'Aston Martin'], ['Jean Morel', 'Akkodis ASP Team', 'Lexus'],
+                ['Stefan Keller', 'Walkenhorst Motorsport', 'BMW'], ['Rob Davies', 'TF Sport', 'Corvette'],
+                ['Marco Ricci', 'Vista AF Corse', 'Ferrari'], ['Leo Fischer', 'Mercedes-AMG Team GetSpeed', 'Mercedes-AMG'],
+                ['Chris Nolan', 'Ford Multimatic', 'Ford'], ['Dario Vega', 'Iron Dames', 'Porsche'],
+                ['Eli Brooks', 'United Autosports', 'McLaren'], ['Tim Aldridge', 'Heart of Racing', 'Aston Martin'],
+                ['Gabriel Silva', 'Akkodis ASP Team', 'Lexus'], ['Ole Berg', 'Walkenhorst Motorsport', 'BMW'],
+                ['Anton Ivanov', 'Iron Lynx', 'Lamborghini'], ['Phil Grant', 'TF Sport', 'Corvette'],
+                ['Sven Ahlgren', 'Mercedes-AMG Team GetSpeed', 'Mercedes-AMG'], ['Raul Ortega', 'Vista AF Corse', 'Ferrari'],
+                ['Jack Turner', 'Ford Multimatic', 'Ford'], ['Kris Dvorak', 'Manthey EMA', 'Porsche'],
+                ['Jim Callahan', 'United Autosports', 'McLaren'], ['Adrian Popescu', 'Iron Dames', 'Porsche']
+            ]
+        }
+    };
+
+    /** Mock cars that are out of the race, by slot id. */
+    const RETIRED_SLOTS = { 20: 'DNF', 25: 'DQ', 33: 'DNF', 44: 'DNF', 52: 'DQ', 58: 'DNF' };
+
+    /**
+     * Creates the mock multi-class field shown in preview mode: 12 hand-tuned cars plus the generated
+     * extras, 62 in total.
      *
      * @returns {Array<Object>} Mock standings rows.
      */
     function buildField()
+    {
+        const field = buildBaseField();
+        let slot = field.length + 1;
+
+        for (const [vehicle_class, group] of Object.entries(EXTRA_ENTRIES))
+        {
+            const taken = field.filter(c => c.vehicle_class === vehicle_class).length;
+
+            group.cars.forEach(([driver, team, manufacturer], i) =>
+            {
+                field.push(makeCar({
+                    slot_id: slot++,
+                    number: String(10 + slot * 3 % 90),
+                    driver, team, manufacturer, vehicle_class,
+                    lapTime: group.lapTime + i * 0.17,
+                    spline: (0.97 - slot * 0.0373 + 1) % 1,
+                    qualy_position_class: taken + i + 1,
+                    ve: 20 + (slot * 7) % 70,
+                    fuel: 10 + (slot * 5) % 45,
+                    damage: slot % 5 === 0 ? (slot % 13) : 0
+                }));
+            });
+        }
+
+        for (const [slotId, status] of Object.entries(RETIRED_SLOTS))
+        {
+            field.find(car => car.slot_id === Number(slotId)).status = status;
+        }
+
+        return field;
+    }
+
+    /**
+     * Builds the 12 hand-tuned cars the preview started with.
+     *
+     * @returns {Array<Object>} Mock standings rows.
+     */
+    function buildBaseField()
     {
         return [
             makeCar({ slot_id:  1, number: '7',  driver: 'Kamui Kobayashi',     team: 'Toyota Gazoo Racing',        vehicle_class: 'Hyper', manufacturer: 'Toyota',     lapTime: 92.1, spline: 0.62, qualy_position_class: 2, ve: 68, damage:  0.0, tires: ['Medium', 'Medium', 'Medium', 'Medium'] }),
@@ -370,7 +466,7 @@
 
             for (const car of cars)
             {
-                if (car.in_pits) continue;
+                if (car.in_pits || car.status === 'DNF' || car.status === 'DQ') continue;
 
                 /** Advance along the track with a little pace noise */
                 const dt = 0.1 * (1 + (Math.random() - 0.5) * 0.06);

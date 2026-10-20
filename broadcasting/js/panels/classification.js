@@ -29,6 +29,7 @@ class ClassificationPanel
         this.sessionLabel = this.element.querySelector('.classification-session');
         this.trackLabel = this.element.querySelector('.classification-track');
         this.countLabel = this.element.querySelector('.classification-count');
+        this.clockLabel = this.element.querySelector('.classification-clock');
 
         this.standings = null;
         this.session = this.stateManager.getState('session');
@@ -127,8 +128,41 @@ class ClassificationPanel
     }
 
     /**
+     * Whether a vehicle is out of the race.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {number} 1 for DQ or DNF, otherwise 0, so it can be used as a sort key.
+     */
+    _isOut(vehicle)
+    {
+        return vehicle.status === 'DQ' || vehicle.status === 'DNF' ? 1 : 0;
+    }
+
+    /**
+     * Formats the remaining session time as HH:MM:SS.
+     * @returns {string} Clock text, empty without a session.
+     */
+    _getClock()
+    {
+        if (!this.session) return '';
+
+        let remaining = Math.max(0, Math.floor(this.session.endEventTime - this.session.currentEventTime));
+
+        if (!Number.isFinite(remaining)) return '';
+
+        let h = Math.floor(remaining / 3600);
+        let m = Math.floor(remaining % 3600 / 60);
+        let s = remaining % 60;
+
+        return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+    }
+
+    /**
      * Writes the session labels and the entry count. The count is part of the header rather than
      * the class columns, so it stays accurate even when a class has no cars.
+     */
+    /**
+     * Writes the session labels, the clock and the entry count. The count is part of the header
+     * rather than the class columns, so it stays accurate even when a class has no cars.
      */
     _renderHeader()
     {
@@ -136,6 +170,7 @@ class ClassificationPanel
 
         this.sessionLabel.textContent = this.session?.name ?? '';
         this.trackLabel.textContent = this.session?.trackName ?? '';
+        this.clockLabel.textContent = this._getClock();
 
         let total = this.standings?.length ?? 0;
         this.countLabel.textContent = `${total} ${total === 1 ? 'entry' : 'entries'}`;
@@ -195,17 +230,19 @@ class ClassificationPanel
      */
     _buildClassSection(className, vehicles, isRace, nextPositions)
     {
-        let rows = [...vehicles].sort((a, b) => this._getClassPosition(a) - this._getClassPosition(b));
+        let rows = [...vehicles].sort((a, b) => this._isOut(a) - this._isOut(b)
+            || this._getClassPosition(a) - this._getClassPosition(b));
+
+        let bestLap = Math.min(...vehicles.filter(v => v.best_lap > 0).map(v => v.best_lap));
+        let fastestLap = Number.isFinite(bestLap) ? `<span class='classification-class-fl'>FL ${HtmlEscape(LaptimeToString(bestLap))}</span>` : '';
 
         let html = `<section class='classification-class ${CSSClassFromVehicleClass(className)}'>
             <header class='classification-class-head'>
                 <div class='classification-class-title'>
-                    <span class='classification-class-marker'></span>
-                    <div>
-                        <h2 class='classification-class-name'>${HtmlEscape(className)}</h2>
-                        <span class='classification-class-sub'>${rows.length} ${rows.length === 1 ? 'car' : 'cars'}</span>
-                    </div>
+                    <h2 class='classification-class-name'>${HtmlEscape(className)}</h2>
+                    <span class='classification-class-sub'>${rows.length} ${rows.length === 1 ? 'car' : 'cars'}</span>
                 </div>
+                ${fastestLap}
             </header>
             <div class='classification-list'>
                 <table class='classification-table'>
@@ -235,12 +272,22 @@ class ClassificationPanel
             let teamLine = team && team !== name ? `<span class='classification-team'>${HtmlEscape(team)}</span>` : '';
             let manufacturer = vehicle.manufacturer?.trim() || 'Default';
 
-            html += `<tr>
+            let isOut = this._isOut(vehicle) === 1;
+            let rowClass = ['classification-row'];
+
+            if (position >= 1 && position <= 3) rowClass.push(`podium-${position}`);
+            if (isOut) rowClass.push('out');
+            else if (vehicle.in_pits) rowClass.push('pit');
+            if (vehicle.focus) rowClass.push('focus');
+            if (vehicle.best_lap > 0 && vehicle.best_lap === bestLap) rowClass.push('fastest');
+            if (delta !== 0) rowClass.push(delta > 0 ? 'moved-up' : 'moved-down');
+
+            html += `<tr class='${rowClass.join(' ')}'>
                 <td>
-                    <span class='classification-position'>${HtmlEscape(position > 0 ? position : '-')}</span>
+                    <span class='classification-position'>${HtmlEscape(position > 0 && !isOut ? position : '-')}</span>
                     <span class='classification-movement ${movementClass}'>${movement}</span>
                 </td>
-                <td><img class='classification-logo' src='../shared/img/brandlogo/${HtmlEscape(manufacturer)}.png' alt=''/></td>
+                <td><img class='classification-logo' src='../shared/img/brandlogo/${HtmlEscape(manufacturer)}.png' alt='' onerror="this.onerror=null;this.src='../shared/img/brandlogo/Default.png'"/></td>
                 <td>
                     <span class='classification-driver'>${HtmlEscape(name)}</span>
                     ${teamLine}
@@ -274,10 +321,12 @@ class ClassificationPanel
         let total = this.standings.length;
         this.countLabel.textContent = `${total} ${total === 1 ? 'entry' : 'entries'}`;
 
+        let rowCount = Math.max(1, ...[...groups.values()].map(v => v.length));
+
         return this.vdom.h('div',
             {
-                className: 'classification-grid',
-                style: `--classification-columns: ${Math.max(1, groups.size)}`,
+                className: rowCount > 14 ? 'classification-grid dense' : 'classification-grid',
+                style: `--classification-columns: ${Math.max(1, groups.size)}; --classification-rows: ${rowCount}`,
                 htmlContent: sections
             });
     }

@@ -180,12 +180,20 @@
     --starting-grid-tick-fade: rgba(255, 255, 255, 0.25);                               /** Far end of the tick gradient, the alpha it fades to at the number */
     --starting-grid-tick-glow: 0 0 12px rgba(255, 255, 255, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
     --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
+    --starting-grid-card-fill: linear-gradient(160deg, #2a2a2e 0%, #1a1a1d 60%, #141416 100%);  /** Card surface, a faint diagonal sheen over the neutral dark */
+    --starting-grid-stripe-width: 5px;                                                  /** Class coloured stripe down the left edge of each card head */
+    --starting-grid-topline-width: 2px;                                                 /** Class coloured line along the top edge of each card */
+    --starting-grid-number-font-size: 2.3em;                                            /** Grid position hanging in the centre gap */
+    --starting-grid-number-skew: -12deg;                                                /** Italic lean of the grid position */
+    --starting-grid-pole-glow: 0 0 22px -2px var(--class-color, rgba(255, 255, 255, 0.5));  /** Glow around the pole slot of each class */
+    --starting-grid-reveal-duration: .45s;                                              /** Slide in time of a card */
+    --starting-grid-reveal-step: 70ms;                                                  /** Delay added per row so the page builds up from pole */
     --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
 
     /** Classification (fullscreen) */
     --classification-font-size: 1.5em;                                                  /** General font size of the panel */
     --classification-scrim-color: rgba(0, 0, 0, 0.20);                                  /** Flat wash over the whole window, the same scrim the starting grid uses */
-    --classification-header-height: 4rem;                                               /** Height of the title bar at the top */
+    --classification-header-height: 5rem;                                               /** Height of the title bar at the top */
     --classification-header-bg: var(--surface-color-strong);                            /** Background of the title bar */
     --classification-panel-bg: var(--surface-color);                                    /** Background of each class column */
     --classification-cell-bg: var(--surface-color-alt);                                 /** Position chip background */

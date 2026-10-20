@@ -1,7 +1,11 @@
 /**
  * Live classification: a fullscreen broadcast panel that groups the field by vehicle class in one
- * column per class. It shares the surface recipe, class colours and typography of the other
+ * card per class. It shares the surface recipe, class colours and typography of the other
  * broadcasting panels, and it takes the whole window while it is on screen.
+ *
+ * Layout: a slim title bar, then one card per class with an angled class banner and one timing
+ * tile per car. Class colour is used for the stripe, the position block and the banner only;
+ * everything else stays neutral, with yellow, red, green and purple reserved for status.
  */
 
 #classification-panel
@@ -14,11 +18,27 @@
     z-index: var(--z-index-classification);
     display: none;
 
-    background: var(--classification-scrim-color);
+    background:
+        repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.018) 0 2px, transparent 2px 7px),
+        linear-gradient(160deg, rgba(8, 10, 15, 0.90), rgba(22, 27, 38, 0.84)),
+        var(--classification-scrim-color);
 
     font-size: var(--classification-font-size);
     color: var(--text-color-primary);
+
+    animation: classification-in .45s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+
+@keyframes classification-in
+{
+    from
+    {
+        opacity: 0;
+        transform: translateY(1.2rem);
+    }
+}
+
+/**********************************************************************************************************************/
 
 #classification-header
 {
@@ -33,10 +53,11 @@
     gap: 1rem;
 
     height: var(--classification-header-height);
-    padding: 0 1.25rem;
+    padding: 0 1.5rem;
 
-    background: var(--classification-header-bg);
-    box-shadow: var(--surface-shadow);
+    background: linear-gradient(90deg, rgba(16, 19, 26, 0.95) 0%, rgba(16, 19, 26, 0.80) 60%, rgba(16, 19, 26, 0.35) 100%);
+    border-bottom: 2px solid var(--progress-bar-color);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
 }
 
 #classification-header .classification-heading
@@ -46,10 +67,17 @@
     gap: 2px;
 
     min-width: 0;
+    padding-left: .9rem;
+
+    border-left: 4px solid var(--progress-bar-color);
 }
 
 #classification-header .classification-eyebrow
 {
+    display: flex;
+    align-items: center;
+    gap: .5em;
+
     color: var(--text-color-secondary);
 
     font-size: .55em;
@@ -58,13 +86,32 @@
     text-transform: uppercase;
 }
 
+#classification-header .classification-eyebrow::before
+{
+    content: '';
+
+    width: .7em;
+    height: .7em;
+
+    border-radius: 50%;
+    background: var(--penalty-color);
+
+    animation: classification-live 1.6s ease-in-out infinite;
+}
+
+@keyframes classification-live
+{
+    50% { opacity: .25; }
+}
+
 #classification-header .classification-title
 {
     margin: 0;
 
-    font-size: 1.3em;
-    font-weight: 700;
-    letter-spacing: .02em;
+    font-size: 1.6em;
+    font-weight: 800;
+    letter-spacing: .04em;
+    line-height: 1.1;
     text-transform: uppercase;
 
     white-space: nowrap;
@@ -76,33 +123,41 @@
 {
     display: flex;
     align-items: center;
-    gap: .75rem;
+    gap: 1rem;
 
     min-width: 0;
 
     color: var(--text-color-secondary);
-    font-size: .7em;
+    font-size: .75em;
     font-variant-numeric: tabular-nums;
 }
 
 #classification-header .classification-session
 {
-    padding: .35rem .7rem;
+    padding: .3rem .8rem;
 
-    border: 1px solid var(--surface-border);
-    background: var(--surface-color-alt);
+    background: var(--progress-bar-color);
+    color: var(--text-color-primary);
 
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: .14em;
     text-transform: uppercase;
     white-space: nowrap;
+}
+
+#classification-header .classification-session:empty,
+#classification-header .classification-clock:empty
+{
+    display: none;
 }
 
 #classification-header .classification-track
 {
     min-width: 0;
 
-    font-weight: 600;
+    color: var(--text-color-primary);
+    font-size: 1.15em;
+    font-weight: 700;
 
     white-space: nowrap;
     overflow: hidden;
@@ -111,6 +166,25 @@
 
 #classification-header .classification-count
 {
+    padding-left: 1rem;
+
+    border-left: 1px solid var(--surface-divider);
+
+    white-space: nowrap;
+}
+
+#classification-header .classification-clock
+{
+    padding-left: 1rem;
+
+    border-left: 1px solid var(--surface-divider);
+
+    color: var(--text-color-primary);
+    font-size: 1.6em;
+    font-weight: 700;
+    letter-spacing: .04em;
+    line-height: 1;
+
     white-space: nowrap;
 }
 
@@ -133,17 +207,15 @@
 {
     display: grid;
     grid-template-columns: repeat(var(--classification-columns, 3), minmax(0, 1fr));
-    gap: 1rem;
+    gap: 1.25rem;
 
     height: 100%;
 }
 
-/**********************************************************************************************************************/
-
 /*
- * One class column. The class colour class supplied by CSSClassFromVehicleClass sets --class-color,
- * which the top rule and the class marker draw with. The id selector keeps the surface fill in
- * charge of the background rather than the shared class colour rule.
+ * One class card. The class colour class supplied by CSSClassFromVehicleClass sets --class-color,
+ * which the banner, the row stripes and the position blocks draw with. The id selector keeps the
+ * surface fill in charge of the background rather than the shared class colour rule.
  */
 #classification-panel .classification-class
 {
@@ -156,50 +228,44 @@
 
     background: var(--classification-panel-bg);
     border: 1px solid var(--surface-border);
-    border-top: 3px solid var(--class-color, var(--starting-grid-accent-color));
     box-shadow: var(--surface-shadow);
 }
+
+/**********************************************************************************************************************/
 
 #classification-panel .classification-class-head
 {
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
     gap: .75rem;
 
     flex: 0 0 auto;
 
-    padding: .7rem .85rem;
-
-    border-bottom: 1px solid var(--surface-divider);
     background: var(--surface-color-strong);
+    border-bottom: 1px solid var(--surface-divider);
 }
 
+/* Angled banner: the class colour block ends in a diagonal cut. */
 #classification-panel .classification-class-title
 {
     display: flex;
-    align-items: center;
-    gap: .6rem;
+    align-items: baseline;
+    gap: .75rem;
 
     min-width: 0;
-}
-
-#classification-panel .classification-class-marker
-{
-    flex: 0 0 auto;
-
-    width: .55rem;
-    height: 1.6rem;
+    padding: .6rem 2.2rem .6rem 1rem;
 
     background: var(--class-color, var(--starting-grid-accent-color));
+    clip-path: polygon(0 0, 100% 0, calc(100% - 1.1rem) 100%, 0 100%);
 }
 
 #classification-panel .classification-class-name
 {
     margin: 0;
 
-    font-size: .95em;
-    font-weight: 700;
+    font-size: 1.15em;
+    font-weight: 800;
     letter-spacing: .1em;
     text-transform: uppercase;
 
@@ -210,14 +276,27 @@
 
 #classification-panel .classification-class-sub
 {
-    display: block;
-    margin-top: 2px;
-
-    color: var(--text-color-secondary);
-    font-size: .55em;
-    font-weight: 600;
-    letter-spacing: .08em;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: .6em;
+    font-weight: 700;
+    letter-spacing: .1em;
     text-transform: uppercase;
+
+    white-space: nowrap;
+}
+
+#classification-panel .classification-class-fl
+{
+    align-self: center;
+    padding-right: 1rem;
+
+    color: var(--timing-purple);
+    font-size: .7em;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: .06em;
+
+    white-space: nowrap;
 }
 
 /**********************************************************************************************************************/
@@ -230,8 +309,7 @@
 
     overflow: auto;
     overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    scrollbar-width: none;
 }
 
 #classification-panel .classification-table
@@ -253,14 +331,15 @@
 
 #classification-panel .classification-table th
 {
-    padding: .5rem .35rem;
+    padding: .45rem .5rem;
 
     background: var(--surface-color-strong);
+    border-bottom: 2px solid var(--class-color, var(--starting-grid-accent-color));
     color: var(--text-color-secondary);
 
-    font-size: .58em;
+    font-size: .6em;
     font-weight: 700;
-    letter-spacing: .12em;
+    letter-spacing: .14em;
     text-align: right;
     text-transform: uppercase;
 
@@ -269,13 +348,13 @@
 
 #classification-panel .classification-table th:nth-child(1)
 {
-    padding-left: .85rem;
+    padding-left: 1rem;
     text-align: left;
 }
 
 #classification-panel .classification-table th:nth-child(2)
 {
-    width: 2.4rem;
+    width: 2.6rem;
     text-align: center;
 }
 
@@ -284,18 +363,33 @@
     text-align: left;
 }
 
+#classification-panel .classification-table th:nth-child(4)
+{
+    width: 3.2em;
+}
+
 #classification-panel .classification-table th:last-child
 {
-    padding-right: .9rem;
+    width: 6.5em;
+    padding-right: 1rem;
+}
+
+/**********************************************************************************************************************/
+
+/* Rows shrink with the number of cars in the largest class so the whole field fits without scrolling. */
+#classification-panel .classification-table tbody tr
+{
+    height: clamp(2.4rem, calc((100vh - var(--classification-header-height) - 12rem) / var(--classification-rows, 10)), 4.6rem);
 }
 
 #classification-panel .classification-table td
 {
-    padding: .45rem .35rem;
+    padding: .2rem .5rem;
 
     border-bottom: 1px solid var(--surface-divider);
 
     text-align: right;
+    vertical-align: middle;
 
     white-space: nowrap;
 }
@@ -305,20 +399,26 @@
     border-bottom: none;
 }
 
-#classification-panel .classification-table tbody tr:hover
+#classification-panel .classification-table tbody tr:nth-child(even)
 {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.035);
+}
+
+/* Drawn on the first cell: row borders are unreliable with border-collapse and dropped on the last row. */
+#classification-panel .classification-table tbody td:first-child
+{
+    box-shadow: inset 3px 0 0 var(--class-color, var(--starting-grid-accent-color));
 }
 
 #classification-panel .classification-table td:nth-child(1)
 {
-    padding-left: .85rem;
+    padding-left: 1rem;
     text-align: left;
 }
 
 #classification-panel .classification-table td:nth-child(2)
 {
-    width: 2.4rem;
+    width: 2.6rem;
     text-align: center;
 }
 
@@ -331,29 +431,38 @@
 
 #classification-panel .classification-table td:last-child
 {
-    padding-right: .9rem;
+    padding-right: 1rem;
 }
 
+/**********************************************************************************************************************/
+
+/* Slanted position block filled with the class colour. */
 #classification-panel .classification-position
 {
     display: inline-grid;
     place-items: center;
 
-    min-width: 1.8em;
-    height: 1.8em;
+    min-width: 2.1em;
+    height: 1.9em;
+    padding: 0 .35em;
 
-    background: var(--classification-cell-bg);
+    background: var(--class-color, var(--starting-grid-accent-color));
+    clip-path: polygon(.5em 0, 100% 0, calc(100% - .5em) 100%, 0 100%);
 
-    font-size: .7em;
-    font-weight: 700;
+    font-size: .9em;
+    font-weight: 800;
 }
 
 #classification-panel .classification-movement
 {
     display: inline-block;
-    margin-left: .25em;
+    margin-left: .35em;
+    padding: .1em .4em;
 
-    font-size: .55em;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.06);
+
+    font-size: .65em;
     font-weight: 700;
 }
 
@@ -374,8 +483,12 @@
 
 #classification-panel .classification-logo
 {
-    height: 1.5em;
+    display: block;
+    width: 1.9em;
+    height: 1.9em;
+    margin: 0 auto;
 
+    object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
 }
 
@@ -383,9 +496,11 @@
 {
     display: block;
 
-    font-size: .8em;
+    font-size: .9em;
     font-weight: 700;
-    line-height: 1.25;
+    letter-spacing: .02em;
+    line-height: 1.2;
+    text-transform: uppercase;
 }
 
 #classification-panel .classification-team
@@ -395,21 +510,178 @@
 
     color: var(--text-color-secondary);
 
-    font-size: .58em;
+    font-size: .65em;
     font-weight: 400;
     line-height: 1.25;
 }
 
 #classification-panel .classification-laps
 {
-    font-size: .7em;
+    font-size: .85em;
     font-weight: 600;
 }
 
+/* Gap pill: neutral for the field, class colour for the leader. */
 #classification-panel .classification-gap
 {
-    font-size: .7em;
+    display: inline-block;
+    min-width: 4.8em;
+    padding: .15em .6em;
+
+    background: rgba(255, 255, 255, 0.08);
+    clip-path: polygon(.35em 0, 100% 0, calc(100% - .35em) 100%, 0 100%);
+
+    font-size: .9em;
+    font-weight: 600;
+    text-align: center;
+}
+
+#classification-panel .classification-table tbody tr:first-child .classification-gap
+{
+    background: var(--class-color, var(--starting-grid-accent-color));
     font-weight: 700;
+}
+
+/**********************************************************************************************************************/
+
+/* Top three: a faint metal tint on the row and a metal edge on the position block. */
+#classification-panel .classification-table tbody tr.podium-1 td { background: rgba(255, 215, 0, 0.09); }
+#classification-panel .classification-table tbody tr.podium-2 td { background: rgba(200, 208, 220, 0.08); }
+#classification-panel .classification-table tbody tr.podium-3 td { background: rgba(205, 127, 50, 0.09); }
+
+#classification-panel .classification-table tbody tr.podium-1 .classification-position { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.65)); }
+#classification-panel .classification-table tbody tr.podium-2 .classification-position { filter: drop-shadow(0 0 5px rgba(200, 208, 220, 0.55)); }
+#classification-panel .classification-table tbody tr.podium-3 .classification-position { filter: drop-shadow(0 0 5px rgba(205, 127, 50, 0.6)); }
+
+/* The car the camera is on: bright outline around the whole tile. */
+#classification-panel .classification-table tbody tr.focus td
+{
+    background: rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #fff;
+}
+
+#classification-panel .classification-table tbody tr.focus td:first-child
+{
+    box-shadow: inset 3px 0 0 var(--class-color, var(--starting-grid-accent-color)), inset 0 1px 0 #fff, inset 0 -1px 0 #fff;
+}
+
+#classification-panel .classification-table tbody tr.focus td:last-child
+{
+    box-shadow: inset -1px 0 0 #fff, inset 0 1px 0 #fff, inset 0 -1px 0 #fff;
+}
+
+/* Class fastest lap. */
+#classification-panel .classification-table tbody tr.fastest .classification-driver::after
+{
+    content: 'FL';
+
+    margin-left: .6em;
+    padding: .05em .4em;
+
+    background: var(--timing-purple);
+    color: var(--text-color-dark);
+
+    font-size: .6em;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+#classification-panel .classification-table tbody tr.pit .classification-gap
+{
+    background: var(--pit-color);
+    color: var(--text-color-dark);
+}
+
+#classification-panel .classification-table tbody tr.out
+{
+    opacity: .5;
+}
+
+#classification-panel .classification-table tbody tr.out .classification-gap
+{
+    background: var(--penalty-color);
+    color: var(--text-color-primary);
+}
+
+#classification-panel .classification-table tbody tr.moved-up
+{
+    animation: classification-flash-up 1.2s ease-out;
+}
+
+#classification-panel .classification-table tbody tr.moved-down
+{
+    animation: classification-flash-down 1.2s ease-out;
+}
+
+@keyframes classification-flash-up
+{
+    from { background: rgba(46, 213, 115, 0.35); }
+}
+
+@keyframes classification-flash-down
+{
+    from { background: rgba(246, 26, 54, 0.35); }
+}
+
+/* Compact mode for large classes: one line per car, so a full field fits without scrolling. */
+#classification-panel .classification-grid.dense .classification-table tbody tr
+{
+    height: auto;
+}
+
+#classification-panel .classification-grid.dense .classification-table td
+{
+    padding-top: 0;
+    padding-bottom: 0;
+
+    line-height: 1.1;
+}
+
+#classification-panel .classification-grid.dense .classification-class-title
+{
+    padding-top: .35rem;
+    padding-bottom: .35rem;
+}
+
+#classification-panel .classification-grid.dense .classification-movement
+{
+    padding: 0 .35em;
+
+    font-size: .5em;
+    line-height: 1.4;
+}
+
+#classification-panel .classification-grid.dense .classification-team
+{
+    display: none;
+}
+
+#classification-panel .classification-grid.dense .classification-driver
+{
+    font-size: .8em;
+}
+
+#classification-panel .classification-grid.dense .classification-position
+{
+    font-size: .5em;
+}
+
+#classification-panel .classification-grid.dense .classification-logo
+{
+    width: 1em;
+    height: 1em;
+}
+
+#classification-panel .classification-grid.dense .classification-laps,
+#classification-panel .classification-grid.dense .classification-gap
+{
+    font-size: .75em;
+}
+
+#classification-panel .classification-grid.dense .classification-gap
+{
+    padding-top: .05em;
+    padding-bottom: .05em;
 }
 
 #classification-panel .classification-empty
