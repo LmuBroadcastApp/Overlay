@@ -41,9 +41,6 @@ class ClassificationPanel
             driver_name: 'short'
         };
 
-        /** Last class position seen per car, used for the gain/loss marker. */
-        this.previousPositions = new Map();
-
         this.vdom = new VirtualDOM();
         this.tree = null;
 
@@ -80,7 +77,6 @@ class ClassificationPanel
             // A fresh showing starts without movement markers from the previous run.
             if (value === 'classification')
             {
-                this.previousPositions.clear();
                 this.counter_standings_test = -1;
             }
         }
@@ -143,10 +139,12 @@ class ClassificationPanel
      */
     _getClock()
     {
-        if (!this.session) return '';
+        if (!this.session)
+        {
+            return '';
+        }
 
         let remaining = Math.max(0, Math.floor(this.session.endEventTime - this.session.currentEventTime));
-
         if (!Number.isFinite(remaining)) return '';
 
         let h = Math.floor(remaining / 3600);
@@ -168,8 +166,8 @@ class ClassificationPanel
     {
         this.headerDirty = false;
 
-        this.sessionLabel.textContent = this.session?.name ?? '';
         this.trackLabel.textContent = this.session?.trackName ?? '';
+        this.sessionLabel.textContent = this.session?.name ?? '';
         this.clockLabel.textContent = this._getClock();
 
         let total = this.standings?.length ?? 0;
@@ -185,6 +183,17 @@ class ClassificationPanel
     _getClassPosition(vehicle)
     {
         return vehicle.race_position_class > 0 ? vehicle.race_position_class : vehicle.race_position;
+    }
+
+    /**
+     * Returns a car's class qualy position, falling back to the overall position when the backend has
+     * not assigned a class position yet.
+     * @param {Object} vehicle Vehicle data.
+     * @returns {number} Class qualy position, zero when neither is available.
+     */
+    _getClassQualyPossition(vehicle)
+    {
+        return vehicle.qualy_position_class > 0 ? vehicle.qualy_position_class : vehicle.qualy_position;
     }
 
     /**
@@ -225,13 +234,11 @@ class ClassificationPanel
      * @param {string} className Vehicle class name.
      * @param {Array<Object>} vehicles Vehicles in that class.
      * @param {boolean} isRace Whether the current session is a race.
-     * @param {Map<number, number>} nextPositions Class positions collected for the next update.
      * @returns {string} Class section markup.
      */
-    _buildClassSection(className, vehicles, isRace, nextPositions)
+    _buildClassSection(className, vehicles, isRace)
     {
-        let rows = [...vehicles].sort((a, b) => this._isOut(a) - this._isOut(b)
-            || this._getClassPosition(a) - this._getClassPosition(b));
+        let rows = [...vehicles].sort((a, b) => this._isOut(a) - this._isOut(b) || this._getClassPosition(a) - this._getClassPosition(b));
 
         let bestLap = Math.min(...vehicles.filter(v => v.best_lap > 0).map(v => v.best_lap));
         let fastestLap = Number.isFinite(bestLap) ? `<span class='classification-class-fl'>FL ${HtmlEscape(LaptimeToString(bestLap))}</span>` : '';
@@ -259,13 +266,9 @@ class ClassificationPanel
 
         for (const vehicle of rows)
         {
+            let qualy = this._getClassQualyPossition(vehicle);
             let position = this._getClassPosition(vehicle);
-            let previous = this.previousPositions.get(vehicle.slot_id);
-            let delta = previous === undefined ? 0 : previous - position;
-            let movementClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
-            let movement = delta > 0 ? `\u25B2${delta}` : delta < 0 ? `\u25BC${Math.abs(delta)}` : '\u2014';
-
-            nextPositions.set(vehicle.slot_id, position);
+            let delta = qualy - position;
 
             let name = VehicleGetName(vehicle, this.controls);
             let team = vehicle.vehicle_name ?? '';
@@ -275,12 +278,26 @@ class ClassificationPanel
             let isOut = this._isOut(vehicle) === 1;
             let rowClass = ['classification-row'];
 
-            if (position >= 1 && position <= 3) rowClass.push(`podium-${position}`);
+            if (position >= 1 && position <= 3)
+            {
+                rowClass.push(`podium-${position}`);
+            }
+
             if (isOut) rowClass.push('out');
             else if (vehicle.in_pits) rowClass.push('pit');
-            if (vehicle.focus) rowClass.push('focus');
-            if (vehicle.best_lap > 0 && vehicle.best_lap === bestLap) rowClass.push('fastest');
-            if (delta !== 0) rowClass.push(delta > 0 ? 'moved-up' : 'moved-down');
+
+            if (vehicle.focus)
+            {
+                rowClass.push('focus');
+            }
+
+            if (vehicle.best_lap > 0 && vehicle.best_lap === bestLap)
+            {
+                rowClass.push('fastest');
+            }
+
+            let movement = delta > 0 ? `\u25B2${delta}` : delta < 0 ? `\u25BC${Math.abs(delta)}` : '\u2014';
+            let movementClass = delta > 0 ? 'up' : delta < 0 ? 'down' : 'same';
 
             html += `<tr class='${rowClass.join(' ')}'>
                 <td>
@@ -306,28 +323,23 @@ class ClassificationPanel
      */
     _buildTree()
     {
-        let groups = GetByClasses(this.standings);
         let isRace = (this.session?.name ?? '').toLowerCase().includes('race');
-        let nextPositions = new Map();
+        let groups = GetByClasses(this.standings);
         let sections = '';
 
         for (const [className, vehicles] of groups)
         {
-            sections += this._buildClassSection(className, vehicles, isRace, nextPositions);
+            sections += this._buildClassSection(className, vehicles, isRace);
         }
 
-        this.previousPositions = nextPositions;
-
-        let total = this.standings.length;
-        this.countLabel.textContent = `${total} ${total === 1 ? 'entry' : 'entries'}`;
-
+        this.countLabel.textContent = `${this.standings.length} ${this.standings.length === 1 ? 'entry' : 'entries'}`;
         let rowCount = Math.max(1, ...[...groups.values()].map(v => v.length));
 
         return this.vdom.h('div',
-            {
-                className: rowCount > 14 ? 'classification-grid dense' : 'classification-grid',
-                style: `--classification-columns: ${Math.max(1, groups.size)}; --classification-rows: ${rowCount}`,
-                htmlContent: sections
-            });
+        {
+            className: rowCount > 14 ? 'classification-grid dense' : 'classification-grid',
+            style: `--classification-columns: ${Math.max(1, groups.size)}; --classification-rows: ${rowCount}`,
+            htmlContent: sections
+        });
     }
 }
