@@ -536,3 +536,39 @@ function IsValidTime(time)
 {
     return time > 0;
 }
+
+/**
+ * Escapes a value for safe interpolation into markup that is handed to innerHTML, so a driver
+ * name or image path taken from the payload can never break out of the element it belongs in.
+ *
+ * @param {*} value Value to escape, null and undefined become an empty string.
+ * @returns {string} Escaped text.
+ */
+function HtmlEscape(value)
+{
+    if (value == null) return "";
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+/**
+ * Splits a driver name into a given name and an upper case surname, the way a Formula 1
+ * style grid stacks them, for example Kamui Kobayashi becomes Kamui and KOBAYASHI.
+ *
+ * @param {string} driver Full driver name.
+ * @returns {{first:string,last:string}} Name parts, both empty when the name is empty.
+ */
+function DriverToNameParts(driver)
+{
+    let parts = (driver ?? "").split(/[\s-]+/).filter(part => part.length > 0);
+
+    if (parts.length === 0) return { first: "", last: "" };
+    if (parts.length === 1) return { first: "", last: parts[0].toUpperCase() };
+
+    return { first: parts.slice(0, -1).join(" "), last: parts[parts.length - 1].toUpperCase() };
+}

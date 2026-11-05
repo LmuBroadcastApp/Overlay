@@ -16,8 +16,13 @@
 {
     width: var(--driver-panel-width);
     border-collapse: separate;
-    border-spacing: 1px 1px;
+
     table-layout: fixed;
+    border-spacing: 0;
+
+    background-color: var(--driver-panel-background-color);
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-blur);
 }
 
 #driver-panel table td
@@ -29,15 +34,10 @@
     overflow: hidden;
 }
 
-#driver-panel tbody
-{
-    background-color: var(--driver-panel-background-color);
-}
-
 #driver-panel .driver-vehicle-position
 {
-    width: 20%;
     background-color: var(--driver-panel-vehicle-position-background-color);
+    width: 20%;
 
     font-size: calc(var(--driver-panel-font-size) + 0.5rem);
     color: var(--text-color-dark);
@@ -150,6 +150,6 @@
 
 #driver-panel tbody tr:nth-child(3) td
 {
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1px solid var(--surface-divider);
     padding-top: 4px;
 }

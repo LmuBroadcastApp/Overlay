@@ -153,6 +153,7 @@ class TowerPanel
             right_column: "energy",
             vehicle_class: "multiclass",
             sector_bars: false,
+            hide_dnf: false,
             extras: []
         };
     }
@@ -535,11 +536,32 @@ class TowerPanel
     }
 
     /**
+     * Returns the standings to render, dropping retired cars when the operator enabled that.
+     * @returns {Array<Object>} Visible standings rows.
+     */
+    _getStandings()
+    {
+        if (!this.controls.hide_dnf)
+        {
+            return this.standings;
+        }
+
+        return this.standings.filter(vehicle => vehicle.status !== "DNF");
+    }
+
+    /**
      * Builds the single-class tower tree.
      * @returns {*} Virtual DOM tree.
      */
     _buildOneClassTree()
     {
+        let standings = GetVehicleOfClass(this._getStandings(), this.controls.vehicle_class);
+
+        if (standings.length === 0)
+        {
+            return this.vdom.h('div');
+        }
+
         let renderInfo =
         {
             extras: this.controls.extras,
@@ -550,7 +572,7 @@ class TowerPanel
             dynamic_entries: this.controls.dynamic_entries,
 
             vehicle_class: this.controls.vehicle_class,
-            standings: GetVehicleOfClass(this.standings, this.controls.vehicle_class)
+            standings: standings
         }
 
         return this._renderOneStandingsClass(renderInfo);
@@ -569,7 +591,7 @@ class TowerPanel
             return this.vdom.h('div', null, tables);
         }
 
-        for (const [c, s] of GetByClasses(this.standings))
+        for (const [c, s] of GetByClasses(this._getStandings()))
         {
             let renderInfo =
             {

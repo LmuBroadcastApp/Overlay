@@ -17,7 +17,8 @@ class StateManager
             standings: null,
             session: null,
             map: null,
-            controls: null
+            controls: null,
+            overlay_exclusive: null
         };
 
         this.observers = [];

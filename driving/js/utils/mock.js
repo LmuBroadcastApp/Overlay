@@ -161,15 +161,17 @@
         const cars = buildStandings();
 
         // Spread the panels so they don't overlap
-        UpdateOverlaySettings(
+        const settings =
         {
             driving_laptime_log:    { enabled: true, position_left: '20%', position_top: '22%' },
-            driving_track_map:      { enabled: true, position_left: '30%', position_top: '50%' },
-            driving_telemetry:      { enabled: true, position_left: '2%',  position_top: '2%'  },
-            driving_weather:        { enabled: true, position_left: '45%', position_top: '2%'  },
-            driving_pitstop:        { enabled: true, position_left: '2%',  position_top: '22%' },
-            driving_damage:         { enabled: true, position_left: '2%',  position_top: '55%' }
-        });
+            driving_track_map:      { enabled: true, position_left: '30%', position_top: '50%', scale: 1 },
+            driving_telemetry:      { enabled: true, position_left: '2%',  position_top: '2%',  scale: 1 },
+            driving_weather:        { enabled: true, position_left: '45%', position_top: '2%',  scale: 1 },
+            driving_pitstop:        { enabled: true, position_left: '2%',  position_top: '22%', scale: 1 },
+            driving_damage:         { enabled: true, position_left: '2%',  position_top: '55%', scale: 1 }
+        };
+        UpdateOverlaySettings(settings);
+        stateManager.setState('overlay_settings', settings);
 
         stateManager.setState('map', map);
         stateManager.setState('standings', cars);

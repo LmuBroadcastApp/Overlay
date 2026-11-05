@@ -15,7 +15,7 @@
 #tower-panel table
 {
     border-collapse: separate;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
     border-spacing: 0;
 }
 
@@ -41,7 +41,7 @@
 
 #tower-panel .color-selected
 {
-    background-image: linear-gradient(to right, rgba(200, 200, 200, 1.0), rgba(0, 0, 0, 0.0));
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.0));
 }
 
 #tower-panel .gain-position
@@ -62,6 +62,9 @@
     font-size: calc(var(--standings-panel-font-size) * 0.90);
     font-weight: var(--standings-panel-font-weight);
 
+    margin-left: 3px;
+    padding: 0 4px;
+
     text-align: center;
     min-width: 30px;
 }
@@ -73,6 +76,9 @@
 
     font-size: calc(var(--standings-panel-font-size) * 0.90);
     font-weight: var(--standings-panel-font-weight);
+
+    margin-left: 3px;
+    padding: 0 4px;
 
     text-align: center;
     min-width: 30px;

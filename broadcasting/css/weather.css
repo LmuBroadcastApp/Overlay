@@ -8,12 +8,16 @@
 
     position: fixed;
     display: flex;
+    gap: 6px;
 }
 
 #weather-panel table
 {
     color: var(--weather-panel-text-color);
     text-align: center;
+
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-blur);
 }
 
 #weather-panel .weather-panel-forecast
@@ -25,7 +29,13 @@
 #weather-panel .weather-panel-conditions
 {
     border-collapse: separate;
-    border-spacing: 2px 0;
+    border-spacing: 0;
+}
+
+#weather-panel .weather-panel-conditions th + th,
+#weather-panel .weather-panel-conditions td + td
+{
+    border-left: 1px solid var(--surface-divider);
 }
 
 #weather-panel table th

@@ -5,24 +5,35 @@
     --text-color-primary: white;                                                        /** Primary text color for panels */
     --text-color-secondary: whitesmoke;                                                 /** Secondary text color (notices, labels) */
     --text-color-dark: black;                                                           /** Text on light/colored backgrounds */
-    --panel-dark-bg: rgba(33, 37, 41, 0.9);                                             /** Reusable dark background for panels and notifications */
+    --panel-dark-bg: rgba(16, 19, 26, 0.85);                                            /** Reusable dark background for panels and notifications */
+
+    /** Surface recipe: tinted translucent fill, hairline edge, soft shadow, light blur (not frosted glass) */
+    --surface-color: rgba(16, 19, 26, 0.68);                                            /** Main panel fill */
+    --surface-color-alt: rgba(16, 19, 26, 0.48);                                        /** Secondary fill (gaps, extra columns, table bodies) */
+    --surface-color-strong: rgba(16, 19, 26, 0.85);                                     /** Headers and emphasized areas */
+    --surface-border: rgba(255, 255, 255, 0.08);                                        /** Hairline edge color */
+    --surface-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 0 0 1px var(--surface-border);
+    --surface-blur: blur(6px);                                                          /** Backdrop blur, kept light on purpose */
+    --surface-divider: rgba(255, 255, 255, 0.10);                                       /** Inner dividers */
 
     --cell-padding-x: 5px;                                                              /** Horizontal padding for table cells */
     --panel-padding: 10px;                                                              /** General panel padding */
 
-    --transition-speed: 0.3s ease;                                                      /** Standard transition for animations */
+    --transition-speed: 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);                            /** Standard transition for animations */
 
     --z-index-gradient: -1;                                                             /** Background gradient layer */
     --z-index-panel: 10;                                                                /** Default panel layer */
     --z-index-notification: 100;                                                        /** Notifications above all panels */
+    --z-index-grid: 200;                                                                /** Fullscreen starting grid above everything else */
+    --z-index-classification: 210;                                                      /** Fullscreen live classification above every other panel */
 
     /** Timing colors (shared across tower, telemetry, driver) */
     --timing-green: #2ed573;                                                            /** Personal best / faster sector */
     --timing-purple: #a29bfe;                                                           /** Overall best sector */
     --timing-yellow: #eccc68;                                                           /** Yellow flag / yellow sector */
     --timing-text-dark: #000;                                                           /** Text on colored timing backgrounds */
-    --timing-bg: #1e1e1e;                                                               /** Default timing background */
-    --timing-bg-inactive: #1a1a1a;                                                      /** Inactive timing cell background */
+    --timing-bg: rgba(255, 255, 255, 0.07);                                             /** Default timing background */
+    --timing-bg-inactive: rgba(255, 255, 255, 0.04);                                    /** Inactive timing cell background */
     --timing-inactive: #444;                                                            /** Inactive timing text color */
 
     /** Telemetry input colors */
@@ -50,8 +61,8 @@
     --standings-panel-font-weight: 600;                                                 /** How bold the font will be seen */
     --standings-panel-font-size: 1em;                                                   /** General font size of the panel */
 
-    --standings-panel-primary-color: rgba(0, 0, 0, 0.6);                                /** Vehicle position, driver/team, number, icon */
-    --standings-panel-secondary-color: rgba(0, 0, 0, 0.4);                              /** Vehicle gap and right column */
+    --standings-panel-primary-color: var(--surface-color);                              /** Vehicle position, driver/team, number, icon */
+    --standings-panel-secondary-color: var(--surface-color-alt);                        /** Vehicle gap and right column */
 
     --standings-panel-gap-less-1-color: rgb(242, 92, 84);                               /** Interval GAP less than 0.5 seconds */
     --standings-panel-gap-less-2-color: rgb(247, 178, 103);                             /** Interval GAP less than   2 seconds */
@@ -83,13 +94,13 @@
     --driver-panel-font-size: 1em;                                                      /** General font size of the panel */
     --driver-panel-position-right: 1.0rem;                                              /** Position from the right of the screen */
     --driver-panel-position-bottom: 1.0rem;                                             /** Position from the bottom of the screen */
-    --driver-panel-background-color: rgba(0, 0, 0, 0.7);                                /** Panel general background */
+    --driver-panel-background-color: var(--surface-color);                              /** Panel general background */
     --driver-panel-vehicle-number-background-color: rgba(255, 255, 255, 0.6);           /** This will be overridden by the vehicle class color */
     --driver-panel-vehicle-position-background-color: rgba(255, 255, 255, 0.6);         /** Vehicle position background */
 
     /** Weather forecast panel */
-    --weather-panel-header-background-color: var(--panel-dark-bg);                      /** Background color for the table header */
-    --weather-panel-body-background-color: rgba(0, 0, 0, 0.4);                          /** Background color for the table body */
+    --weather-panel-header-background-color: var(--surface-color-strong);               /** Background color for the table header */
+    --weather-panel-body-background-color: var(--surface-color-alt);                    /** Background color for the table body */
     --weather-panel-text-color: rgb(240, 240, 240);                                     /** Header and body text color */
     --weather-panel-position-right: 1.0rem;                                             /** Position from the right of the screen */
     --weather-panel-position-top: 1.0rem;                                               /** Position from the top of the screen */
@@ -122,6 +133,72 @@
     --telemetry-gauge-size: 60px;                                                       /** Width and height of the gauges */
     --telemetry-text-scale: calc(var(--telemetry-gauge-size) * 0.35);                   /** */
     --telemetry-unit-scale: calc(var(--telemetry-gauge-size) * 0.15);                   /** */
+
+    /** Starting grid (fullscreen) */
+    --starting-grid-font-size: 1.4rem;                                                  /** General font size of the panel */
+    --starting-grid-entry-width: 512px;                                                 /** Width of one grid slot, 40% of the screen width */
+    --starting-grid-entry-height: 300px;                                                /** Height of one grid slot, grows with the viewport so the vehicle image fits */
+    --starting-grid-number-width: 70px;                                                 /** Width of the number block each slot hangs into the centre gap */
+    --starting-grid-row-gap: 32px;                                                      /** Vertical gap between grid slots */
+    --starting-grid-column-gap: 32px;                                                   /** Horizontal gap between the row gutter and the two columns */
+    --starting-grid-logo-height: 48px;                                                  /** Height of the manufacturer logo */
+    --starting-grid-stagger: 24px;                                                      /** Vertical offset that staggers the two columns */
+    --starting-grid-page-duration: 5s;                                                  /** Seconds each page stays up before the pager turns to the next */
+    --starting-grid-card-color: #1e1e1e;                                                /** Slot background, the neutral dark shared by the timing cells */
+    --starting-grid-accent-color: #555;                                                 /** Fallback accent when a vehicle carries no class colour */
+    --starting-grid-secondary-color: var(--text-color-secondary);                       /** Driver name and team labels, the shared secondary text */
+    --starting-grid-text-color: var(--text-color-primary);                              /** Position and car number, the shared primary text */
+
+    /** Starting grid, card metrics. These scale off the entry height, so a slot resizes in one place. */
+    --starting-grid-head-height: calc(var(--starting-grid-entry-height) * 0.30);        /** Height of the driver head band */
+    --starting-grid-meta-height: calc(var(--starting-grid-entry-height) * 0.12);        /** Height of the meta bar under the vehicle */
+    --starting-grid-number-headroom: 20px;                                              /** Clear space above a card for the car number, drawn outside the card box */
+    --starting-grid-number-lift: 5px;                                                   /** How far the car number hangs above its own row, inside the headroom band */
+    --starting-grid-number-offset: 21px;                                                /** Clear space between the card edge and the number and tick that hang into the centre gap */
+
+    /** Starting grid, header sidebar. */
+    --starting-grid-header-top: 1rem;                                                   /** Clear space above and to the left of the sidebar */
+    --starting-grid-header-gap: 1rem;                                                   /** Gap between the sidebar and the grid column */
+    --starting-grid-header-width: 300px;                                                /** Width of the full-height circuit and weather sidebar */
+    --starting-grid-header-padding: 14px 22px;                                          /** Padding inside the header */
+    --starting-grid-header-icon-size: 30px;                                             /** Forecast icon size */
+
+    /** Starting grid, pager. The page indicator mirrors the header at the bottom of the panel. */
+    --starting-grid-pager-bottom: 1rem;                                                 /** Clear space under the pager, down to the screen bottom */
+    --starting-grid-pager-height: 32px;                                                 /** Height of the pager band */
+
+    /** Starting grid, surface recipe, shared by every glass surface in the panel. */
+    --starting-grid-scrim-color: rgba(0, 0, 0, 0.20);                                   /** Flat wash over the whole window, no gradient, so the feed is dimmed evenly */
+    --starting-grid-glass-blur: 18px;                                                    /** Backdrop blur radius, unused while the card and header fills stay opaque */
+    --starting-grid-glass-shadow: inset 0 0 0 1px var(--starting-grid-divider-color);    /** Crisp surface edge; an exterior shadow would form visible bands between header, body and pager */
+    --starting-grid-row-label-fill: rgba(0, 0, 0, 0.55);                                /** Backing chip behind each row label */
+    --starting-grid-row-label-blur: 10px;                                               /** Backdrop blur on the row label, the one surface translucent enough to show it */
+    --starting-grid-meta-fill: rgba(0, 0, 0, 0.72);                                     /** Fill of the meta bar under the vehicle */
+
+    /** Starting grid, accents and dividers. */
+    --starting-grid-tick-color: var(--text-color-primary);                              /** Tick that leaves each card towards the centre gap, and the active pager dot. Neutral, because yellow means a yellow flag on the other panels */
+    --starting-grid-tick-fade: rgba(255, 255, 255, 0.25);                               /** Far end of the tick gradient, the alpha it fades to at the number */
+    --starting-grid-tick-glow: 0 0 12px rgba(255, 255, 255, 0.35);                      /** Glow around the tick, so it reads over a bright feed */
+    --starting-grid-divider-color: rgba(255, 255, 255, 0.10);                           /** Hairline between the head and the car area, and the row label edge */
+    --starting-grid-card-fill: linear-gradient(160deg, #2a2a2e 0%, #1a1a1d 60%, #141416 100%);  /** Card surface, a faint diagonal sheen over the neutral dark */
+    --starting-grid-stripe-width: 5px;                                                  /** Class coloured stripe down the left edge of each card head */
+    --starting-grid-topline-width: 2px;                                                 /** Class coloured line along the top edge of each card */
+    --starting-grid-number-font-size: 2.3em;                                            /** Grid position hanging in the centre gap */
+    --starting-grid-number-skew: -12deg;                                                /** Italic lean of the grid position */
+    --starting-grid-pole-glow: 0 0 22px -2px var(--class-color, rgba(255, 255, 255, 0.5));  /** Glow around the pole slot of each class */
+    --starting-grid-reveal-duration: .45s;                                              /** Slide in time of a card */
+    --starting-grid-reveal-step: 70ms;                                                  /** Delay added per row so the page builds up from pole */
+    --starting-grid-panel-width: calc(2 * var(--starting-grid-entry-width) + 3 * var(--starting-grid-column-gap) + 2 * (var(--starting-grid-number-offset) + var(--starting-grid-number-width)));
+
+    /** Classification (fullscreen) */
+    --classification-font-size: 1.5em;                                                  /** General font size of the panel */
+    --classification-scrim-color: rgba(0, 0, 0, 0.20);                                  /** Flat wash over the whole window, the same scrim the starting grid uses */
+    --classification-header-height: 5rem;                                               /** Height of the title bar at the top */
+    --classification-header-bg: var(--surface-color-strong);                            /** Background of the title bar */
+    --classification-panel-bg: var(--surface-color);                                    /** Background of each class column */
+    --classification-cell-bg: var(--surface-color-alt);                                 /** Position chip background */
+    --classification-gain-color: var(--timing-green);                                   /** Position gained since the previous update */
+    --classification-lost-color: var(--penalty-color);                                  /** Position lost since the previous update */
 }
 
 /**********************************************************************************************************************/
@@ -148,14 +225,13 @@ body
 
 #gradient-background
 {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.0));
     z-index: var(--z-index-gradient);
     top: 0; left: 0;
 
-    width: 40%;
-    height: 100%;
-
     position: absolute;
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.0));
+    height: 100%;
+    width: 40%;
 }
 
 /**********************************************************************************************************************/
@@ -178,47 +254,76 @@ body
 
 /**********************************************************************************************************************/
 
+.penalty-style
+{
+    background-color: var(--penalty-color);
+    color: var(--text-color-secondary);
+
+    font-size: calc(var(--standings-panel-font-size));
+    font-weight: var(--standings-panel-font-weight);
+}
+
+.vehicle-in-pits
+{
+    background-color: var(--pit-color);
+    color: var(--text-color-dark);
+
+    font-size: calc(var(--standings-panel-font-size));
+    font-weight: var(--standings-panel-font-weight);
+}
+
+/**********************************************************************************************************************/
+
 .GT3
 {
-    background-color: rgba(0, 143, 55, 1.0);
+    --class-color: rgba(0, 143, 55, 1.0);
+    background-color: var(--class-color);
 }
 
 .GTE
 {
-    background-color: rgba(240, 140, 0, 1.0);
+    --class-color: rgba(240, 140, 0, 1.0);
+    background-color: var(--class-color);
 }
 
 .P2
 {
-    background-color: rgba(6, 75, 145, 1.0);
+    --class-color: rgba(6, 75, 145, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP2
 {
-    background-color: rgba(6, 75, 145, 1.0);
+    --class-color: rgba(6, 75, 145, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP3
 {
-    background-color: rgba(58, 25, 74, 1.0);
+    --class-color: rgba(58, 25, 74, 1.0);
+    background-color: var(--class-color);
 }
 
 .Hyper
 {
-    background-color: rgba(171, 24, 20, 1.0);
+    --class-color: rgba(171, 24, 20, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMDh
 {
-    background-color: rgba(171, 171, 171, 1.0);
+    --class-color: rgba(171, 171, 171, 1.0);
+    background-color: var(--class-color);
 }
 
 .LMP2_ELMS
 {
-    background-color: rgba(190, 74, 9, 1.0);
+    --class-color: rgba(190, 74, 9, 1.0);
+    background-color: var(--class-color);
 }
 
 .generic-class
 {
-    background-color: rgba(79, 93, 117, 1.0);
+    --class-color: rgba(79, 93, 117, 1.0);
+    background-color: var(--class-color);
 }

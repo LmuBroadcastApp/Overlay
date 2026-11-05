@@ -28,7 +28,9 @@ class WorldMapPanel
         this.standings = this.stateManager.getState('standings');
         this.session = this.stateManager.getState('session');
         this.map = this.stateManager.getState('map');
+
         this.splineOffset = null;
+        this.scale = 1;
     }
 
     /**
@@ -51,6 +53,10 @@ class WorldMapPanel
         {
             this.map = value;
             this.splineOffset = null; // track changed, offset must be recomputed
+        }
+        else if (key === 'overlay_settings')
+        {
+            this.scale = value.driving_track_map.scale ?? 1;
         }
     }
 
@@ -89,21 +95,29 @@ class WorldMapPanel
 
         // Crisp rendering on high-DPI displays
         const dpr = window.devicePixelRatio || 1;
-        const w = this.map.size.width;
-        const h = this.map.size.height;
+        const scale = this.scale;
+
+        // source_size is the unscaled bounding box; size additionally carries the
+        // backend track map scale, which this panel's own slider should not compound with
+        const src = this.map.source_size ?? this.map.size;
+
+        const w = src.width  * scale;
+        const h = src.height * scale;
 
         if (canvas.width !== w * dpr || canvas.height !== h * dpr)
         {
-            canvas.width = w * dpr;
-            canvas.height = h * dpr;
-            canvas.style.width = w + 'px';
             canvas.style.height = h + 'px';
+            canvas.style.width = w + 'px';
+
+            canvas.height = h * dpr;
+            canvas.width = w * dpr;
+
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
         }
 
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
         ctx.clearRect(0, 0, w, h);
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
 
         const colors = this._palette();
 
@@ -206,8 +220,46 @@ class WorldMapPanel
     {
         if (!points || points.length < 2) return;
 
-        this._tracePath(ctx, points, false);
-        this._stroke(ctx, 2, colors.pit, [3, 3]);
+        // The game packs the pit lane as multiple separate lanes concatenated in
+        // one array, so trace each continuous segment on its own to avoid drawing
+        // a false connector line across the infield.
+        for (const segment of this._splitOnGaps(points, 30))
+        {
+            if (segment.length < 2) continue;
+            this._tracePath(ctx, segment, false);
+            this._stroke(ctx, 2, colors.pit, [3, 3]);
+        }
+    }
+
+    /**
+     * Splits a point list wherever two consecutive points are farther apart than
+     * maxGap. Used to separate the multiple pit-lane paths packed into one array.
+     *
+     * @param {Array<Object>} points Ordered points.
+     * @param {number} maxGap Maximum allowed distance between consecutive points.
+     * @returns {Array<Array<Object>>} Continuous point segments.
+     */
+    _splitOnGaps(points, maxGap)
+    {
+        const segments = [];
+        let current = [points[0]];
+
+        for (let i = 1; i < points.length; ++i)
+        {
+            const dx = points[i].x - points[i - 1].x;
+            const dy = points[i].y - points[i - 1].y;
+
+            if (Math.hypot(dx, dy) > maxGap)
+            {
+                segments.push(current);
+                current = [];
+            }
+
+            current.push(points[i]);
+        }
+
+        segments.push(current);
+        return segments;
     }
 
     /**

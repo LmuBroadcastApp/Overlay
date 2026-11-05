@@ -79,6 +79,22 @@ class CircularQueue
 
         return result;
     }
+
+    /**
+     * Copies the queue contents into a caller-provided array (avoids per-frame allocation).
+     * The target array must have at least as many slots as the queue has items.
+     * @param {Array<*>} target Destination array.
+     * @returns {Array<*>} The target array, for chaining.
+     */
+    copyTo(target)
+    {
+        for (let i = 0; i < this.count; i++)
+        {
+            target[i] = this.buffer[(this.head + i) % this.capacity];
+        }
+
+        return target;
+    }
 }
 
 /**
@@ -107,6 +123,20 @@ class TelemetryChart
 
         this.queueCapacity = 512;
         this.lineWidth = 2;
+        this.scale = 1;
+
+        // reused per-frame scratch buffer for chart traces
+        this.chartBuffer = new Array(this.queueCapacity);
+
+        // cached style/dpr values and redraw bookkeeping
+        this._frameCount = 0;
+        this._dirty = false;
+
+        this._cssHeight = undefined;
+        this._cssWidth = undefined;
+
+        this._scale = undefined;
+        this._dpr = undefined;
 
         this.canvas = document.getElementById(selector.slice(1));
         this.ctx = this.canvas.getContext('2d');
@@ -146,6 +176,12 @@ class TelemetryChart
             this.steering.enqueue((this.vehicle.telemetry.steering + 1) * 0.5);
             this.throttle.enqueue(this.vehicle.telemetry.throttle);
             this.brake.enqueue(this.vehicle.telemetry.brake);
+
+            this._dirty = true;
+        }
+        else if (key === 'overlay_settings')
+        {
+            this.scale = value.driving_telemetry.scale;
         }
     }
 
@@ -154,41 +190,73 @@ class TelemetryChart
      */
     update()
     {
-        const style = getComputedStyle(document.documentElement);
-        const cssHeight = parseInt(style.getPropertyValue('--telemetry-input-chart-height'));
-        const cssWidth = parseInt(style.getPropertyValue('--telemetry-input-chart-width'));
+        const dpr = window.devicePixelRatio || 1;
+        const scale = this.scale;
 
-        // Only resize when needed: resizing clears the canvas and resets context state
-        if (this.canvas.height !== cssHeight || this.canvas.width !== cssWidth)
+        // Cache chart CSS size/dpr; only re-read when scale or dpr change, the buffer
+        // falls out of sync, or once a second as a safety net for external CSS changes.
+        if (this._dpr !== dpr || this._scale !== scale || this._cssWidth === undefined || ++this._frameCount % 60 === 0 || this.canvas.width !== Math.round(this._cssWidth * this._dpr) || this.canvas.height !== Math.round(this._cssHeight * this._dpr))
         {
-            this.canvas.height = cssHeight;
-            this.canvas.width = cssWidth;
+            const style = getComputedStyle(document.documentElement);
 
-            this.ctx.lineCap = 'round';
-            this.ctx.lineJoin = 'round';
+            this._cssHeight = parseInt(style.getPropertyValue('--telemetry-input-chart-height')) * scale;
+            this._cssWidth = parseInt(style.getPropertyValue('--telemetry-input-chart-width')) * scale;
+
+            this._scale = scale;
+            this._dpr = dpr;
         }
 
-        let { width, height } = this.canvas;
-        this.ctx.clearRect(0, 0, width, height);
+        const cssHeight = this._cssHeight;
+        const cssWidth = this._cssWidth;
 
-        if (this.vehicle == null)
+        const pixelHeight = Math.round(cssHeight * dpr);
+        const pixelWidth = Math.round(cssWidth * dpr);
+
+        // Only resize when needed: resizing clears the canvas and resets context state
+        if (this.canvas.height !== pixelHeight || this.canvas.width !== pixelWidth)
+        {
+            this.canvas.height = pixelHeight;
+            this.canvas.width = pixelWidth;
+
+            this.canvas.style.height = cssHeight + 'px';
+            this.canvas.style.width = cssWidth + 'px';
+
+            this._dirty = true;
+        }
+
+        // Skip redraw while nothing changed (no new sample and no resize).
+        if (this.vehicle == null || !this._dirty)
         {
             return;
         }
 
+        this._dirty = false;
+
+        let width = cssWidth;
+        let height = cssHeight;
+
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.ctx.clearRect(0, 0, width, height);
+
         // padding
         const pad = 0;
-        height -= pad * 2;
-        let drawY = pad;
+        const shiftLightHeight = 12 * scale;
+        height -= pad * 2 + shiftLightHeight;
+        let drawY = pad + shiftLightHeight;
+
+        // Full-width shift lights keep the RPM signal visible across the entire panel.
+        this._drawShiftLightBar(width * 0.5, pad, width, scale);
 
         // steering wheel (right side)
         {
-            const gaugeRadius = 15;
+            // Keep a compact outer margin while allowing the steering dial to use
+            // more of the available telemetry height.
+            const gaugeRadius = 1;
             const r = (height - gaugeRadius * 2) * 0.5 - this.lineWidth;
             const cx = width - r - gaugeRadius - pad - 4;
-            const cy = drawY + r + gaugeRadius + 4;
+            const cy = drawY + height * 0.5 - 2 * scale;
 
-            this._drawSteering(cx, cy, r, (this.vehicle.telemetry.steering + 1) * 0.5);
+            this._drawSteering(cx, cy, r, (this.vehicle.telemetry.steering + 1) * 0.5, scale);
             width -= (r * 2 + gaugeRadius * 2 + pad + 12);
         }
 
@@ -210,9 +278,14 @@ class TelemetryChart
 
             this._drawGrid(chartX, drawY, chartW, height);
 
-            this._drawLine(this.steering.toArray(), this.colors.steering.line, this.colors.steering.fill, chartX, drawY, chartW, height);
-            this._drawLine(this.brake.toArray(), this.colors.brake.line, this.colors.brake.fill, chartX, drawY, chartW, height);
-            this._drawLine(this.throttle.toArray(), this.colors.throttle.line, this.colors.throttle.fill, chartX, drawY, chartW, height);
+            this.steering.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.steering.line, this.colors.steering.fill, chartX, drawY, chartW, height);
+
+            this.brake.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.brake.line, this.colors.brake.fill, chartX, drawY, chartW, height);
+
+            this.throttle.copyTo(this.chartBuffer);
+            this._drawLine(this.chartBuffer, this.colors.throttle.line, this.colors.throttle.fill, chartX, drawY, chartW, height);
         }
     }
 
@@ -242,96 +315,61 @@ class TelemetryChart
     }
 
     /**
-     * Draws the outer RPM arc around the steering widget.
-     * @param {number} x Gauge center X coordinate.
-     * @param {number} y Gauge center Y coordinate.
-     * @param {number} radius Gauge radius.
+     * Draws a continuous shift-light bar above the steering widget.
+     * The bar fills with RPM (as a fraction of max RPM) and colors shift from
+     * green (0-75%) through yellow-to-red (75-90%) and red-to-blue (90-100%).
+     * @param {number} x Bar center X coordinate.
+     * @param {number} y Bar top coordinate.
+     * @param {number} width Shift-light bar width.
+     * @param {number} scale UI scale factor applied to dimensions.
      */
-    _drawRpmGauge(x, y, radius)
+    _drawShiftLightBar(x, y, width, scale)
     {
-        if (this.vehicle.telemetry.max_rpm <= 0) return;
+        const maxRpm = this.vehicle.telemetry.max_rpm;
+        if (maxRpm <= 0) return;
+
+        const ratio = Math.min(Math.max(this.vehicle.telemetry.rpm / maxRpm, 0), 1);
+
+        const barHeight = 8 * scale;
+        const radius = 3 * scale;
+        const barX = x - width * 0.5;
+
         this.ctx.save();
 
-        const rpmRatio = Math.min(this.vehicle.telemetry.rpm / this.vehicle.telemetry.max_rpm, 1);
-        const startAngle = Math.PI * 0.75;
-        const endAngle = Math.PI * 0.25;
-        const totalSweep = (2 * Math.PI) - (startAngle - endAngle);
-        const segments = 60;
-
-        // background arc
+        // background track
         this.ctx.beginPath();
-        this.ctx.arc(x, y, radius, startAngle, 2 * Math.PI + endAngle);
-        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-        this.ctx.lineWidth = 5;
-        this.ctx.stroke();
+        this.ctx.roundRect(barX, y, width, barHeight, radius);
+        this.ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        this.ctx.fill();
 
-        // colored segments up to current RPM
-        const filledSweep = totalSweep * rpmRatio;
-        const segmentSweep = totalSweep / segments;
-        const filledSegments = Math.floor(filledSweep / segmentSweep);
-
-        for (let i = 0; i < filledSegments; i++)
+        if (ratio <= 0)
         {
-            const t = i / segments;
-            const segStart = startAngle + i * segmentSweep;
-            const segEnd = segStart + segmentSweep + 0.005;
-
-            let r = 255;
-            let g = 255;
-            let b = 0;
-
-            if (t < 0.6)
-            {
-                // green to yellow
-                const lt = t / 0.6;
-                r = Math.round(81 + (255 - 81) * lt);
-                g = Math.round(207 + (212 - 207) * lt);
-                b = Math.round(102 + (59 - 102) * lt);
-            }
-            else
-            {
-                // yellow to red
-                const lt = (t - 0.6) / 0.4;
-                g = Math.round(212 - 105 * lt);
-                b = Math.round(59 - 59 * lt);
-            }
-
-            this.ctx.beginPath();
-            this.ctx.arc(x, y, radius, segStart, segEnd);
-            this.ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-            this.ctx.lineCap = 'round';
-            this.ctx.lineWidth = 5;
-            this.ctx.stroke();
+            this.ctx.restore();
+            return;
         }
 
-        // glow on leading edge
-        if (filledSegments > 0)
-        {
-            const glowT = filledSegments / segments;
-            let gr = 255, gg = 255, gb = 0;
+        // color zones across the full bar: green -> yellow -> red -> blue
+        const gradient = this.ctx.createLinearGradient(barX, 0, barX + width, 0);
+        gradient.addColorStop(0.0, '#51cf66')
+        gradient.addColorStop(0.7, '#51cf66');
+        gradient.addColorStop(0.8, '#ffd43b');
+        gradient.addColorStop(0.9, '#ff6b6b');
+        gradient.addColorStop(1.0, '#339af0');
 
-            if (glowT < 0.6)
-            {
-                const lt = glowT / 0.6;
-                gr = Math.round(81 + (255 - 81) * lt);
-                gg = Math.round(207 + (212 - 207) * lt);
-                gb = Math.round(102 + (59 - 102) * lt);
-            }
-            else
-            {
-                gg = Math.round(212 - 105 * ((glowT - 0.6) / 0.4));
-                gb = Math.round(59 - 59 * ((glowT - 0.6) / 0.4));
-            }
+        const fillWidth = width * ratio;
 
-            const glowAngle = startAngle + filledSweep;
-            const gx = x + Math.cos(glowAngle) * radius;
-            const gy = y + Math.sin(glowAngle) * radius;
+        // soft glow behind the filled portion
+        this.ctx.globalAlpha = 0.3;
+        this.ctx.beginPath();
+        this.ctx.roundRect(barX - 2, y - 2, fillWidth + 4, barHeight + 4, radius + 2);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fill();
 
-            this.ctx.beginPath();
-            this.ctx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, 0.4)`;
-            this.ctx.arc(gx, gy, 6, 0, Math.PI * 2);
-            this.ctx.fill();
-        }
+        this.ctx.globalAlpha = 1;
+        this.ctx.beginPath();
+        this.ctx.roundRect(barX, y, fillWidth, barHeight, radius);
+        this.ctx.fillStyle = gradient;
+        this.ctx.fill();
 
         this.ctx.restore();
     }
@@ -342,14 +380,12 @@ class TelemetryChart
      * @param {number} y Widget center Y coordinate.
      * @param {number} radius Steering ring radius.
      * @param {number} value Normalized steering value in the [0, 1] range.
+     * @param {number} scale UI scale factor applied to text sizes.
      */
-    _drawSteering(x, y, radius, value)
+    _drawSteering(x, y, radius, value, scale = 1)
     {
         value = value * 2 - 1;
         this.ctx.save();
-
-        // RPM gauge — outermost ring
-        this._drawRpmGauge(x, y, radius + 10);
 
         // outer ring — subtle glow
         this.ctx.beginPath();
@@ -370,12 +406,6 @@ class TelemetryChart
         const indicatorX = x + Math.sin(angle) * radius;
         const indicatorY = y - Math.cos(angle) * radius;
 
-        // glow
-        this.ctx.beginPath();
-        this.ctx.fillStyle = 'rgba(110, 231, 255, 0.3)';
-        this.ctx.arc(indicatorX, indicatorY, 8, 0, Math.PI * 2);
-        this.ctx.fill();
-
         // dot
         this.ctx.beginPath();
         this.ctx.fillStyle = '#6ee7ff';
@@ -384,22 +414,22 @@ class TelemetryChart
 
         // speed
         const kmh = this.vehicle.telemetry.speed.toFixed(0);
-        this.ctx.font = 'bold 20px Titillium Web, sans-serif';
+        this.ctx.font = `bold ${25 * scale}px Titillium Web, sans-serif`;
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(kmh, x, y - 10);
+        this.ctx.fillText(kmh, x, y - 12 * scale);
 
         // "km/h" label
-        this.ctx.font = '9px Titillium Web, sans-serif';
+        this.ctx.font = `${12 * scale}px Titillium Web, sans-serif`;
         this.ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-        this.ctx.fillText('km/h', x, y + 4);
+        this.ctx.fillText('km/h', x, y + 5 * scale);
 
         // gear
         const gear = this.vehicle.telemetry.gear;
-        this.ctx.font = 'bold 14px Titillium Web, sans-serif';
-        this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#6ee7ff';
-        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 20);
+        this.ctx.font = `bold ${24 * scale}px Titillium Web, sans-serif`;
+        this.ctx.fillStyle = gear < 0 ? '#ff6b6b' : gear == 0 ? '#ffffff' : '#71e2d0';
+        this.ctx.fillText(gear < 0 ? 'R' : gear == 0 ? 'N' : gear, x, y + 25 * scale);
 
         this.ctx.restore();
     }
@@ -431,16 +461,24 @@ class TelemetryChart
         {
             const fy = y + (h - filled);
 
-            // glow behind bar
-            this.ctx.shadowColor = glowColor;
-            this.ctx.shadowBlur = 10;
+            // fake glow: stacked translucent fills (cheaper than shadowBlur)
+            this.ctx.beginPath();
+            this.ctx.roundRect(x - 3, fy, w + 6, filled, radius);
+            this.ctx.fillStyle = glowColor;
+            this.ctx.globalAlpha = 0.2;
+            this.ctx.fill();
+
+            this.ctx.beginPath();
+            this.ctx.roundRect(x - 1, fy, w + 2, filled, radius);
+            this.ctx.globalAlpha = 0.35;
+            this.ctx.fill();
+
+            this.ctx.globalAlpha = 1;
 
             this.ctx.beginPath();
             this.ctx.roundRect(x, fy, w, filled, radius);
             this.ctx.fillStyle = color;
             this.ctx.fill();
-
-            this.ctx.shadowBlur = 0;
 
             // bright top cap
             this.ctx.beginPath();

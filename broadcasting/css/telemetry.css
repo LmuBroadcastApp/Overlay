@@ -1,7 +1,10 @@
 #telemetry-panel
 {
-    padding-left: var(--cell-padding-x); padding-right: var(--cell-padding-x);
-    background-color: rgba(0, 0, 0, 0.7);
+    padding: 0 var(--panel-padding);
+    background-color: var(--driver-panel-background-color);
+
+    box-shadow: var(--surface-shadow);
+    backdrop-filter: var(--surface-blur);
 
     flex-direction: row;
     display: flex;
@@ -67,16 +70,23 @@
     opacity: 0.7;
 }
 
-/* RPM LABEL */
+/* RPM LABEL: the gear is the dominant element of the gauge cluster. */
 #telemetry-panel .rpm-label
 {
-    font-size: var(--telemetry-text-scale);
+    font-size: calc(var(--telemetry-gauge-size) * 0.45);
     transform: translate(-50%, -45%);
     font-weight: bold;
 
     position: absolute;
     left: 50%;
     top: 50%;
+
+    transition: color 0.1s linear;
+}
+
+#telemetry-panel .rpm-label.redline
+{
+    color: var(--brake-color);
 }
 
 #telemetry-panel .rpm-bottom
@@ -98,14 +108,45 @@
     width: calc(var(--telemetry-gauge-size) * 2 + var(--panel-padding) * 2);
     flex-direction: column;
     display: flex;
-    gap: 6px;
+    gap: 4px;
+}
+
+/** Labeled input row: T/B letter, fill bar, live percentage. */
+#telemetry-panel .input-row
+{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#telemetry-panel .input-label
+{
+    width: 0.7em;
+
+    font-size: calc(var(--telemetry-gauge-size) * 0.16);
+    font-weight: 700;
+    line-height: 1;
+    opacity: 0.7;
+}
+
+#telemetry-panel .input-value
+{
+    width: 2.2em;
+
+    font-size: calc(var(--telemetry-gauge-size) * 0.16);
+    font-weight: 600;
+    line-height: 1;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.9;
 }
 
 #telemetry-panel .bar
 {
-    height: calc(var(--telemetry-gauge-size) * 0.04);
-    background: rgba(255,255,255,0.1);
-    border-radius: 6px;
+    flex: 1 1 0;
+    height: calc(var(--telemetry-gauge-size) * 0.10);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
     overflow: hidden;
 }
 
@@ -204,6 +245,87 @@
     width: 25px;
 }
 
+/** Focused driver name between the LAST and BEST rows, aligned with the time values. */
+#timing-tower .driver-name-row
+{
+    padding-left: calc(25px + 6px);
+}
+
+/** Zero width + min-width 100% fills the row without widening the section, so long names ellipsize. */
+#timing-tower .telemetry-driver-name
+{
+    width: 0;
+    min-width: 100%;
+
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    color: #aaa;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+/** Live lap delta and remaining energy/fuel, one label/value row each, aligned with the LAST/BEST rows. */
+#timing-tower .delta-section
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    height: 100%;
+    padding: 2px var(--panel-padding);
+
+    border-left: 1px solid rgba(255, 255, 255, 0.10);
+    border-right: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+#timing-tower .delta-row
+{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#timing-tower .delta-label
+{
+    width: 32px;
+    text-align: right;
+
+    color: #888;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#timing-tower .delta-value
+{
+    min-width: 68px;
+    padding: 0 6px;
+
+    background: var(--timing-bg);
+    color: #bbb;
+
+    font-family: monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+#timing-tower .delta-value.gaining
+{
+    background-color: var(--timing-green);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .delta-value.losing
+{
+    background-color: var(--brake-color);
+    color: var(--text-color-primary);
+}
+
 #timing-tower .sectors-section
 {
     flex-direction: row;
@@ -212,6 +334,7 @@
     display: flex;
     gap: 12px;
 
+    margin-left: var(--panel-padding);
     padding: 2px 0;
     height: 100%;
 }
@@ -237,8 +360,7 @@
     padding: 0 4px;
 
     line-height: 1.5;
-    min-width: 48px;
-
+    min-width: 52px;
 }
 
 #timing-tower .sector-time.inactive
@@ -312,10 +434,10 @@
     font-family: monospace;
     font-size: 0.85rem;
 
-    min-width: 44px;
-    padding: 0 3px;
+    min-width: 52px;
+    padding: 0 4px;
 
-    line-height: 1.4;
+    line-height: 1.5;
     color: #bbb;
 }
 
@@ -339,8 +461,6 @@
     justify-content: center;
     align-items: center;
 
-    transition: opacity var(--transition-speed), transform var(--transition-speed);
-    cursor: pointer;
     min-width: 40px;
 }
 
@@ -384,6 +504,25 @@
     color: #3498db;
 }
 
+/** Mixed compounds: 2x2 grid of colored dots (FL FR / RL RR), matching the standings tower. */
+#timing-tower .tyre-icon.mixed
+{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    place-items: center;
+    gap: 1px;
+
+    border-color: transparent;
+}
+
+/** CSS-drawn dots: the font glyph has uneven side bearings and looked off-center. */
+#timing-tower .tyre-icon.mixed .tyre-dot
+{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
 #timing-tower .tyre-age
 {
     font-size: 1.0rem;
@@ -391,15 +530,48 @@
     margin-top: 2px;
 }
 
-#timing-tower .tyre-box:hover
-{
-    opacity: 0.8;
-    transform: scale(0.95);
-}
-
 #timing-tower .sector-divider
 {
     color: var(--timing-inactive);
     font-size: 0.6rem;
     line-height: 1;
+}
+
+/** Remaining virtual energy (%) or fuel (L) of the focused car, on the row below the delta. */
+#timing-tower .energy-label
+{
+    width: 32px;
+    text-align: right;
+
+    color: #888;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+#timing-tower .energy-value
+{
+    min-width: 68px;
+    padding: 0 6px;
+
+    background: var(--timing-bg);
+    color: var(--text-color-primary);
+
+    font-family: monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+#timing-tower .energy-value.low
+{
+    background-color: var(--timing-yellow);
+    color: var(--timing-text-dark);
+}
+
+#timing-tower .energy-value.critical
+{
+    background-color: var(--brake-color);
+    color: var(--text-color-primary);
 }

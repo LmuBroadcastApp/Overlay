@@ -44,26 +44,36 @@ function ApplyPanelVisibility()
  */
 function UpdateOverlaySettings(settings)
 {
+    // enable / disable panels based on the persisted settings
+    g_PanelEnabled.pitstop   = settings.driving_pitstop?.enabled   ?? g_PanelEnabled.pitstop;
+    g_PanelEnabled.telemetry = settings.driving_telemetry?.enabled ?? g_PanelEnabled.telemetry;
+    g_PanelEnabled.weather   = settings.driving_weather?.enabled   ?? g_PanelEnabled.weather;
+    g_PanelEnabled.damage    = settings.driving_damage?.enabled    ?? g_PanelEnabled.damage;
+    g_PanelEnabled.trackMap  = settings.driving_track_map?.enabled ?? g_PanelEnabled.trackMap;
+
     const root = document.documentElement;
     ApplyPanelVisibility();
 
     // pit stop estimation panel
     root.style.setProperty('--pit-stop-estimation-left', settings.driving_pitstop.position_left);
     root.style.setProperty('--pit-stop-estimation-top', settings.driving_pitstop.position_top);
+    root.style.setProperty('--pit-stop-estimation-scale', settings.driving_pitstop.scale ?? 1);
 
-    // input telemetry panel
+    // input telemetry panel (scaled through the panel's own this.scale)
     root.style.setProperty('--telemetry-input-chart-left', settings.driving_telemetry.position_left);
     root.style.setProperty('--telemetry-input-chart-top', settings.driving_telemetry.position_top);
 
     // weather forecast panel
     root.style.setProperty('--weather-forecast-left', settings.driving_weather.position_left);
     root.style.setProperty('--weather-forecast-top', settings.driving_weather.position_top);
+    root.style.setProperty('--weather-forecast-scale', settings.driving_weather.scale ?? 1);
 
     // damage panel
     root.style.setProperty('--damage-left', settings.driving_damage.position_left);
     root.style.setProperty('--damage-top', settings.driving_damage.position_top);
+    root.style.setProperty('--damage-scale', settings.driving_damage.scale ?? 1);
 
-    // track map panel
+    // track map panel (scaled through the panel's own this.scale)
     root.style.setProperty('--track-map-left', settings.driving_track_map.position_left);
     root.style.setProperty('--track-map-top', settings.driving_track_map.position_top);
 
@@ -136,7 +146,7 @@ panelRegistry.register('PitStopEstimation', PitStopEstimation, '#pit-stop-estima
 panelRegistry.register('TelemetryChart', TelemetryChart, '#telemetry-input-chart');
 panelRegistry.register('WorldMap', WorldMapPanel, '#track-map-panel');
 panelRegistry.register('Weather', WeatherPanel, '#weather-panel');
-panelRegistry.register('LaptimeLog', LaptimeLog, '#laptime-log');
+//panelRegistry.register('LaptimeLog', LaptimeLog, '#laptime-log');
 panelRegistry.register('Damage', DamagePanel, '#damage-panel');
 
 // Make panels draggable

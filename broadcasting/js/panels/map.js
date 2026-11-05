@@ -196,8 +196,46 @@ class TrackMapPanel
     {
         if (!points || points.length < 2) return;
 
-        this._tracePath(ctx, points, false);
-        this._stroke(ctx, 2, colors.pit, [3, 3]);
+        // The game packs the pit lane as multiple separate lanes concatenated in
+        // one array, so trace each continuous segment on its own to avoid drawing
+        // a false connector line across the infield.
+        for (const segment of this._splitOnGaps(points, 30))
+        {
+            if (segment.length < 2) continue;
+            this._tracePath(ctx, segment, false);
+            this._stroke(ctx, 2, colors.pit, [3, 3]);
+        }
+    }
+
+    /**
+     * Splits a point list wherever two consecutive points are farther apart than
+     * maxGap. Used to separate the multiple pit-lane paths packed into one array.
+     *
+     * @param {Array<Object>} points Ordered points.
+     * @param {number} maxGap Maximum allowed distance between consecutive points.
+     * @returns {Array<Array<Object>>} Continuous point segments.
+     */
+    _splitOnGaps(points, maxGap)
+    {
+        const segments = [];
+        let current = [points[0]];
+
+        for (let i = 1; i < points.length; ++i)
+        {
+            const dx = points[i].x - points[i - 1].x;
+            const dy = points[i].y - points[i - 1].y;
+
+            if (Math.hypot(dx, dy) > maxGap)
+            {
+                segments.push(current);
+                current = [];
+            }
+
+            current.push(points[i]);
+        }
+
+        segments.push(current);
+        return segments;
     }
 
     /**

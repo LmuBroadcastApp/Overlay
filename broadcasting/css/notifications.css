@@ -85,6 +85,9 @@
 {
     color: var(--text-color-secondary);
     width: 100%;
+
+    overflow: hidden;
+    box-shadow: var(--surface-shadow);
 }
 
 #notification-container .header

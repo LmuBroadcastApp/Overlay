@@ -51,6 +51,7 @@ class DamagePanel
         }
 
         this._setValue('.damage-panel-susp', this.vehicle.damage_suspension);
+        this._setValue('.damage-panel-brakes', this.vehicle.damage_brakes);
         this._setValue('.damage-panel-aero', this.vehicle.damage_aero);
         this._setValue('.damage-panel-body', this.vehicle.damage);
     }

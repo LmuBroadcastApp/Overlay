@@ -129,7 +129,23 @@
                 race_winner: true, track_limits: false, possible_fast_lap: false,
                 duration_sec: 5, impact_threshold: 500
             },
-            telemetry: { enabled: true, gauge_size: '60px' }
+            telemetry: { enabled: true, gauge_size: '60px' },
+            grid:
+            {
+                enabled: true,
+                font_size: '1.4em',
+                entry_width: '512px',
+                entry_height: '300px',
+                number_width: '70px',
+                row_gap: '32px',
+                column_gap: '32px',
+                logo_height: '48px',
+                stagger: '24px',
+                card_color: '#1e1e1e',
+                accent_color: '#555',
+                secondary_color: 'whitesmoke',
+                text_color: 'white'
+            }
         };
     }
 
@@ -148,11 +164,16 @@
             overlay_animation_speed: 0,
             gap_mode: 'leader',
             name_source: 'driver',
-            driver_name: 'short',
+            driver_name: 'full',
             vehicle_class: 'multiclass',
             sector_bars: true,
-            show_telemetry: true,
+            hide_dnf: false,
+            focus_panel: new URLSearchParams(window.location.search).get('panel') || 'driver',
             show_last_pitstop: true,
+            show_starting_grid: window.location.search.includes('grid') && !window.location.search.includes('classification'),
+            show_current_classification: window.location.search.includes('classification'),
+            grid_page_duration_sec: window.location.search.includes('allgrid') ? 0 : 5,
+            grid_page_rows: Number(new URLSearchParams(window.location.search).get('rows')) || 3,
             extras: { energy_fuel: true, best_lap: true, last_lap: true, tires: true, pos_gain_lost: true }
         };
     }
@@ -265,7 +286,7 @@
 
             pit_stops: cfg.pit_stops || 0,
             pitstops: cfg.pitstops || [],
-            penalties: { drive_through: 0, stop_and_go: 0, time_penalty: cfg.time_penalty || 0 },
+            penalties: { drive_through: cfg.drive_through || 0, stop_and_go: cfg.stop_and_go || 0, time_penalty: cfg.time_penalty || 0 },
             impact: { et: 0, points: 0 },
             cut_points: 0,
             damage: cfg.damage || 0,
@@ -296,27 +317,123 @@
     }
 
     /**
-     * Creates the mock multi-class field shown in preview mode.
+     * Extra mock entries per class, so the preview reaches a full 62 car field.
+     * Each entry is [driver, team, manufacturer].
+     */
+    const EXTRA_ENTRIES =
+    {
+        Hyper:
+        {
+            lapTime: 93.6,
+            cars:
+            [
+                ['Marc Leclerc', 'Peugeot TotalEnergies', 'Peugeot'], ['Jonas Weber', 'Alpine Endurance Team', 'Alpine'],
+                ['Luca Moretti', 'Lamborghini Iron Lynx', 'Lamborghini'], ['Ben Hartley', 'BMW M Team WRT', 'BMW'],
+                ['Yuki Tanaka', 'Toyota Gazoo Racing', 'Toyota'], ['Pierre Dubois', 'Peugeot TotalEnergies', 'Peugeot'],
+                ['Sam Whitaker', 'Cadillac Hertz Team Jota', 'Cadillac'], ['Nico Brandt', 'Porsche Penske Motorsport', 'Porsche'],
+                ['Diego Alvarez', 'Ferrari AF Corse', 'Ferrari'], ['Tom Jensen', 'Aston Martin THOR Team', 'Aston Martin'],
+                ['Hugo Marchand', 'Glickenhaus Racing', 'Glickenhaus'], ['Aleks Petrov', 'Vanwall Vandoorne Racing', 'Vanwall'],
+                ['Ryan Collins', 'Isotta Fraschini', 'Isotta Fraschini'], ['Matteo Rossi', 'Ferrari AF Corse', 'Ferrari']
+            ]
+        },
+        LMP2:
+        {
+            lapTime: 98.6,
+            cars:
+            [
+                ['Remy Laurent', 'Vector Sport', 'Oreca'], ['Josh Palmer', 'Algarve Pro Racing', 'Oreca'],
+                ['Felix Neumann', 'Prema Racing', 'Oreca'], ['Carlos Mendes', 'Nielsen Racing', 'Oreca'],
+                ['Oscar Lindqvist', 'Duqueine Team', 'Duqueine'], ['Theo Garnier', 'Ligier Racing', 'Ligier'],
+                ['Will Stevens', 'Inter Europol', 'Oreca'], ['Andre Costa', 'Cool Racing', 'Oreca'],
+                ['Lukas Novak', 'AO by TF', 'Oreca'], ['Ivan Sokolov', 'Panis Racing', 'Oreca'],
+                ['Henri Girard', 'Duqueine Team', 'Duqueine'], ['Dan Mitchell', 'Ultimate', 'Oreca'],
+                ['Enzo Bianchi', 'Prema Racing', 'Oreca'], ['Kai Svensson', 'Ligier Racing', 'Ligier']
+            ]
+        },
+        GT3:
+        {
+            lapTime: 106.2,
+            cars:
+            [
+                ['Mick Bauer', 'Manthey EMA', 'Porsche'], ['Alex Fernandes', 'Iron Lynx', 'Lamborghini'],
+                ['Paul Harris', 'Heart of Racing', 'Aston Martin'], ['Jean Morel', 'Akkodis ASP Team', 'Lexus'],
+                ['Stefan Keller', 'Walkenhorst Motorsport', 'BMW'], ['Rob Davies', 'TF Sport', 'Corvette'],
+                ['Marco Ricci', 'Vista AF Corse', 'Ferrari'], ['Leo Fischer', 'Mercedes-AMG Team GetSpeed', 'Mercedes-AMG'],
+                ['Chris Nolan', 'Ford Multimatic', 'Ford'], ['Dario Vega', 'Iron Dames', 'Porsche'],
+                ['Eli Brooks', 'United Autosports', 'McLaren'], ['Tim Aldridge', 'Heart of Racing', 'Aston Martin'],
+                ['Gabriel Silva', 'Akkodis ASP Team', 'Lexus'], ['Ole Berg', 'Walkenhorst Motorsport', 'BMW'],
+                ['Anton Ivanov', 'Iron Lynx', 'Lamborghini'], ['Phil Grant', 'TF Sport', 'Corvette'],
+                ['Sven Ahlgren', 'Mercedes-AMG Team GetSpeed', 'Mercedes-AMG'], ['Raul Ortega', 'Vista AF Corse', 'Ferrari'],
+                ['Jack Turner', 'Ford Multimatic', 'Ford'], ['Kris Dvorak', 'Manthey EMA', 'Porsche'],
+                ['Jim Callahan', 'United Autosports', 'McLaren'], ['Adrian Popescu', 'Iron Dames', 'Porsche']
+            ]
+        }
+    };
+
+    /** Mock cars that are out of the race, by slot id. */
+    const RETIRED_SLOTS = { 20: 'DNF', 25: 'DQ', 33: 'DNF', 44: 'DNF', 52: 'DQ', 58: 'DNF' };
+
+    /**
+     * Creates the mock multi-class field shown in preview mode: 12 hand-tuned cars plus the generated
+     * extras, 62 in total.
      *
      * @returns {Array<Object>} Mock standings rows.
      */
     function buildField()
     {
+        const field = buildBaseField();
+        let slot = field.length + 1;
+
+        for (const [vehicle_class, group] of Object.entries(EXTRA_ENTRIES))
+        {
+            const taken = field.filter(c => c.vehicle_class === vehicle_class).length;
+
+            group.cars.forEach(([driver, team, manufacturer], i) =>
+            {
+                field.push(makeCar({
+                    slot_id: slot++,
+                    number: String(10 + slot * 3 % 90),
+                    driver, team, manufacturer, vehicle_class,
+                    lapTime: group.lapTime + i * 0.17,
+                    spline: (0.97 - slot * 0.0373 + 1) % 1,
+                    qualy_position_class: taken + i + 1,
+                    ve: 20 + (slot * 7) % 70,
+                    fuel: 10 + (slot * 5) % 45,
+                    damage: slot % 5 === 0 ? (slot % 13) : 0
+                }));
+            });
+        }
+
+        for (const [slotId, status] of Object.entries(RETIRED_SLOTS))
+        {
+            field.find(car => car.slot_id === Number(slotId)).status = status;
+        }
+
+        return field;
+    }
+
+    /**
+     * Builds the 12 hand-tuned cars the preview started with.
+     *
+     * @returns {Array<Object>} Mock standings rows.
+     */
+    function buildBaseField()
+    {
         return [
-            makeCar({ slot_id:  1, number: '7',  driver: 'Kamui Kobayashi',   team: 'Toyota Gazoo Racing',    vehicle_class: 'Hyper', manufacturer: 'Toyota',   lapTime: 92.1, spline: 0.62, qualy_position_class: 2, ve: 68, damage:  0.0, tires: ['Medium', 'Medium', 'Medium', 'Medium'] }),
-            makeCar({ slot_id:  2, number: '6',  driver: 'Kevin Estre',       team: 'Porsche Penske Motorsport', vehicle_class: 'Hyper', manufacturer: 'Porsche', lapTime: 92.4, spline: 0.58, qualy_position_class: 1, ve: 55, damage:  2.1, pit_stops: 1, pitstops: [{ session: 'RACE', lap: 8, pit_lane_time: 52.4 }] }),
-            makeCar({ slot_id:  3, number: '50', driver: 'Antonio Fuoco',     team: 'Ferrari AF Corse',       vehicle_class: 'Hyper', manufacturer: 'Ferrari',  lapTime: 92.8, spline: 0.51, qualy_position_class: 3, ve: 41, damage:  8.5, time_penalty: 5, warning: true }),
-            makeCar({ slot_id:  4, number: '2',  driver: 'Earl Bamber',       team: 'Cadillac Racing',        vehicle_class: 'Hyper', manufacturer: 'Cadillac', lapTime: 93.2, spline: 0.44, qualy_position_class: 4, ve: 23, damage:  0.0 }),
+            makeCar({ slot_id:  1, number: '7',  driver: 'Kamui Kobayashi',     team: 'Toyota Gazoo Racing',        vehicle_class: 'Hyper', manufacturer: 'Toyota',     lapTime: 92.1, spline: 0.62, qualy_position_class: 2, ve: 68, damage:  0.0, tires: ['Medium', 'Medium', 'Medium', 'Medium'] }),
+            makeCar({ slot_id:  2, number: '6',  driver: 'Kevin Estre',         team: 'Porsche Penske Motorsport',  vehicle_class: 'Hyper', manufacturer: 'Porsche',    lapTime: 92.4, spline: 0.58, qualy_position_class: 1, ve: 55, damage:  2.1, pit_stops: 1, pitstops: [{ session: 'RACE', lap: 8, pit_lane_time: 52.4 }] }),
+            makeCar({ slot_id:  3, number: '50', driver: 'Antonio Fuoco',       team: 'Ferrari AF Corse',           vehicle_class: 'Hyper', manufacturer: 'Ferrari',    lapTime: 92.8, spline: 0.51, qualy_position_class: 3, ve: 41, damage:  8.5, time_penalty: 5, warning: true }),
+            makeCar({ slot_id:  4, number: '2',  driver: 'Earl Bamber',         team: 'Cadillac Racing',            vehicle_class: 'Hyper', manufacturer: 'Cadillac',   lapTime: 93.2, spline: 0.44, qualy_position_class: 4, ve: 23, damage:  0.0 }),
 
-            makeCar({ slot_id:  5, number: '22', driver: 'Filipe Albuquerque', team: 'United Autosports',     vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.0, spline: 0.31, qualy_position_class: 1, fuel: 48, damage:  0.0 }),
-            makeCar({ slot_id:  6, number: '28', driver: 'Oliver Rasmussen',  team: 'IDEC Sport',             vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.4, spline: 0.28, qualy_position_class: 3, fuel: 27, damage:  4.2 }),
-            makeCar({ slot_id:  7, number: '9',  driver: 'Mathias Beche',     team: 'Proton Competition',     vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.7, spline: 0.22, qualy_position_class: 2, fuel:  8, damage:  0.0 }),
-            makeCar({ slot_id:  8, number: '35', driver: 'Paul-Loup Chatin',  team: 'Alpine Endurance Team',  vehicle_class: 'LMP2', manufacturer: 'Alpine',   lapTime: 98.1, spline: 0.15, qualy_position_class: 4, fuel: 52, damage: 12.3, in_pits: true }),
+            makeCar({ slot_id:  5, number: '22', driver: 'Filipe Albuquerque',  team: 'United Autosports',          vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.0, spline: 0.31, qualy_position_class: 1, fuel: 48, damage:  0.0 }),
+            makeCar({ slot_id:  6, number: '28', driver: 'Oliver Rasmussen',    team: 'IDEC Sport',                 vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.4, spline: 0.28, qualy_position_class: 3, fuel: 27, damage:  4.2 }),
+            makeCar({ slot_id:  7, number: '9',  driver: 'Mathias Beche',       team: 'Proton Competition',         vehicle_class: 'LMP2', manufacturer: 'Oreca',    lapTime: 97.7, spline: 0.22, qualy_position_class: 2, fuel:  8, damage:  0.0 }),
+            makeCar({ slot_id:  8, number: '35', driver: 'Paul-Loup Chatin',    team: 'Alpine Endurance Team',      vehicle_class: 'LMP2', manufacturer: 'Alpine',   lapTime: 98.1, spline: 0.15, qualy_position_class: 4, fuel: 52, damage: 12.3, in_pits: true, drive_through: 1, stop_and_go: 1 }),
 
-            makeCar({ slot_id:  9, number: '92', driver: 'Michael Christensen', team: 'Manthey EMA',          vehicle_class: 'GT3', manufacturer: 'Porsche',  lapTime: 105.0, spline: 0.080, qualy_position_class: 2, ve: 61, damage: 0.0, focus: true }),
-            makeCar({ slot_id: 10, number: '81', driver: 'Charlie Eastwood',  team: 'TF Sport',               vehicle_class: 'GT3', manufacturer: 'Corvette', lapTime: 105.2, spline: 0.086, qualy_position_class: 1, ve: 44, damage: 1.5 }),
-            makeCar({ slot_id: 11, number: '59', driver: 'James Cottingham',  team: 'United Autosports',      vehicle_class: 'GT3', manufacturer: 'McLaren',  lapTime: 105.5, spline: 0.072, qualy_position_class: 4, ve: 29, damage: 0.0, tires: ['Soft', 'Soft', 'Medium', 'Medium'] }),
-            makeCar({ slot_id: 12, number: '87', driver: 'Jose Maria Lopez',  team: 'Akkodis ASP Team',       vehicle_class: 'GT3', manufacturer: 'Lexus',    lapTime: 105.9, spline: 0.030, qualy_position_class: 3, ve: 74, damage: 0.0 })
+            makeCar({ slot_id:  9, number: '92', driver: 'Michael Christensen', team: 'Manthey EMA',                vehicle_class: 'GT3', manufacturer: 'Porsche',  lapTime: 105.0, spline: 0.080, qualy_position_class: 2, ve: 61, damage: 0.0, drive_through: 1, focus: true }),
+            makeCar({ slot_id: 10, number: '81', driver: 'Charlie Eastwood',    team: 'TF Sport',                   vehicle_class: 'GT3', manufacturer: 'Corvette', lapTime: 105.2, spline: 0.086, qualy_position_class: 1, ve: 44, damage: 1.5 }),
+            makeCar({ slot_id: 11, number: '59', driver: 'James Cottingham',    team: 'United Autosports',          vehicle_class: 'GT3', manufacturer: 'McLaren',  lapTime: 105.5, spline: 0.072, qualy_position_class: 4, ve: 29, damage: 0.0, tires: ['Soft', 'Soft', 'Medium', 'Medium'] }),
+            makeCar({ slot_id: 12, number: '87', driver: 'Jose Maria Lopez',    team: 'Akkodis ASP Team',           vehicle_class: 'GT3', manufacturer: 'Lexus',    lapTime: 105.9, spline: 0.030, qualy_position_class: 3, ve: 74, damage: 0.0 })
         ];
     }
 
@@ -328,8 +445,11 @@
         let eventTime = 1800;
         let t = 0;
 
+        const controls = mockControls();
+
+        stateManager.setState('overlay_controls', controls);
+        SetGridPagerTiming(document.documentElement, controls);
         UpdateOverlaySettings(mockOverlaySettings());
-        stateManager.setState('overlay_controls', mockControls());
         stateManager.setState('overlay_settings', mockOverlaySettings());
         stateManager.setState('session', mockSession(eventTime));
         stateManager.setState('map', map);
@@ -346,7 +466,7 @@
 
             for (const car of cars)
             {
-                if (car.in_pits) continue;
+                if (car.in_pits || car.status === 'DNF' || car.status === 'DQ') continue;
 
                 /** Advance along the track with a little pace noise */
                 const dt = 0.1 * (1 + (Math.random() - 0.5) * 0.06);

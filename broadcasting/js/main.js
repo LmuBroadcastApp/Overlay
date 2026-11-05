@@ -16,30 +16,104 @@ let g_PanelEnabled =
     replay: true,
     relative: true,
     telemetry: true,
-    notifications: true
+    notifications: true,
+    grid: true
 };
 
 /**
- * Applies the current enabled/disabled panel visibility state, also honoring replay mode.
- *
- * @param {boolean} replayActive Whether replay mode is currently active.
+ * Shows or hides the matched elements, animated with the speed the operator set on the overlay.
+ * Defined once at load time rather than rebuilt on every visibility pass.
  */
-function ApplyPanelVisibility(replayActive)
+$.fn.showIf = function(condition)
 {
     let speed = stateManager.getState('overlay_controls')?.overlay_animation_speed;
     speed = isNaN(speed) ? 0 : speed * 1000;
 
-    let show = !replayActive;
-    $.fn.showIf = function(condition) { return condition ? this.show(speed) : this.hide(speed); };
+    return condition ? this.show(speed) : this.hide(speed);
+};
+
+/** @brief Like showIf, but keeps the flex layout of the notification stack intact. */
+$.fn.visibleIf = function(condition)
+{
+    return condition ? this.css('visibility', 'visible') : this.css('visibility', 'hidden');
+};
+
+/**
+ * Publishes which overlay currently owns the whole window, if any.
+ *
+ * Panels that manage their own visibility subscribe to the 'overlay_exclusive' state key so
+ * they can step aside for the fullscreen overlays.
+ *
+ * @param {?(string)} name Exclusive overlay name ('replay' or 'grid'), or null when none is active.
+ */
+function SetExclusiveOverlay(name)
+{
+    stateManager.setState('overlay_exclusive', name);
+}
+
+/**
+ * Resolves which of the focused-car panels (driver info table, telemetry) should be visible.
+ *
+ * `overlay_controls.focus_panel` ('driver', 'telemetry' or 'both') decides which of them are shown.
+ * Older backends that do not send it keep the previous behaviour: driver info only.
+ *
+ * @param {Object} controls Overlay controls payload.
+ * @returns {{driver: boolean, telemetry: boolean}} Visibility of each focused-car panel.
+ */
+function GetFocusPanels(controls)
+{
+    let mode = controls?.focus_panel?.toLowerCase?.();
+
+    if (mode === 'both')
+    {
+        return { driver: true, telemetry: true };
+    }
+    if (mode === 'driver' || mode === 'telemetry')
+    {
+        return { driver: mode === 'driver', telemetry: mode === 'telemetry' };
+    }
+
+    return { driver: true, telemetry: false };
+}
+
+/**
+ * Applies the current enabled/disabled panel visibility state, also honoring the fullscreen overlays.
+ *
+ * The starting grid and the live classification are exclusive: while either is active it takes the
+ * whole window and every other overlay is hidden. Classification takes priority when both are on.
+ * Replay keeps its own dedicated banner instead.
+ */
+function ApplyPanelVisibility()
+{
+    let controls = stateManager.getState('overlay_controls');
+    let classification = controls?.show_current_classification === true && !g_ReplayActive;
+    let grid = controls?.show_starting_grid === true
+        && g_PanelEnabled.grid
+        && !g_ReplayActive
+        && !classification;
+    let show = !g_ReplayActive && !grid && !classification;
+
+    let focus = GetFocusPanels(controls);
+    let showDriverInfo = focus.driver && g_PanelEnabled.driver;
+    let showTelemetry = focus.telemetry && g_PanelEnabled.telemetry;
 
     $("#tower-panel").showIf(show && g_PanelEnabled.standings);
     $("#battle-panel").showIf(show && g_PanelEnabled.relative);
     $("#session-panel").showIf(show && g_PanelEnabled.session);
     $("#weather-panel").showIf(show && g_PanelEnabled.weather);
     $("#track-map-panel").showIf(show && g_PanelEnabled.map);
-    $("#telemetry-panel").showIf(show && g_PanelEnabled.telemetry);
-    $("#driver-panel").showIf(show && g_PanelEnabled.driver);
-    $("#replay-banner").showIf(!show && g_PanelEnabled.replay);
+
+    $("#driver-panel").showIf(show && (showDriverInfo || showTelemetry));
+    $("#telemetry-panel").showIf(showTelemetry);
+    $("#driver-info").showIf(showDriverInfo);
+
+    $("#notification-container").visibleIf(show && g_PanelEnabled.notifications);
+    $("#gradient-background").showIf(!grid && !classification);
+    $("#replay-banner").showIf(g_ReplayActive && g_PanelEnabled.replay);
+    $("#starting-grid-panel").showIf(grid);
+    $("#classification-panel").showIf(classification);
+
+    SetExclusiveOverlay(g_ReplayActive ? 'replay' : (classification ? 'classification' : (grid ? 'grid' : null)));
 }
 
 /**
@@ -55,7 +129,38 @@ function ToggleOverlayByReplay(stateManager)
     if (g_ReplayActive == active) return;
     g_ReplayActive = active;
 
-    ApplyPanelVisibility(active);
+    ApplyPanelVisibility();
+}
+
+/**
+ * Applies a starting grid setting to a CSS variable, leaving the stylesheet default in place
+ * when the backend does not send the value, so an older settings payload cannot blank the
+ * grid layout by writing an invalid length.
+ *
+ * @param {CSSStyleDeclaration} root Document root element style.
+ * @param {string} name CSS custom property name.
+ * @param {*} value Value received from the backend, or undefined when it is absent.
+ */
+function SetGridStyleVariable(root, name, value)
+{
+    if (value === undefined || value === null || value === "") return;
+
+    root.style.setProperty(name, value);
+}
+
+/**
+ * Applies the starting grid pager timing the operator set in the overlay controls: the number of
+ * seconds each page stays up. A duration of zero turns the pager off and leaves the grid on page
+ * one.
+ *
+ * @param {CSSStyleDeclaration} root Document root element style.
+ * @param {Object} controls Overlay controls payload.
+ */
+function SetGridPagerTiming(root, controls)
+{
+    let duration = controls?.grid_page_duration_sec;
+
+    if (Number.isFinite(duration)) root.style.setProperty('--starting-grid-page-duration', `${duration}s`);
 }
 
 /**
@@ -66,7 +171,6 @@ function ToggleOverlayByReplay(stateManager)
 function UpdateOverlaySettings(settings)
 {
     const root = document.documentElement;
-    console.log(settings);
 
     // standings panel
     g_PanelEnabled.standings = settings.standings?.enabled !== false;
@@ -153,7 +257,22 @@ function UpdateOverlaySettings(settings)
     g_PanelEnabled.telemetry = settings.telemetry?.enabled !== false;
     root.style.setProperty('--telemetry-gauge-size', settings.telemetry.gauge_size);
 
-    ApplyPanelVisibility(g_ReplayActive);
+    // starting grid
+    g_PanelEnabled.grid = settings.grid?.enabled !== false;
+    SetGridStyleVariable(root, '--starting-grid-font-size', settings.grid?.font_size);
+    SetGridStyleVariable(root, '--starting-grid-entry-width', settings.grid?.entry_width);
+    SetGridStyleVariable(root, '--starting-grid-entry-height', settings.grid?.entry_height);
+    SetGridStyleVariable(root, '--starting-grid-number-width', settings.grid?.number_width);
+    SetGridStyleVariable(root, '--starting-grid-row-gap', settings.grid?.row_gap);
+    SetGridStyleVariable(root, '--starting-grid-column-gap', settings.grid?.column_gap);
+    SetGridStyleVariable(root, '--starting-grid-logo-height', settings.grid?.logo_height);
+    SetGridStyleVariable(root, '--starting-grid-stagger', settings.grid?.stagger);
+    SetGridStyleVariable(root, '--starting-grid-card-color', settings.grid?.card_color);
+    SetGridStyleVariable(root, '--starting-grid-accent-color', settings.grid?.accent_color);
+    SetGridStyleVariable(root, '--starting-grid-secondary-color', settings.grid?.secondary_color);
+    SetGridStyleVariable(root, '--starting-grid-text-color', settings.grid?.text_color);
+
+    ApplyPanelVisibility();
 }
 
 /**
@@ -178,6 +297,8 @@ const callBacks =
     onOverlayControlsUpdate: (data) =>
     {
         stateManager.setState('overlay_controls', data);
+        SetGridPagerTiming(document.documentElement, data);
+        ApplyPanelVisibility();
     },
     onOverlaySettingsUpdate: (data) =>
     {
@@ -202,6 +323,8 @@ panelRegistry.register('map', TrackMapPanel, '#track-map-panel');
 panelRegistry.register('session', SessionPanel, '#session-panel');
 panelRegistry.register('weather', WeatherPanel, '#weather-panel');
 panelRegistry.register('telemetry', TelemetryPanel, '#telemetry-panel');
+panelRegistry.register('grid', StartingGridPanel, '#starting-grid-panel');
+panelRegistry.register('classification', ClassificationPanel, '#classification-panel');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -311,6 +434,10 @@ window.addEventListener('load', () =>
 
     panelRegistry.createAll(stateManager, notifier);
     RegisterDraggablePanels();
+
+    // Apply the visibility once up front so panels do not stay on screen until the
+    // first settings or controls push arrives.
+    ApplyPanelVisibility();
 
     // In mock mode (index.html?mock) the data is generated locally, no websocket needed
     if (!window.MOCK_MODE)
